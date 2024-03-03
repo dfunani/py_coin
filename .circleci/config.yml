@@ -15,27 +15,18 @@ jobs:
       - run:
           name: Install Dependencies
           command: pip install -r requirements.txt
-
-  Pylint:
-    steps:
       - run:
           name: Run Linitng
           command: pylint .
-
-  Mypy:
-    steps:
       - run:
           name: Run Mypy
           command: mypy .
-
-  Pytest:
-    steps:
       - run:
-          name: Run tests
-          command: pytest
+              name: Run tests
+              command: pytest
 
 workflows:
-  sample:
+  py_coin:
     jobs:
       - Setup
       - Pylint
