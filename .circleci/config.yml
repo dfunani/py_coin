@@ -35,7 +35,7 @@ jobs:
           command: pytest
 
 workflows:
-  sample: py_coin
+  sample:
     jobs:
       - Setup
       - Pylint
