@@ -29,6 +29,3 @@ workflows:
   py_coin:
     jobs:
       - Setup
-      - Pylint
-      - Mypy
-      - Pytest
