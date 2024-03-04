@@ -1,0 +1,217 @@
+---
+openapi: 3.0.0
+info:
+  title: Block Chain Implementation
+  description: My own implementation of the block chain logics
+  contact:
+    name: Delali Funani
+    email: dfunani@live.co.za
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: 1.0.0
+servers:
+- url: https://virtserver.swaggerhub.com/DelaliFunani/Block-Chain/1.0.0
+  description: SwaggerHub API Auto Mocking
+tags:
+- name: admins
+  description: Secured Admin-only calls
+- name: developers
+  description: Operations available to regular developers
+- name: traders
+  description: "Public Users of the API Services, ie Create Tranactions or Contracts to add to block chain"
+- name: applications
+  description: For internal use by Applications
+paths:
+  /users/item/id:
+    get:
+      summary: Get User Data for given ID
+      responses:
+        "200":
+          description: Success response
+  /transactions/item/id:
+    get:
+      summary: Get Transaction Data for given ID
+      responses:
+        "200":
+          description: Success response
+  /contracts/item/id:
+    get:
+      summary: Get Contract Data for given ID
+      responses:
+        "200":
+          description: Success response
+  /blocks/item/id:
+    get:
+      summary: Get Block Data for given ID
+      responses:
+        "200":
+          description: Success response
+  /users/item:
+    post:
+      summary: Create User
+      responses:
+        "201":
+          description: Success response
+  /transactions/item:
+    post:
+      summary: Create Transaction
+      responses:
+        "201":
+          description: Success response
+  /contracts/item:
+    post:
+      summary: Create Contract
+      responses:
+        "201":
+          description: Success response
+  /blocks/item:
+    post:
+      summary: Create Block
+      responses:
+        "201":
+          description: Success response
+components:
+  schemas:
+    TransactionItem:
+      required:
+      - amount
+      - creation_date
+      - description
+      - destination_user
+      - id
+      - is_settled
+      - origin_user
+      - settlement_date
+      type: object
+      properties:
+        id:
+          type: object
+          format: uuid
+          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+        origin_user:
+          $ref: '#/components/schemas/UserItem'
+        destination_user:
+          $ref: '#/components/schemas/UserItem'
+        amount:
+          type: integer
+        description:
+          type: string
+          example: User1 is Sending R100 to User2
+        is_settled:
+          type: boolean
+          example: false
+        creation_date:
+          type: string
+          example: 22/03/05 15:03:02
+        settlement_date:
+          type: string
+          example: 22/03/05 15:03:02
+      description: Defines a Transaction
+    ContractItem:
+      required:
+      - content
+      - creation_date
+      - description
+      - destination_user
+      - expiration_date
+      - id
+      - origin_user
+      type: object
+      properties:
+        id:
+          type: object
+          format: uuid
+          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+        origin_user:
+          $ref: '#/components/schemas/UserItem'
+        destination_user:
+          $ref: '#/components/schemas/UserItem'
+        content:
+          type: string
+          example: User A promises to buy a car from User B
+        description:
+          type: string
+          example: User1 is Sending R100 to User2
+        creation_date:
+          type: string
+          example: 22/03/05 15:03:02
+        expiration_date:
+          type: string
+          example: 22/03/05 15:03:02
+      description: Defines a Contract
+    BlockItem:
+      required:
+      - difficulty
+      - encoded_header
+      - id
+      - nonce
+      type: object
+      properties:
+        id:
+          type: integer
+        difficulty:
+          type: integer
+        nonce:
+          type: string
+          example: No Example Yet
+        encoded_header:
+          $ref: '#/components/schemas/BlockHeader'
+      description: Defines a new Block in the Chain
+    BlockHeader:
+      required:
+      - contracts
+      - created_date
+      - index
+      - previous_block_link
+      - transactions
+      type: object
+      properties:
+        previous_block_link:
+          $ref: '#/components/schemas/BlockItem'
+        transactions:
+          $ref: '#/components/schemas/TransactionItem'
+        contracts:
+          $ref: '#/components/schemas/ContractItem'
+        index:
+          type: integer
+          example: 2
+        created_date:
+          type: string
+          example: 2022/05/05 22:05:05
+      description: Defines a Header of New Block Request
+    UserItem:
+      required:
+      - balance
+      - contracts
+      - created_date
+      - date_of_birth
+      - first_name
+      - id
+      - last_name
+      - transactions
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        first_name:
+          type: string
+          example: Delali
+        last_name:
+          type: string
+          example: Funani
+        date_of_birth:
+          type: string
+          example: 2022/05/02 12:05:05
+        transactions:
+          $ref: '#/components/schemas/TransactionItem'
+        contracts:
+          $ref: '#/components/schemas/ContractItem'
+        balance:
+          type: integer
+          example: 2
+        created_date:
+          type: string
+          example: 2022/05/05 22:05:05
+      description: Defines a new User
