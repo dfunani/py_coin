@@ -1,0 +1,240 @@
+openapi: 3.0.0
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/DelaliFunani/Block-Chain/1.0.0
+info:
+  description: My own implementation of the block chain logics
+  version: "1.0.0"
+  contact:
+    email: dfunani@live.co.za
+    name: Delali Funani
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+  title: Block Chain Implementation
+tags:
+  - name: admins
+    description: Secured Admin-only calls
+  - name: developers
+    description: Operations available to regular developers
+  - name: traders
+    description: Public Users of the API Services, ie Create Tranactions or Contracts to add to block chain
+  - name: applications
+    description: For internal use by Applications
+hosts: http://localhost:500
+schemes:
+  - http
+  - https
+basePath: /
+paths:
+  /users/item/id:
+    get:
+      summary: Get User Data for given ID
+      responses:
+        '200':
+          description: Success response
+        json:
+          description: Serialized User Data
+  /transactions/item/id:
+    get:
+      summary: Get Transaction Data for given ID
+      responses:
+        '200':
+          description: Success response
+        json:
+          description: Serialized Transaction Data
+  /contracts/item/id:
+    get:
+      summary: Get Contract Data for given ID
+      responses:
+        '200':
+          description: Success response
+        json:
+          description: Serialized Contract Data
+  /blocks/item/id:
+    get:
+      summary: Get Block Data for given ID
+      responses:
+        '200':
+          description: Success response
+        json:
+          description: Serialized Block Data
+  /users/item:
+    post:
+      summary: Create User
+      responses:
+        '201':
+          description: Success response
+        json:
+          description: Serialized User Data
+  /transactions/item:
+    post:
+      summary: Create Transaction
+      responses:
+        '201':
+          description: Success response
+        json:
+          description: Serialized Transaction Data
+  /contracts/item:
+    post:
+      summary: Create Contract
+      responses:
+        '201':
+          description: Success response
+        json:
+          description: Serialized Contract Data
+  /blocks/item:
+    post:
+      summary: Create Block
+      responses:
+        '201':
+          description: Success response
+        json:
+          description: Serialized Block Data
+        
+components:
+  schemas:
+    TransactionItem:
+      type: object
+      required:
+        - id
+        - origin_user
+        - destination_user
+        - amount
+        - description
+        - is_settled
+        - creation_date
+        - settlement_date
+      properties:
+        id:
+          type: object
+          format: uuid
+          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+        origin_user:
+          $ref: '#/components/schemas/UserItem'
+        destination_user:
+          $ref: '#/components/schemas/UserItem'
+        amount:
+          type: integer
+          example: 100.10
+        description:
+          type: string
+          example: 'User1 is Sending R100 to User2'
+        is_settled:
+          type: boolean
+          example: False
+        creation_date:
+          type: string
+          example: '22/03/05 15:03:02'
+        settlement_date:
+          type: string
+          example: "22/03/05 15:03:02"
+      description: Defines a Transaction
+    ContractItem:
+      type: object
+      required:
+        - id
+        - origin_user
+        - destination_user
+        - content
+        - description
+        - creation_date
+        - expiration_date
+      properties:
+        id:
+          type: object
+          format: uuid
+          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+        origin_user:
+          $ref: '#/components/schemas/UserItem'
+        destination_user:
+          $ref: '#/components/schemas/UserItem'
+        content:
+          type: string
+          example: "User A promises to buy a car from User B"
+        description:
+          type: string
+          example: 'User1 is Sending R100 to User2'
+        creation_date:
+          type: string
+          example: '22/03/05 15:03:02'
+        expiration_date:
+          type: string
+          example: '22/03/05 15:03:02'
+      description: Defines a Contract
+    BlockItem:
+      type: object
+      required:
+        - id
+        - difficulty
+        - nonce
+        - encoded_header
+      properties:
+        id:
+          type: integer
+        difficulty:
+          type: integer
+        nonce:
+          type: string
+          example: 'No Example Yet'
+        encoded_header:
+          $ref: '#/components/schemas/BlockHeader'
+      description: Defines a new Block in the Chain
+    BlockHeader:
+      type: object
+      required:
+        - previous_block_link
+        - transactions
+        - contracts
+        - index
+        - created_date
+      properties:
+        previous_block_link:
+          $ref: '#/components/schemas/BlockItem'
+        transactions:
+          $ref: '#/components/schemas/TransactionItem'
+        contracts:
+          $ref: '#/components/schemas/ContractItem'
+        index:
+          type: integer
+          example: 2
+        created_date:
+          type: string
+          example: '2022/05/05 22:05:05'
+      description: Defines a Header of New Block Request
+    UserItem:
+      type: object
+      required:
+        - id
+        - first_name
+        - last_name
+        - date_of_birth
+        - transactions
+        - contracts
+        - balance
+        - created_date
+      properties:
+        id:
+          type: string
+          format: uuid
+        first_name:
+          type: string
+          example: "Delali"
+        last_name:
+          type: string
+          example: "Funani"
+        date_of_birth:
+          type: string
+          example: '2022/05/02 12:05:05'
+        transactions:
+          $ref: '#/components/schemas/TransactionItem'
+        contracts:
+          $ref: '#/components/schemas/ContractItem'
+        balance:
+          type: integer
+          example: 2
+        created_date:
+          type: string
+          example: '2022/05/05 22:05:05'
+      description: Defines a new User
