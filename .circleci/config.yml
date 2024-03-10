@@ -12,20 +12,57 @@ jobs:
       - checkout
       - python/install-packages:
           pkg-manager: pip
+
+  Linting:
+    docker:
+      - image: cimg/python:3.12
+
+    steps:
       - run:
           name: Install Dependencies
           command: pip install -r requirements.txt
       - run:
-          name: Run Linitng
+          name: Run Linting
           command: pylint .
+
+  Type-Checking:
+    docker:
+      - image: cimg/python:3.12
+    
+    steps:
+      - run:
+          name: Install Dependencies
+          command: pip install -r requirements.txt
       - run:
           name: Run Mypy
           command: mypy .
+
+  Testing:
+    docker:
+      - image: cimg/python:3.12
+
+    steps:
       - run:
-              name: Run tests
-              command: pytest
+          name: Install Dependencies
+          command: pip install -r requirements.txt
+      - run:
+          name: Run tests
+          command: pytest .
 
 workflows:
+  version: 2
   py_coin:
     jobs:
       - Setup
+      - Linting:
+          requires:
+            - Setup
+      - Type-Checking:
+          requires:
+            - Setup
+            - Linting
+      - Testing:
+          requires:
+            - Setup
+            - Linting
+            - Type-Checking
