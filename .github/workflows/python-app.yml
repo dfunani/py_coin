@@ -32,7 +32,9 @@ jobs:
       run: export PYTHONPATH=$PYTHONPATH:$(pwd)
     - name: Lint with pylint
       run: |
+        export PYTHONPATH=$PYTHONPATH:$(pwd)
         pylint .
+
     - name: Run Mypy .
       run: |
         mypy .
