@@ -6,7 +6,7 @@ orbs:
 jobs:
   Setup:
     docker:
-      - image: cimg/python:3.12
+      - image: cimg/python:3.10
 
     steps:
       - checkout
@@ -20,60 +20,49 @@ jobs:
             source env/bin/activate
             pip install -r requirements.txt
             echo 'export PYTHONPATH=$PYTHONPATH:$(pwd)' >> $BASH_ENV
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - .
 
   Linting:
     docker:
-      - image: cimg/python:3.12
+      - image: cimg/python:3.10
 
     steps:
-      - checkout
-      - python/install-packages:
-          pkg-manager: pip
+      - attach_workspace:
+          at: /project
       - run:
-          name: Install Dependencies
-          command: |
-            pip install virtualenv
-            virtualenv env
-            source env/bin/activate
-            pip install -r requirements.txt
-            echo 'export PYTHONPATH=$PYTHONPATH:$(pwd)' >> $BASH_ENV
-            pylint .
+          name: Run Linting
+          command: pylint /project
 
   Type-Checking:
     docker:
-      - image: cimg/python:3.12
+      - image: cimg/python:3.10
 
     steps:
-      - checkout
-      - python/install-packages:
-          pkg-manager: pip
+      - attach_workspace:
+          at: /project
       - run:
-          name: Install Dependencies
-          command: |
-            pip install virtualenv
-            virtualenv env
-            source env/bin/activate
-            pip install -r requirements.txt
-            echo 'export PYTHONPATH=$PYTHONPATH:$(pwd)' >> $BASH_ENV
-            mypy .
+          name: Activate Environment
+          command: source /project/env/bin/activate
+      - run:
+          name: Run Mypy
+          command: mypy /project
 
   Testing:
     docker:
-      - image: cimg/python:3.12
+      - image: cimg/python:3.10
 
     steps:
-      - checkout
-      - python/install-packages:
-          pkg-manager: pip
+      - attach_workspace:
+          at: /project
       - run:
-          name: Install Dependencies
-          command: |
-            pip install virtualenv
-            virtualenv env
-            source env/bin/activate
-            pip install -r requirements.txt
-            echo 'export PYTHONPATH=$PYTHONPATH:$(pwd)' >> $BASH_ENV
-            pytest .
+          name: Activate Environment
+          command: source /project/env/bin/activate
+      - run:
+          name: Run tests
+          command: pytest /project
 
 workflows:
   version: 2
