@@ -12,62 +12,33 @@ jobs:
       - checkout
       - python/install-packages:
           pkg-manager: pip
-      - run:
-          name: Install Dependencies
-          command: |
-            pip install virtualenv
-            virtualenv env
-            source env/bin/activate
-            pip install -r requirements.txt
-            echo 'export PYTHONPATH=$PYTHONPATH:$(pwd)' >> $BASH_ENV
-      - persist_to_workspace:
-          root: /project
-          paths:
-            - .
 
   Linting:
     docker:
       - image: cimg/python:3.12
 
     steps:
-      - attach_workspace:
-          at: /project
-      - run:
-          name: Debug Info
-          command: |
-            /project/env/bin/pip show pylint
-            /project/env/bin/which pylint
       - run:
           name: Run Linting
-          command: /project/env/bin/pylint /project
+          command: pylint .
 
   Type-Checking:
     docker:
       - image: cimg/python:3.12
 
     steps:
-      - attach_workspace:
-          at: /project
-      - run:
-          name: Activate Environment
-          command: source /project/env/bin/activate
       - run:
           name: Run Mypy
-          command: mypy /project
+          command: mypy .
 
   Testing:
     docker:
       - image: cimg/python:3.12
 
     steps:
-      - attach_workspace:
-          at: /project
-      - run:
-          name: Activate Environment
-          command: source /project/env/bin/activate
       - run:
           name: Run tests
-          command: pytest /project
+          command: pytest .
 
 workflows:
   version: 2
