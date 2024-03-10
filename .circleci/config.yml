@@ -13,6 +13,11 @@ jobs:
       - python/install-packages:
           pkg-manager: pip
       - run:
+          name: Install Dependencies
+          command: |
+            pip install -r requirements.txt
+            export PYTHONPATH=$PYTHONPATH:$(pwd)
+      - run:
             name: Run Linting
             command: pylint .
       - run:
