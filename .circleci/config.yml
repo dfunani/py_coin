@@ -19,14 +19,20 @@ jobs:
 
     steps:
       - run:
+          name: Install Dependencies
+          command: pip install -r requirements.txt
+      - run:
           name: Run Linting
           command: pylint .
 
   Type-Checking:
     docker:
       - image: cimg/python:3.12
-
+    
     steps:
+      - run:
+          name: Install Dependencies
+          command: pip install -r requirements.txt
       - run:
           name: Run Mypy
           command: mypy .
@@ -36,6 +42,9 @@ jobs:
       - image: cimg/python:3.12
 
     steps:
+      - run:
+          name: Install Dependencies
+          command: pip install -r requirements.txt
       - run:
           name: Run tests
           command: pytest .
