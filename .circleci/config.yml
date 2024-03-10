@@ -33,11 +33,13 @@ jobs:
       - attach_workspace:
           at: /project
       - run:
-          name: Activate Environment
-          command: source /project/env/bin/activate
+          name: Debug Info
+          command: |
+            /project/env/bin/pip show pylint
+            /project/env/bin/which pylint
       - run:
           name: Run Linting
-          command: pylint /project
+          command: /project/env/bin/pylint /project
 
   Type-Checking:
     docker:
