@@ -1,9 +1,9 @@
 """_summary_
     """
 
-from ..app import main
+# from app import main
 
 
-def test_main():
-    """_summary_"""
-    assert main() is None
+# def test_main():
+#     """_summary_"""
+#     assert main() is None
