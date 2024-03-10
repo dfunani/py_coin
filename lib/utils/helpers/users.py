@@ -1,0 +1,53 @@
+"""Helpers Module: Containing utility functions
+for the User Models in the application"""
+
+from hashlib import sha256
+from lib.utils.constants.users import AccountStatus
+
+def check_account_status(
+    old_account_status: AccountStatus, new_account_status: AccountStatus
+) -> bool:
+    """Verifies the new account_status provided based on the existing
+
+    Args:
+        old_account_status (str): Existing db account status for the user.
+        new_account_status (str): New account status for the user.
+
+    Returns:
+        bool: Indicates whethere the Account status can be set.
+    """
+    return new_account_status in __get_valid_account_status()[old_account_status]
+
+
+def get_hash_value(value: str) -> str:
+    """Generates a new Hash Value.
+
+    Args:
+        value (str): Value to Hash.
+
+    Returns:
+        str: Hash value as a UTF-8 decoded string.
+    """
+    sha256_value = sha256()
+    sha256_value.update(value.encode("utf-8"))
+    return sha256_value.hexdigest()
+
+def __get_valid_account_status() -> dict[AccountStatus, list]:
+    """Defines Account Status Relationships.
+
+    Returns:
+        dict: 'old_status': 'Allowable new status'
+    """
+    return {
+        AccountStatus.NEW: [AccountStatus.VERIFIED, AccountStatus.UNVERIFIED],
+        AccountStatus.UNVERIFIED: [AccountStatus.VERIFIED, AccountStatus.DELETED],
+        AccountStatus.VERIFIED: [
+            AccountStatus.ACTIVE,
+            AccountStatus.DISABLED,
+            AccountStatus.DELETED,
+        ],
+        AccountStatus.ACTIVE: [AccountStatus.DISABLED, AccountStatus.DELETED],
+        AccountStatus.DISABLED: [AccountStatus.ACTIVE, AccountStatus.DELETED],
+        AccountStatus.SUSPENDED: [],
+        AccountStatus.DELETED: [],
+    }
