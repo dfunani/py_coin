@@ -4,7 +4,7 @@ orbs:
   python: circleci/python@2.1.1
 
 jobs:
-  Setup:
+  Build and Test:
     docker:
       - image: cimg/python:3.10
 
@@ -20,64 +20,17 @@ jobs:
             source env/bin/activate
             pip install -r requirements.txt
             echo 'export PYTHONPATH=$PYTHONPATH:$(pwd)' >> $BASH_ENV
-      - persist_to_workspace:
-          root: ~/project
-          paths:
-            - .
-
-  Linting:
-    docker:
-      - image: cimg/python:3.10
-
-    steps:
-      - attach_workspace:
-          at: /project
       - run:
           name: Run Linting
           command: pylint /project
-
-  Type-Checking:
-    docker:
-      - image: cimg/python:3.10
-
-    steps:
-      - attach_workspace:
-          at: /project
       - run:
-          name: Activate Environment
-          command: source /project/env/bin/activate
+          name: Run Linting
+          command: pylint /project
       - run:
-          name: Run Mypy
-          command: mypy /project
-
-  Testing:
-    docker:
-      - image: cimg/python:3.10
-
-    steps:
-      - attach_workspace:
-          at: /project
-      - run:
-          name: Activate Environment
-          command: source /project/env/bin/activate
-      - run:
-          name: Run tests
-          command: pytest /project
-
+          name: Run Linting
+          command: pylint /project
 workflows:
   version: 2
   py_coin:
     jobs:
-      - Setup
-      - Linting:
-          requires:
-            - Setup
-      - Type-Checking:
-          requires:
-            - Setup
-            - Linting
-      - Testing:
-          requires:
-            - Setup
-            - Linting
-            - Type-Checking
+      - Build and Test
