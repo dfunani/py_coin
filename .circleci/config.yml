@@ -12,42 +12,16 @@ jobs:
       - checkout
       - python/install-packages:
           pkg-manager: pip
-
-  Linting:
-    docker:
-      - image: cimg/python:3.12
-
-    steps:
       - run:
-          name: Install Dependencies
-          command: pip install -r requirements.txt
+            name: Run Linting
+            command: pylint .
       - run:
-          name: Run Linting
-          command: pylint .
-
-  Type-Checking:
-    docker:
-      - image: cimg/python:3.12
-    
-    steps:
+            name: Run Type-Checks
+            command: mypy .
       - run:
-          name: Install Dependencies
-          command: pip install -r requirements.txt
-      - run:
-          name: Run Mypy
-          command: mypy .
-
-  Testing:
-    docker:
-      - image: cimg/python:3.12
-
-    steps:
-      - run:
-          name: Install Dependencies
-          command: pip install -r requirements.txt
-      - run:
-          name: Run tests
+          name: Run Testing
           command: pytest .
+    
 
 workflows:
   version: 2
