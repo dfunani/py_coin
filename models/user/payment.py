@@ -16,7 +16,7 @@
 #     @property
 #     def card_number(self):
 #         return self.__card_number
-    
+
 #     @property
 #     def expiration_date(self):
 #         return self.__expiration_date

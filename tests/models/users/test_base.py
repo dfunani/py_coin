@@ -10,7 +10,7 @@ def test_base_user_valid():
     """Test Valid User Data."""
     user = User("test@test.com", "test@test123")
     with raises(AttributeError):
-        assert user.__email and user.__password
+        assert user.get("__email") and user.get("__password")
     with raises(UserEmailError):
         assert user.email
     with raises(UserPasswordError):
@@ -38,4 +38,4 @@ def test_base_user_no_email():
 def test_base_user_no_password():
     """Test Invalid User Password. No Email Provided."""
     with raises(UserPasswordError):
-        user = User("TEST@TEST.COM", None)
+        User("TEST@TEST.COM", None)

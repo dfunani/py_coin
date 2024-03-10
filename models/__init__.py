@@ -1,3 +1,5 @@
+"""Models Module Entry Point."""
+
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.engine import create_engine
 

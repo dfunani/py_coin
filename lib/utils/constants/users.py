@@ -23,12 +23,12 @@ Example:
 """
 
 from enum import Enum
-from re import Pattern
 from re import Pattern, compile as regex_compile
 
 
 # KEY: Accessible using name attribute
 # VALUE: Accessible using value attribute
+
 
 class Regex(Enum):
     """Holds Regex COnstants That are Applicable to the Application"""

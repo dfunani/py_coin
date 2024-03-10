@@ -5,9 +5,9 @@ from json import dumps
 from os import getenv
 from typing import Union
 from uuid import uuid4
+from cryptography.fernet import Fernet
 from sqlalchemy import Column, DateTime, String, text
 from lib.interfaces.types import FernetError, UserEmailError, UserPasswordError
-from cryptography.fernet import Fernet
 from lib.utils.constants.users import Regex
 from lib.utils.helpers.users import get_hash_value
 from models import Base
@@ -38,8 +38,12 @@ class User(Base):
     )
     __user_id = Column("user_id", String(256), default=text(f"'{str(uuid4())}'"))
     __created = Column("created", DateTime, default=text("CURRENT_TIMESTAMP"))
-    __email: Union[str, Column[str]] = Column("email", String(256), unique=True, nullable=False)
-    __password: Union[str, Column[str]] = Column("password", String(256), nullable=False)
+    __email: Union[str, Column[str]] = Column(
+        "email", String(256), unique=True, nullable=False
+    )
+    __password: Union[str, Column[str]] = Column(
+        "password", String(256), nullable=False
+    )
 
     def __init__(self, email: str, password: str) -> None:
         """User Object Constructor
@@ -56,12 +60,12 @@ class User(Base):
             raise UserEmailError("No Email Provided")
         if not isinstance(password, str):
             raise UserPasswordError("No Password Provided")
-        
+
         if not Regex.EMAIL.value.match(email):
             raise UserEmailError("Invalid User Email.")
         if not Regex.PASSWORD.value.match(password):
             raise UserPasswordError("Invalid User Password.")
-        
+
         self.__email = email
         self.__password = get_hash_value(password)
 
@@ -75,7 +79,7 @@ class User(Base):
         raise UserEmailError("Can Not Access Private Attribute: [Email]")
 
     @email.setter
-    def email(self, value: str) -> Union[None, UserEmailError]:
+    def email(self, value: str) -> UserEmailError:
         """Setter For User Email
 
         Args:
@@ -91,7 +95,6 @@ class User(Base):
         if not Regex.EMAIL.value.match(value):
             raise UserEmailError("Invalid User Email.")
         self.__email = value
-        return None
 
     @property
     def password(self) -> UserPasswordError:
@@ -103,7 +106,7 @@ class User(Base):
         raise UserPasswordError("Can Not Access Private Attribute: [PASSWORD]")
 
     @password.setter
-    def password(self, value: str) -> Union[None, UserPasswordError]:
+    def password(self, value: str) -> UserPasswordError:
         """Setter For User Pasword
 
         Args:
@@ -118,7 +121,6 @@ class User(Base):
         if not Regex.PASSWORD.value.match(value):
             raise UserPasswordError("Invalid User Password.")
         self.__password = get_hash_value(value)
-        return None
 
     @property
     def user_id(self) -> str:
