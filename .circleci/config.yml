@@ -16,7 +16,10 @@ jobs:
           POSTGRES_PASSWORD: py_user_password
           POSTGRES_HOST: postgres
           POSTGRES_PORT: 5432
-    working_directory: /python/src/github.com/dfunani/py_coin
+    working_directory: https://github.com/AfroDevsHub/py_coin
+
+    environment:
+      TEST_RESULTS: /tmp/test-results
 
     steps:
       - checkout
@@ -36,6 +39,8 @@ jobs:
               sleep 1
             done
             echo Failed waiting for Postgress && exit 1
+
+      - run: mkdir -p $TEST_RESULTS
 
       - run:
           name: Run unit tests
