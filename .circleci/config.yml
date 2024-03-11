@@ -18,9 +18,6 @@ jobs:
           POSTGRES_PORT: 5432
     working_directory: /python/src/github.com/dfunani/py_coin
 
-    environment:
-      TEST_RESULTS: /tmp/test-results
-
     steps:
       - checkout
       - python/install-packages:
@@ -39,8 +36,6 @@ jobs:
               sleep 1
             done
             echo Failed waiting for Postgress && exit 1
-
-      - run: mkdir -p $TEST_RESULTS
 
       - run:
           name: Run unit tests
