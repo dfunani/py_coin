@@ -1,5 +1,6 @@
 """_summary_"""
 
+from typing import Union
 from os import getenv
 from pytest import fixture
 from models.user.users import User
@@ -18,7 +19,7 @@ def get_user() -> User:
     )
 
 @fixture
-def fkey() -> str:
+def fkey() -> Union[str, None]:
     """_summary_
 
     Returns:
