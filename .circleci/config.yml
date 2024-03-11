@@ -10,35 +10,12 @@ jobs:
 
     steps:
       - checkout
-      - python/install-packages:
-          pkg-manager: pip
       - run:
-          name: Install Dependencies
+          name: Install Docker Compose
           command: |
-            pip install -r requirements.txt
-            export PYTHONPATH=$PYTHONPATH:$(pwd)
-      - run:
-          name: Run Linting
-          command: |
-            export PYTHONPATH=$PYTHONPATH:$(pwd)
-            cp test.env .env
-            pylint .
-      - run:
-          name: Run Type-Checks
-          command: mypy .
-      - run:
-          name: Run Testing
-          command: |
-            export PYTHONPATH=$PYTHONPATH:$(pwd)
-            pytest .
+            sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
 
-  Docker_Compose:
-    docker:
-      - image: docker/compose:1.29.2
-    steps:
-      - checkout
-
-      # New steps to copy test.env to .env and source it
       - run:
           name: Copy test.env to .env
           command: cp test.env .env
@@ -51,10 +28,37 @@ jobs:
           name: Run Docker-Compose
           command: docker-compose -f docker-compose.yaml up -d
 
+      - python/install-packages:
+          pkg-manager: pip
+
+      - run:
+          name: Install Dependencies
+          command: |
+            pip install -r requirements.txt
+            export PYTHONPATH=$PYTHONPATH:$(pwd)
+
+      - run:
+          name: Run Linting
+          command: |
+            export PYTHONPATH=$PYTHONPATH:$(pwd)
+            pylint .
+
+      - run:
+          name: Run Type-Checks
+          command: mypy .
+
+      - run:
+          name: Run Testing
+          command: |
+            export PYTHONPATH=$PYTHONPATH:$(pwd)
+            pytest .
+
+      - run:
+          name: Stop Docker-Compose
+          command: docker-compose -f docker-compose.yaml down
+
 workflows:
   version: 2
   py_coin:
     jobs:
-      - Build_and_Test:
-          requires:
-            - Docker_Compose
+      - Build_and_Test
