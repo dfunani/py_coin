@@ -24,5 +24,5 @@ def fkey() -> str:
     Returns:
         str: _description_
     """
-    return getenv("fernet_key") or ''
+    return getenv("FERNET_KEY")
     
