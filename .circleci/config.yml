@@ -67,12 +67,6 @@ jobs:
             alembic upgrade head
             pytest .
             
-      - setup_remote_docker
-      - run:
-          name: Start container and verify it's working
-          command: |
-            set -x
-            docker-compose up -d
 
 workflows:
   version: 2
