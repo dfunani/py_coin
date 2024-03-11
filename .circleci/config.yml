@@ -67,7 +67,6 @@ jobs:
             alembic upgrade head
             pytest .
             
-
 workflows:
   version: 2
   py_coin:
