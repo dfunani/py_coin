@@ -10,79 +10,61 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     services:
       postgres:
-        image: postgres:15.3
+        image: postgres:9.4.1
         env:
           POSTGRES_DB: py_coin_db_test
           POSTGRES_USER: py_user_test
           POSTGRES_PASSWORD: py_user_password_test
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: 5432
         ports:
           - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
+
+    env:
+      TEST_RESULTS: /tmp/test-results
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v2
 
-      # New steps to copy test.env to .env and source it
-      - name: Copy test.env to .env
-        run: cp test.env .env
-
-      - name: Source .env file
-        run: source .env
-
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v3
+      - name: Set up Python
+        uses: actions/setup-python@v2
         with:
-          python-version: "3.10"
-      - name: Install dependencies
+          python-version: 3.10
+
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pylint mypy pytest
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      - name: Lint with pylint
+          pip install -r requirements.txt
+
+      - name: Waiting for Postgres to be ready
+        run: |
+          for i in $(seq 1 10); do
+            nc -z localhost 5432 && echo Success && exit 0
+            echo -n .
+            sleep 1
+          done
+          echo Failed waiting for PostgreSQL && exit 1
+
+      - name: Run Linting
         run: |
           export PYTHONPATH=$PYTHONPATH:$(pwd)
           pylint .
-      - name: Run Mypy
-        run: |
-          mypy .
-      - name: Test with pytest
+
+      - name: Run Type-Checking
         run: |
           export PYTHONPATH=$PYTHONPATH:$(pwd)
-          pytest
+          mypy .
 
-  docker-compose:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      # New steps to copy test.env to .env and source it
-      - name: Copy test.env to .env
-        run: cp test.env .env
-
-      - name: Source .env file
-        run: source .env
-
-      - name: Set up Docker Compose
+      - name: Run Unit Tests
         run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
-
-      - name: Build and start services with Docker Compose
-        run: |
-          docker-compose -f docker-compose.yaml up -d
-          docker-compose -f docker-compose.yaml ps
-          
-      - name: Run tests
-        run: |
-          docker-compose -f docker-compose.yaml exec postgres pytest
-
-      - name: Stop services
-        run: docker-compose -f docker-compose.yaml down
+          export PYTHONPATH=$PYTHONPATH:$(pwd)
+          cp test.env .env
+          source .env
+          alembic upgrade head
+          pytest .
+  
