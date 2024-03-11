@@ -7,6 +7,7 @@ jobs:
   Build and Test:
     docker:
       # using custom image, see .circleci/images/primary/Dockerfile
+      - image: cimg/python:3.10
       - image: circleci/cci-demo-docker-primary:0.0.2
       - image: postgres:9.4.1
         environment:
@@ -22,7 +23,12 @@ jobs:
 
     steps:
       - checkout
-
+      - python/install-packages:
+          pkg-manager: pip
+      - run:
+          name: Install Dependencies
+          command: |
+            pip install -r requirements.txt
       - run:
           name: Waiting for Postgres to be ready
           command: |
@@ -45,6 +51,7 @@ jobs:
             POSTGRES_HOST: localhost
             POSTGRES_PORT: 5432
           command: |
+            export PYTHONPATH=$PYTHONPATH:$(pwd)
             pytest .
             mypy .
             pylint .
@@ -89,7 +96,7 @@ jobs:
           path: /tmp/test-results
   # Build and Test:
   #   docker:
-  #     - image: cimg/python:3.10
+  #     
 
   #   steps:
   #     - checkout
