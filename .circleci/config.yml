@@ -19,7 +19,9 @@ jobs:
             export PYTHONPATH=$PYTHONPATH:$(pwd)
       - run:
             name: Run Linting
-            command: pylint .
+            command: |
+              export PYTHONPATH=$PYTHONPATH:$(pwd)
+              pylint .
       - run:
             name: Run Type-Checks
             command: mypy .
