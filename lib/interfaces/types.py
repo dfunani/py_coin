@@ -43,3 +43,11 @@ class FernetError(Exception):
     def __init__(self, message) -> None:
         super().__init__(message)
         self.message = message
+
+
+class UserIdDataError(Exception):
+    """Custom Error For Invalid ID Data."""
+
+    def __init__(self, message) -> None:
+        super().__init__(message)
+        self.message = message
