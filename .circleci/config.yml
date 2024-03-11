@@ -27,7 +27,9 @@ jobs:
             command: mypy .
       - run:
           name: Run Testing
-          command: pytest .
+          command: |
+            export PYTHONPATH=$PYTHONPATH:$(pwd)
+            pytest .
     
 
 workflows:
