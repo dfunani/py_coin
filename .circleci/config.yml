@@ -26,7 +26,7 @@ jobs:
 
       - run:
           name: Run Docker-Compose
-          command: docker-compose -f docker-compose.yaml up -d
+          command: docker-compose up
 
       - python/install-packages:
           pkg-manager: pip
@@ -55,7 +55,7 @@ jobs:
 
       - run:
           name: Stop Docker-Compose
-          command: docker-compose -f docker-compose.yaml down
+          command: docker-compose down
 
 workflows:
   version: 2
