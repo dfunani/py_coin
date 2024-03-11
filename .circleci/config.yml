@@ -4,7 +4,7 @@ orbs:
   python: circleci/python@2.1.1
 
 jobs:
-  Build and Test:
+  Build_and_Test:
     docker:
       - image: cimg/python:3.10
 
@@ -32,7 +32,7 @@ jobs:
             export PYTHONPATH=$PYTHONPATH:$(pwd)
             pytest .
 
-  Docker Compose:
+  Docker_Compose:
     docker:
       - image: docker/compose:1.29.2
     steps:
@@ -55,6 +55,6 @@ workflows:
   version: 2
   py_coin:
     jobs:
-      - Build and Test:
+      - Build_and_Test:
           requires:
-            - Docker Compose
+            - Docker_Compose
