@@ -62,6 +62,8 @@ jobs:
             POSTGRES_PORT: 5432
           command: |
             export PYTHONPATH=$PYTHONPATH:$(pwd)
+            cp test.env .env
+            source .env
             alembic upgrade head
             pytest .
             
