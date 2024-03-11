@@ -7,6 +7,7 @@ from cryptography.fernet import Fernet
 from lib.interfaces.types import UserEmailError, UserPasswordError
 from models import ENGINE
 from models.user.users import User
+from tests.models.users.conftest import user_test_commit, user_test_teardown
 
 
 def test_base_user_valid():
@@ -52,11 +53,9 @@ def test_create_user(get_user, fkey):
         fkey (_type_): _description_
     """
     with Session(ENGINE) as session:
-        session.add(get_user)
-        session.commit()
-
+        user_test_commit(get_user, session)
         user_data = loads(Fernet(fkey).decrypt(get_user.user_id.encode()))
+
         assert "id" in user_data and user_data.get("id")
-        user = session.get(User, user_data.get("id"))
-        session.delete(user)
-        session.commit()
+
+        user_test_teardown(user_data.get("id"), User, session)

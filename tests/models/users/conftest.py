@@ -6,6 +6,30 @@ from pytest import fixture
 from models.user.users import User
 
 
+def user_test_commit(user, session):
+    """_summary_
+
+    Args:
+        user (_type_): _description_
+        session (_type_): _description_
+    """
+    session.add(user)
+    session.commit()
+
+
+def user_test_teardown(user_id, entity, session):
+    """_summary_
+
+    Args:
+        id (_type_): _description_
+        entity (_type_): _description_
+        session (_type_): _description_
+    """
+    user = session.get(entity, user_id)
+    session.delete(user)
+    session.commit()
+
+
 @fixture
 def get_user() -> User:
     """_summary_
@@ -18,6 +42,7 @@ def get_user() -> User:
         "password11313@",
     )
 
+
 @fixture
 def fkey() -> Union[str, None]:
     """_summary_
@@ -26,4 +51,3 @@ def fkey() -> Union[str, None]:
         str: _description_
     """
     return getenv("FERNET_KEY")
-    
