@@ -2,10 +2,15 @@
 for the User Models in the application"""
 
 from hashlib import sha256
+from typing import Union
+
+from sqlalchemy import Column
 from lib.utils.constants.users import AccountStatus
 
+
 def check_account_status(
-    old_account_status: AccountStatus, new_account_status: AccountStatus
+    old_account_status: Union[AccountStatus, Column[AccountStatus]],
+    new_account_status: AccountStatus,
 ) -> bool:
     """Verifies the new account_status provided based on the existing
 
@@ -16,6 +21,8 @@ def check_account_status(
     Returns:
         bool: Indicates whethere the Account status can be set.
     """
+    if not isinstance(old_account_status, AccountStatus):
+        return False
     return new_account_status in __get_valid_account_status()[old_account_status]
 
 
@@ -31,6 +38,7 @@ def get_hash_value(value: str) -> str:
     sha256_value = sha256()
     sha256_value.update(value.encode("utf-8"))
     return sha256_value.hexdigest()
+
 
 def __get_valid_account_status() -> dict[AccountStatus, list]:
     """Defines Account Status Relationships.

@@ -1,8 +1,11 @@
 """Base Test Module testing the User Abstract Class"""
 
+from json import loads
 from pytest import raises
-
+from sqlalchemy.orm import Session
+from cryptography.fernet import Fernet
 from lib.interfaces.types import UserEmailError, UserPasswordError
+from models import ENGINE
 from models.user.users import User
 
 
@@ -39,3 +42,21 @@ def test_base_user_no_password():
     """Test Invalid User Password. No Email Provided."""
     with raises(UserPasswordError):
         User("TEST@TEST.COM", None)
+
+
+def test_create_user(get_user, fkey):
+    """_summary_
+
+    Args:
+        get_user (_type_): _description_
+        fkey (_type_): _description_
+    """
+    with Session(ENGINE) as session:
+        session.add(get_user)
+        session.commit()
+
+        user_data = loads(Fernet(fkey).decrypt(get_user.user_id.encode()))
+        assert "id" in user_data and user_data.get("id")
+        user = session.get(User, user_data.get("id"))
+        session.delete(user)
+        session.commit()
