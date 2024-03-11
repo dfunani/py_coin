@@ -26,7 +26,7 @@ jobs:
 
       - run:
           name: Run Docker-Compose
-          command: docker-compose up
+          command: docker-compose up -d --build
 
       - python/install-packages:
           pkg-manager: pip
