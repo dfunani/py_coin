@@ -15,7 +15,7 @@ def main():
     with Session(ENGINE) as session:
         try:
             user = User("test@df5s.com", "password11313@")
-            fkey = getenv("fernet_key")
+            fkey = getenv("FERNET_KEY")
             session.add(user)
             session.commit()
 

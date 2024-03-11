@@ -137,7 +137,7 @@ class User(Base):
             "email": self.__email,
             "password": self.__password,
         }
-        fkey = getenv("fernet_key")
+        fkey = getenv("FERNET_KEY")
         if not fkey:
             raise FernetError("Fernet Key not found.")
         return Fernet(fkey).encrypt(dumps(data).encode()).decode()
