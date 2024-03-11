@@ -11,26 +11,22 @@ RUN apt-get update \
     git \
     postgresql-client
 
-# Set environment variables for Alembic
+# Copy the necessary files
+COPY . .
 
-# COPY requirements.txt .
-# COPY /db/test_db_migration.sh .
-# COPY alembic.ini .
 # Install dependencies
-
-# Run a permissions change on the second script, we'll run.
-
-# Install python dependancies from the requirements.txt file for alembic and psql
-
-COPY . /app
-
-COPY local.env .env
-
-RUN source .env
-
-RUN ./db/test_db_migration.sh
-
-RUN export PYTHONPATH=$PYTHONPATH:$(pwd)
-
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Set environment variables
+COPY test.env .env
+RUN /bin/bash -c "source .env"
+
+# Set PYTHONPATH
+ENV PYTHONPATH=${PYTHONPATH}:${PWD}
+
+# Run the migration script
+RUN export SQLALCHEMY_DATABASE_URI="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}" \
+    && alembic upgrade head
+
+# Start your application (modify as needed)
+# CMD ["python", "app.py"]
