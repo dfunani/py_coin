@@ -21,6 +21,7 @@ jobs:
           name: Run Linting
           command: |
             export PYTHONPATH=$PYTHONPATH:$(pwd)
+            cp test.env .env
             pylint .
       - run:
           name: Run Type-Checks
@@ -30,10 +31,30 @@ jobs:
           command: |
             export PYTHONPATH=$PYTHONPATH:$(pwd)
             pytest .
-    
+
+  Docker Compose:
+    docker:
+      - image: docker/compose:1.29.2
+    steps:
+      - checkout
+
+      # New steps to copy test.env to .env and source it
+      - run:
+          name: Copy test.env to .env
+          command: cp test.env .env
+
+      - run:
+          name: Source .env file
+          command: source .env
+
+      - run:
+          name: Run Docker-Compose
+          command: docker-compose -f docker-compose.yaml up -d
 
 workflows:
   version: 2
   py_coin:
     jobs:
-      - Build and Test
+      - Build and Test:
+          requires:
+            - Docker Compose
