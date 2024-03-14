@@ -26,13 +26,13 @@ def upgrade() -> None:
         "user_accounts",
         sa.Column("account_id", sa.String(256), nullable=False, unique=True, default=sa.text(f"'{str(uuid4())}'"), primary_key=True),
         sa.Column("user_id", sa.String, sa.ForeignKey("users.id"), nullable=False),
-        sa.Column("account_status", sa.Enum(AccountStatus, name='user_account_statuses'), unique=False, default=AccountStatus.NEW),
-        sa.Column("account_email_status", sa.Enum(AccountStatus, name='user_email_account_statuses'), unique=False, default=AccountStatus.UNVERIFIED),
+        sa.Column("account_status", sa.Enum(AccountStatus, name='enum_user_account_statuses'), unique=False, default=AccountStatus.NEW),
+        sa.Column("account_email_status", sa.Enum(AccountStatus, name='enum_user_email_account_statuses'), unique=False, default=AccountStatus.UNVERIFIED),
         sa.Column("account_creation_date", sa.DateTime(), default=sa.text("CURRENT_TIMESTAMP")),
         sa.Column("account_updated_date", sa.DateTime(), default=sa.text("CURRENT_TIMESTAMP"), onupdate=sa.text("CURRENT_TIMESTAMP")),
         sa.Column("account_status_updated_date", sa.DateTime(), default=sa.text("CURRENT_TIMESTAMP")),
         sa.Column("last_login_date", sa.DateTime(), nullable=True),
-        sa.Column("account_role", sa.Enum(AccountRole, name='user_account_roles'), nullable=False, default=AccountRole.USER),
+        sa.Column("account_role", sa.Enum(AccountRole, name='enum_user_account_roles'), nullable=False, default=AccountRole.USER),
     )
     # ### end Alembic commands ###
 

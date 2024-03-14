@@ -2,6 +2,8 @@
 
 import json
 from os import getenv
+from random import shuffle
+from string import ascii_lowercase, ascii_uppercase
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from cryptography.fernet import Fernet
@@ -9,12 +11,29 @@ from models import ENGINE
 from models.user.accounts import UserAccount
 from models.user.users import User
 
+alphabet = [
+    *ascii_uppercase,
+    *ascii_lowercase,
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+]
+
 
 def main():
     """_summary_"""
     with Session(ENGINE) as session:
         try:
-            user = User("test@df5s.com", "password11313@")
+            user = User(
+                f'{"".join(alphabet[:10])}@{"".join(alphabet[:6])}.co.za',
+                f'{"".join(alphabet[:10])}@{"".join(alphabet[:6])}123',
+            )
             fkey = getenv("FERNET_KEY")
             session.add(user)
             session.commit()
@@ -29,4 +48,5 @@ def main():
 
 
 if __name__ == "__main__":
+    shuffle(alphabet)
     main()

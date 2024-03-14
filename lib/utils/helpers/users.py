@@ -26,7 +26,7 @@ def check_account_status(
     return new_account_status in __get_valid_account_status()[old_account_status]
 
 
-def get_hash_value(value: str) -> str:
+def get_hash_value(value: str, salt_value: str = "") -> str:
     """Generates a new Hash Value.
 
     Args:
@@ -35,7 +35,13 @@ def get_hash_value(value: str) -> str:
     Returns:
         str: Hash value as a UTF-8 decoded string.
     """
-    sha256_value = sha256()
+    if not isinstance(value, str):
+        raise ValueError("Value must be a String")
+
+    if not isinstance(salt_value, str):
+        raise ValueError("Salt must be a String")
+
+    sha256_value = sha256(salt_value.encode("utf-8"))
     sha256_value.update(value.encode("utf-8"))
     return sha256_value.hexdigest()
 

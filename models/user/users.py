@@ -44,6 +44,7 @@ class User(Base):
     __password: Union[str, Column[str]] = Column(
         "password", String(256), nullable=False
     )
+    __salt_value = Column("salt_value", String(256))
 
     def __init__(self, email: str, password: str) -> None:
         """User Object Constructor
@@ -66,8 +67,9 @@ class User(Base):
         if not Regex.PASSWORD.value.match(password):
             raise UserPasswordError("Invalid User Password.")
 
-        self.__email = email
-        self.__password = get_hash_value(password)
+        self.__salt_value = str(uuid4())
+        self.__email = get_hash_value(email, self.__salt_value)
+        self.__password = get_hash_value(password, self.__salt_value)
 
     @property
     def email(self) -> UserEmailError:
@@ -120,7 +122,7 @@ class User(Base):
         """
         if not Regex.PASSWORD.value.match(value):
             raise UserPasswordError("Invalid User Password.")
-        self.__password = get_hash_value(value)
+        self.__password = get_hash_value(value, self.__salt_value)
 
     @property
     def user_id(self) -> str:
@@ -136,8 +138,18 @@ class User(Base):
             "created": str(self.__created),
             "email": self.__email,
             "password": self.__password,
+            "salt_value": self.__salt_value,
         }
         fkey = getenv("FERNET_KEY")
         if not fkey:
             raise FernetError("Fernet Key not found.")
         return Fernet(fkey).encrypt(dumps(data).encode()).decode()
+
+    @property
+    def salt_value(self):
+        """The value used to salt the Hash Generated for the User.
+
+        Returns:
+            salt_value: The Salt Value used for Current User.
+        """
+        return self.__salt_value
