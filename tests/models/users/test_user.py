@@ -54,7 +54,7 @@ def test_create_user(get_user, fkey):
     """
     with Session(ENGINE) as session:
         user_test_commit(get_user, session)
-        user_data = loads(Fernet(fkey).decrypt(get_user.user_id.encode()))
+        user_data = loads(Fernet(fkey).decrypt(get_user.user.encode()))
 
         assert "id" in user_data and user_data.get("id")
 

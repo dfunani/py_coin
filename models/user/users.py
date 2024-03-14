@@ -1,5 +1,4 @@
-"""Base Module: Contains User Abstract/Base class,
-modelling a Users Base structure."""
+"""Users Module: Contains User Model for Mapping Users."""
 
 from json import dumps
 from os import getenv
@@ -8,27 +7,21 @@ from uuid import uuid4
 from cryptography.fernet import Fernet
 from sqlalchemy import Column, DateTime, String, text
 from lib.interfaces.types import FernetError, UserEmailError, UserPasswordError
-from lib.utils.constants.users import Regex
+from lib.utils.constants.users import DateFormat, Regex
 from lib.utils.helpers.users import get_hash_value
 from models import Base
+from config import AppConfig
 
 
 class User(Base):
     """
-    Model representing user information.
+    Model representing a User.
 
     Properties:
         - __tablename__ (str): The name of the database table for users.
-        - user_id (str): Encrypted User Data
+        - user_id (str): User's Public ID.
+        - user (str): Encrypted User Data.
 
-    Usage:
-    - To create a new user:
-        new_user = User("email@testing.com", "password@specialcharacters")
-        session.add(new_user)
-        session.commit()
-
-    - To retrieve the encrypted user ID:
-        encrypted_user_id = queried_user.user_id()
     """
 
     __tablename__ = "users"
@@ -36,7 +29,9 @@ class User(Base):
     __id = Column(
         "id", String(256), default=text(f"'{str(uuid4())}'"), primary_key=True
     )
-    __user_id = Column("user_id", String(256), default=text(f"'{str(uuid4())}'"))
+    user_id: Union[str, Column[str]] = Column(
+        "user_id", String(256), default=text(f"'{str(uuid4())}'")
+    )
     __created = Column("created", DateTime, default=text("CURRENT_TIMESTAMP"))
     __email: Union[str, Column[str]] = Column(
         "email", String(256), unique=True, nullable=False
@@ -44,18 +39,21 @@ class User(Base):
     __password: Union[str, Column[str]] = Column(
         "password", String(256), nullable=False
     )
-    __salt_value = Column("salt_value", String(256))
+    __salt_value: Union[str, Column[str]] = Column("salt_value", String(256))
+
+    def __str__(self):
+        return f'User: {self.user_id}'
 
     def __init__(self, email: str, password: str) -> None:
-        """User Object Constructor
+        """User Object Constructor.
 
         Args:
-            email (str): Email to Assign to Created User
-            password (str): Password to Assign to Created User
+            email (str): User's Email.
+            password (str): User's Password.
 
         Raises:
-            UserEmailError: Custom User Email Error
-            UserPasswordError: Custom User Password Error
+            UserEmailError: Custom User Email Error.
+            UserPasswordError: Custom User Password Error.
         """
         if not isinstance(email, str):
             raise UserEmailError("No Email Provided")
@@ -68,21 +66,22 @@ class User(Base):
             raise UserPasswordError("Invalid User Password.")
 
         self.__salt_value = str(uuid4())
-        self.__email = get_hash_value(email, self.__salt_value)
+        self.__email = email
         self.__password = get_hash_value(password, self.__salt_value)
+        self.user_id = get_hash_value(email + password, AppConfig().salt_value)
 
     @property
     def email(self) -> UserEmailError:
-        """Getter For User Email
+        """Getter For User Email.
 
         Raises:
-            UserEmailError: Raises a User Email Error
+            UserEmailError: Raises a User Email Error.
         """
         raise UserEmailError("Can Not Access Private Attribute: [Email]")
 
     @email.setter
-    def email(self, value: str) -> UserEmailError:
-        """Setter For User Email
+    def email(self, value: Union[str, Column[str]]) -> UserEmailError:
+        """Setter For User Email.
 
         Args:
             value (str): Value to set attribute to.
@@ -90,8 +89,6 @@ class User(Base):
         Raises:
             UserEmailError: Custom Exception for Invalid Email Actions.
 
-        Returns:
-            Union[None, UserEmailError]: Returns None or Raises a User Email Error.
         """
 
         if not Regex.EMAIL.value.match(value):
@@ -100,15 +97,15 @@ class User(Base):
 
     @property
     def password(self) -> UserPasswordError:
-        """Getter For User Password
+        """Getter For User Password.
 
         Raises:
-            UserPasswordlError: Raises a User Password Error
+            UserPasswordlError: Raises a User Password Error.
         """
         raise UserPasswordError("Can Not Access Private Attribute: [PASSWORD]")
 
     @password.setter
-    def password(self, value: str) -> UserPasswordError:
+    def password(self, value: Union[str, Column[str]]) -> UserPasswordError:
         """Setter For User Pasword
 
         Args:
@@ -116,26 +113,23 @@ class User(Base):
 
         Raises:
             UserEmailError: Custom Exception for Invalid Password Actions.
-
-        Returns:
-            Union[None, UserEmailError]: Returns None or Raises a User Password Error.
         """
         if not Regex.PASSWORD.value.match(value):
             raise UserPasswordError("Invalid User Password.")
         self.__password = get_hash_value(value, self.__salt_value)
 
     @property
-    def user_id(self) -> str:
+    def user(self) -> str:
         """
-        Return an encrypted string combining the user's unique ID, user ID, and creation timestamp.
+        Returns Encrypted User Data.
 
         Returns:
         - str: An encrypted string representing the user's ID information.
         """
         data = {
             "id": self.__id,
-            "user_id": self.__user_id,
-            "created": str(self.__created),
+            "user_id": self.user_id,
+            "created": self.__created.strftime(DateFormat.HYPHEN.value),
             "email": self.__email,
             "password": self.__password,
             "salt_value": self.__salt_value,
@@ -146,7 +140,7 @@ class User(Base):
         return Fernet(fkey).encrypt(dumps(data).encode()).decode()
 
     @property
-    def salt_value(self):
+    def salt_value(self) -> Union[str, Column[str]]:
         """The value used to salt the Hash Generated for the User.
 
         Returns:

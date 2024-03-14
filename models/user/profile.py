@@ -1,3 +1,6 @@
+# from sqlalchemy import Column
+
+
 # class UserProfile(Base):
 #     __tablename__ = "user_proffile"
 #     id = Column(

@@ -38,6 +38,7 @@ def upgrade() -> None:
         ),
         sa.Column("email", sa.String(256), nullable=False, unique=True),
         sa.Column("password", sa.String(256), nullable=False),
+        sa.Column('salt_value', sa.String(256)),
         sa.PrimaryKeyConstraint("id"),
     )
     # ### end Alembic commands ###
