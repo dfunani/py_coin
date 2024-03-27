@@ -1,6 +1,6 @@
 """Testing the library of types"""
 
-from lib.interfaces.types import UserAccountError, UserEmailError, UserPasswordError, FernetError
+from lib.interfaces.exceptions import UserAccountError, UserEmailError, UserPasswordError, FernetError
 
 
 def test_user_account_error():

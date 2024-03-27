@@ -4,7 +4,8 @@ from datetime import datetime
 from typing import Union
 from uuid import uuid4
 from sqlalchemy import Column, DateTime, String, text, ForeignKey, Enum
-from lib.interfaces.types import UserAccountError
+from sqlalchemy.orm import relationship
+from lib.interfaces.exceptions import UserAccountError
 from lib.utils.constants.users import (
     AccountRole,
     AccountStatus,
@@ -18,6 +19,11 @@ from models import Base
 class Account(Base):
     """
     Model representing a User's Account.
+
+    Args:
+        Base (class): SQLAlchemy Base Model,
+        from which Application Models are derived.
+        AbstractUser (class): Base class for User related models.
 
     Properties:
         - __tablename__ (str): The name of the database table for users.
@@ -80,6 +86,8 @@ class Account(Base):
     __role: Union[AccountRole, Column[AccountRole]] = Column(
         "account_role", Enum(AccountRole), nullable=False, default=AccountRole.USER
     )
+
+    # profiles = relationship('Profile', backref='Profile')
 
     def __str__(self) -> str:
         """String Representation of the Accounts Object.

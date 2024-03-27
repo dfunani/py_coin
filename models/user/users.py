@@ -6,7 +6,7 @@ from typing import Union
 from uuid import uuid4
 from cryptography.fernet import Fernet
 from sqlalchemy import Column, DateTime, String, text
-from lib.interfaces.types import FernetError, UserEmailError, UserPasswordError
+from lib.interfaces.exceptions import FernetError, UserEmailError, UserPasswordError
 from lib.utils.constants.users import DateFormat, Regex
 from lib.utils.helpers.users import get_hash_value
 from models import Base
@@ -16,6 +16,10 @@ from config import AppConfig
 class User(Base):
     """
     Model representing a User.
+
+    Args:
+        Base (class): SQLAlchemy Base Model,
+        from which Application Models are derived.
 
     Properties:
         - __tablename__ (str): The name of the database table for users.
@@ -55,19 +59,9 @@ class User(Base):
             UserEmailError: Custom User Email Error.
             UserPasswordError: Custom User Password Error.
         """
-        if not isinstance(email, str):
-            raise UserEmailError("No Email Provided")
-        if not isinstance(password, str):
-            raise UserPasswordError("No Password Provided")
-
-        if not Regex.EMAIL.value.match(email):
-            raise UserEmailError("Invalid User Email.")
-        if not Regex.PASSWORD.value.match(password):
-            raise UserPasswordError("Invalid User Password.")
-
         self.__salt_value = str(uuid4())
-        self.__email = email
-        self.__password = get_hash_value(password, self.__salt_value)
+        self.__set_email(email)
+        self.__set_password(password)
         self.user_id = get_hash_value(email + password, AppConfig().salt_value)
 
     @property
@@ -91,9 +85,8 @@ class User(Base):
 
         """
 
-        if not Regex.EMAIL.value.match(value):
-            raise UserEmailError("Invalid User Email.")
-        self.__email = value
+        self.__set_email(value)
+        
 
     @property
     def password(self) -> UserPasswordError:
@@ -114,9 +107,7 @@ class User(Base):
         Raises:
             UserEmailError: Custom Exception for Invalid Password Actions.
         """
-        if not Regex.PASSWORD.value.match(value):
-            raise UserPasswordError("Invalid User Password.")
-        self.__password = get_hash_value(value, self.__salt_value)
+        self.__set_password(value)
 
     @property
     def user(self) -> str:
@@ -147,3 +138,33 @@ class User(Base):
             salt_value: The Salt Value used for Current User.
         """
         return self.__salt_value
+    
+    def __set_email(self, value: str) -> UserEmailError:
+        """Validates the value and sets the Private Attribute.
+
+        Args:
+            value (str): Valid Email value.
+
+        Raises:
+            UserEmailError: Invalid User Email.
+        """
+        if not isinstance(value, str):
+            raise UserEmailError("No Email Provided")
+        if not Regex.EMAIL.value.match(value):
+            raise UserEmailError("Invalid User Email.")
+        self.__email = value
+
+    def __set_password(self, value: str) -> UserPasswordError:
+        """Validates the value and sets the Private Attribute.
+
+        Args:
+            value (str): Valid Password value.
+
+        Raises:
+            UserPasswordError: Invalid User Password.
+        """
+        if not Regex.PASSWORD.value.match(value):
+            raise UserPasswordError("Invalid User Password.")
+        if not isinstance(value, str):
+            raise UserPasswordError("No Password Provided")
+        self.__password = get_hash_value(value, self.__salt_value)

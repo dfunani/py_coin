@@ -4,7 +4,7 @@ from json import loads
 from pytest import raises
 from sqlalchemy.orm import Session
 from cryptography.fernet import Fernet
-from lib.interfaces.types import UserEmailError, UserPasswordError
+from lib.interfaces.exceptions import UserEmailError, UserPasswordError
 from models import ENGINE
 from models.user.users import User
 from tests.models.users.conftest import user_test_commit, user_test_teardown

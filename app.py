@@ -1,5 +1,6 @@
 """_summary_"""
 
+from datetime import date
 import json
 from os import getenv
 from random import shuffle
@@ -7,9 +8,11 @@ from string import ascii_lowercase, ascii_uppercase
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from cryptography.fernet import Fernet
+from lib.utils.constants.users import AccountCountry, AccountLanguage, AccountOccupation, Gender, ProfileInterest, SocialMediaLink
 from lib.utils.helpers.users import get_hash_value
 from models import ENGINE
 from models.user.accounts import Account
+from models.user.profile import Profile
 from models.user.users import User
 from config import AppConfig
 
@@ -32,6 +35,7 @@ def main():
     """_summary_"""
     with Session(ENGINE) as session:
         try:
+            # Create User
             user = User(
                 f'{"".join(alphabet[:10])}@{"".join(alphabet[:6])}.co.za',
                 "password@12233",
@@ -41,32 +45,36 @@ def main():
             session.commit()
 
             user_data = json.loads(Fernet(fkey).decrypt(user.user.encode()))
+
+            # Create Account
             account = Account(user_id=user_data.get("id"))
             session.add(account)
             session.commit()
-            user = (
-                session.query(User)
-                .where(
-                    User.user_id
-                    == get_hash_value(
-                        "J4hg5QqpMv@J4hg5Q.co.za" + "password@12233",
-                        AppConfig().salt_value,
-                    )
+            with open('image.webp', 'rb') as image:
+                print(image.read())
+                # Create Profile
+                profile = Profile(
+                    # '76b87e18-481d-4d02-8e1b-38ec9997c740',
+                    "Delali",
+                    "Funani",
+                    "delali_gamers123",
+                    date(199, 12, 31),
+                    "0685642078",
+                    "Hello World from my test profile.",
+                    [ProfileInterest.ANIMALS.value],
+                    {SocialMediaLink.GITHUB: "https://github.com/dfunani", SocialMediaLink.FACEBOOK: ''},
+                    account_id='76b87e18-481d-4d02-8e1b-38ec9997c740',
+                    profile_picture=image.read(),
+                    occupation=AccountOccupation.ACCOUNTANT,
+                    country=AccountCountry.ANTIGUA_AND_BARBUDA,
+                    language=AccountLanguage.AFRIKAANS,
+                    gender=Gender.FEMALE,
                 )
-                .one_or_none()
-            )
-            user_data = json.loads(Fernet(fkey).decrypt(user.user.encode()))
-            if user_data.get("password") != get_hash_value(
-                "password@12233", user_data.get("salt_value")
-            ):
-                return "Never"
-            account = (
-                session.query(Account)
-                .where(Account.user_id == user_data.get("id"))
-                .one_or_none()
-            )
-            print(account)
-            print(str(user))
+                profile.account_id='76b87e18-481d-4d02-8e1b-38ec9997c740', 
+                profile.gender = Gender.MALE
+
+                session.add(profile)
+                session.commit()
         except IntegrityError as error:
             print(str(error))
         return 1

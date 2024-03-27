@@ -39,12 +39,17 @@ class DateFormat(Enum):
 
 
 class Regex(Enum):
-    """Holds Regex COnstants That are Applicable to the Application"""
+    """Holds Regex COnstants That are Applicable to the Application."""
 
     EMAIL: Pattern = regex_compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-_]+\.[a-zA-Z]+$")
     PASSWORD: Pattern = regex_compile(
         r"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()-_+=]).{8,}$"
     )
+    FIRST_NAME = regex_compile(r"^[a-zA-Z]{1,30}$")
+    LAST_NAME = regex_compile(r"^[a-zA-Z]{1,30}$")
+    USERNAME = regex_compile(r"^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z0-9_]{3,30}$")
+    MOBILE_NUMBER = regex_compile(r"^\+?[0-9]+(?:[ -][0-9]+)*$")
+    BIOGRAPHY = regex_compile(r"^(?!\s+$).{8,}$")
 
 
 class Gender(Enum):
@@ -78,7 +83,7 @@ class AccountRole(Enum):
 
 
 class AccountEmailVerification(Enum):
-    """Enumeration of Email Verification Statuses"""
+    """Enumeration of Email Verification Statuses."""
 
     UNVERIFIED = "New Email Unverified"
     VERIFIED = "Email Verified"
@@ -88,7 +93,7 @@ class AccountEmailVerification(Enum):
 
 
 class UserDevicePermission(Enum):
-    """Enumeration of Email Verification Statuses"""
+    """Enumeration of Email Verification Statuses."""
 
     CAMERA = "camera"
     STORAGE = "STORAGE"
@@ -96,7 +101,7 @@ class UserDevicePermission(Enum):
 
 
 class AccountLoginMethod(Enum):
-    """Enumeration of Email Verification Statuses"""
+    """Enumeration of Email Verification Statuses."""
 
     EMAIL = "User Email and Password"
     GITHUB = "Github SSO"
@@ -106,7 +111,7 @@ class AccountLoginMethod(Enum):
 
 
 class AccountCommunication(Enum):
-    """Enumeration of Email Verification Statuses"""
+    """Enumeration of Email Verification Statuses."""
 
     EMAIL = "Email Messenger"
     SMS = "SMS"
@@ -115,7 +120,7 @@ class AccountCommunication(Enum):
 
 
 class AccountCountry(Enum):
-    """Enumeration of Email Verification Statuses"""
+    """Enumeration of Email Verification Statuses."""
 
     AFGHANISTAN = "Afghanistan", "AF"
     ALBANIA = "Albania", "AL"
@@ -317,7 +322,7 @@ class AccountCountry(Enum):
 
 
 class AccountLanguage(Enum):
-    """Enumeration of Email Verification Statuses"""
+    """Enumeration of Email Verification Statuses."""
 
     AFRIKAANS = "Afrikaans", "af"
     ALBANIAN = "Albanian", "sq"
@@ -407,7 +412,7 @@ class AccountLanguage(Enum):
 
 
 class AccountOccupation(Enum):
-    """Enumeration of Email Verification Statuses"""
+    """Enumeration of Email Verification Statuses."""
 
     SOFTWARE_ENGINEER = "Software Engineer"
     HARDWARE_ENGINEER = "Hardware Engineer"
@@ -438,3 +443,147 @@ class AccountOccupation(Enum):
     PHARMACIST = "Pharmacist"
     SOCIAL_WORKER = "Social Worker"
     OTHER = "Other"
+
+
+class ProfileInterest(Enum):
+    """Enumeration of Profile Interests."""
+
+    ANIMALS = "Animals"
+    ART = "Art"
+    BEACH = "Beach"
+    BOARD_GAMES = "Board Games"
+    BOOKS = "Books"
+    COOKING = "Cooking"
+    CRAFTS = "Crafts"
+    CRYPTO = "Cryptocurrency"
+    DANCING = "Dancing"
+    DECENTRALIZATION = "Decentralization"
+    DRAWING = "Drawing"
+    ENTREPRENEURSHIP = "Entrepreneurship"
+    EXERCISE = "Exercise"
+    FASHION = "Fashion"
+    FITNESS = "Fitness"
+    FOOD = "Food"
+    GAMING = "Gaming"
+    GARDENING = "Gardening"
+    HEALTH_WELLNESS = "Health & Wellness"
+    HIKING = "Hiking"
+    HOME_DECOR = "Home Decor"
+    LANGUAGES = "Languages"
+    MOVIES = "Movies"
+    MUSIC = "Music"
+    NATURE = "Nature"
+    PAINTING = "Painting"
+    PHOTOGRAPHY = "Photography"
+    POETRY = "Poetry"
+    READING = "Reading"
+    RUNNING = "Running"
+    SCIENCE = "Science"
+    SELF_IMPROVEMENT = "Self-Improvement"
+    SHOPPING = "Shopping"
+    SPORTS = "Sports"
+    TECHNOLOGY = "Technology"
+    TRAVEL = "Travel"
+    VOLUNTEERING = "Volunteering"
+    WRITING = "Writing"
+    ASTROLOGY = "Astrology"
+    ASTRONOMY = "Astronomy"
+    COFFEE = "Coffee"
+    TEA = "Tea"
+    HISTORY = "History"
+    PHILOSOPHY = "Philosophy"
+    CINEMA = "Cinema"
+    THEATER = "Theater"
+    MUSIC_PRODUCTION = "Music Production"
+    DANCE = "Dance"
+    FITNESS_CLASSES = "Fitness Classes"
+    YOGA = "Yoga"
+    MEDITATION = "Meditation"
+    PODCASTS = "Podcasts"
+    COMICS = "Comics"
+    VIDEO_GAMES = "Video Games"
+    CARD_GAMES = "Card Games"
+    POLITICS = "Politics"
+    ENVIRONMENT = "Environment"
+    TRADING = "Trading"
+    INVESTING = "Investing"
+    FINANCE = "Finance"
+    ARTIFICIAL_INTELLIGENCE = "Artificial Intelligence"
+    MACHINE_LEARNING = "Machine Learning"
+    DATA_SCIENCE = "Data Science"
+    CYBERSECURITY = "Cybersecurity"
+    WEB_DEVELOPMENT = "Web Development"
+    MOBILE_DEVELOPMENT = "Mobile Development"
+    BLOCKCHAIN = "Blockchain"
+    DEFI = "DeFi"
+    NFTS = "NFTs"
+    DAPPS = "DApps"
+    CRYPTO_TRADING = "Crypto Trading"
+    MINING = "Mining"
+    WEB3 = "Web3"
+    CRYPTO_INVESTING = "Crypto Investing"
+    BLOCKCHAIN_DEVELOPMENT = "Blockchain Development"
+    GENEALOGY = "Genealogy"
+    ANIME = "Anime"
+    MANGA = "Manga"
+    COSPLAY = "Cosplay"
+    URBAN_EXPLORATION = "Urban Exploration"
+    SURFING = "Surfing"
+    SKATEBOARDING = "Skateboarding"
+    SNOWBOARDING = "Snowboarding"
+    SKIING = "Skiing"
+    CAMPING = "Camping"
+    BACKPACKING = "Backpacking"
+    SURVIVALISM = "Survivalism"
+    FORAGING = "Foraging"
+    ARTISANAL_CRAFTS = "Artisanal Crafts"
+    CALLIGRAPHY = "Calligraphy"
+    GLASSBLOWING = "Glassblowing"
+    POTTERY = "Pottery"
+    KNITTING = "Knitting"
+    CROCHETING = "Crocheting"
+    EMBROIDERY = "Embroidery"
+    SEWING = "Sewing"
+    WOODWORKING = "Woodworking"
+    METALWORKING = "Metalworking"
+    LEATHERWORKING = "Leatherworking"
+    BEEKEEPING = "Beekeeping"
+    HOMEBREWING = "Homebrewing"
+    WINE_MAKING = "Wine Making"
+    SPIRITS_DISTILLING = "Spirits Distilling"
+    MIXOLOGY = "Mixology"
+    COCKTAILS = "Cocktails"
+    BEER = "Beer"
+    WINE = "Wine"
+    WHISKY = "Whisky"
+    RUM = "Rum"
+    VODKA = "Vodka"
+    GIN = "Gin"
+    TEQUILA = "Tequila"
+    BRANDY = "Brandy"
+    CIDER = "Cider"
+    MEAD = "Mead"
+    SODA = "Soda"
+    JUICE = "Juice"
+
+
+class SocialMediaLink(Enum):
+    GITHUB = regex_compile(r"^https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9_-]+$")
+    FACEBOOK = regex_compile(r"^https?:\/\/(www\.)?facebook\.com\/[a-zA-Z0-9._-]+$")
+    TWITTER = regex_compile(r"^https?:\/\/(www\.)?twitter\.com\/[a-zA-Z0-9_]+$")
+    INSTAGRAM = regex_compile(r"^https?:\/\/(www\.)?instagram\.com\/[a-zA-Z0-9._]+$")
+    LINKEDIN = regex_compile(r"^https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9-]+$")
+    PINTEREST = regex_compile(r"^https?:\/\/(www\.)?pinterest\.com\/[a-zA-Z0-9_]+$")
+    TIKTOK = regex_compile(r"^https?:\/\/(www\.)?tiktok\.com\/@[a-zA-Z0-9_]+$")
+    REDDIT = regex_compile(r"^https?:\/\/(www\.)?reddit\.com\/user\/[a-zA-Z0-9_]+$")
+    DISCORD = regex_compile(r"^https?:\/\/(www\.)?discord\.com\/users\/[0-9]+$")
+    TELEGRAM = regex_compile(
+        r"^https?:\/\/(t(?:elegram)?\.me|telegram\.org)\/[a-zA-Z0-9_]+$"
+    )
+    YOUTUBE = regex_compile(
+        r"^https?:\/\/(www\.)?youtube\.com\/(c|channel|user)\/[a-zA-Z0-9_-]+$"
+    )
+    SLACK = regex_compile(r"^https?:\/\/[a-zA-Z0-9-]+\.slack\.com\/?$")
+    TWITCH = regex_compile(r"^https?:\/\/(www\.)?twitch\.tv\/[a-zA-Z0-9_]+$")
+    SPOTIFY = regex_compile(r"^https?:\/\/open\.spotify\.com\/user\/[a-zA-Z0-9]+$")
+    SOUNDCLOUD = regex_compile(r"^https?:\/\/(www\.)?soundcloud\.com\/[a-zA-Z0-9_-]+$")
