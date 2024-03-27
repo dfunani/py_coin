@@ -107,18 +107,12 @@ class Profile(Base):
 
     def __init__(
         self,
-        # account_id: str,
         first_name: str,
         last_name: str,
         username: str,
         date_of_birth: str,
-        # gender: str,
-        # profile_pciture: bytes,
         mobile_number: str,
-        # country: AccountCountry,
-        # language: AccountLanguage,
         biography: str,
-        # occupation: AccountOccupation,
         interests: list[str],
         social_media_links: dict,
         **kwargs

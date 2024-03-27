@@ -15,6 +15,9 @@ class AppConfig:
     """AppConfig Singleton Class."""
 
     __SALT_VALUE__ = get_hash_value("py coin salt value")
+    __CARD_LENGTH__ = 16
+    __CVV_LENGTH__ = 3
+    __CARD_PREFIX__ = 1991
 
     __START_DATE__ = datetime.now()
     __END_DATE__ = datetime.now()
@@ -59,3 +62,33 @@ class AppConfig:
             str: AppConfig Salt Value.
         """
         return AppConfig.__SALT_VALUE__
+
+
+    @property
+    def card_length(self) -> int:
+        """Applications Card Length.
+
+        Returns:
+            str: AppConfig Card Length.
+        """
+        return self.__CARD_LENGTH__
+    
+    @property
+    def card_prefix(self) -> str:
+        """Applications Card Prefix.
+
+        Returns:
+            str: AppConfig Card Prefix.
+        """
+        return self.__CARD_PREFIX__
+    
+    @property
+    def cvv_length(self) -> str:
+        """Applications CVV Length.
+
+        Returns:
+            str: AppConfig CVV Length.
+        """
+        return self.__CVV_LENGTH__
+    
+    

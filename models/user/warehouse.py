@@ -1,3 +1,93 @@
+from datetime import datetime
+from typing import Union
+from uuid import uuid4
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, String, text
+from lib.interfaces.exceptions import CardValidationError
+from lib.utils.constants.users import AccountPaymentType, CardStatus
+from models import Base
+
+
+class AccountCards(Base):
+    __tablename__ = "account_cards"
+
+    id = Column(
+        "id",
+        String(256),
+        default=text(f"'{str(uuid4())}'"),
+        nullable=False,
+        primary_key=True,
+    )
+    card_id = Column(
+        "card_id",
+        String(256),
+        default=text(f"'{str(uuid4())}'"),
+        nullable=False,
+    )
+    __card_number = Column("card_number", String(256), unique=True, nullable=False)
+    __card_type = Column("card_type", Enum(AccountPaymentType), nullable=False)
+    __card_status = Column("card_status", Enum(CardStatus), nullable=False, default=CardStatus.INACTIVE)
+    __created_date: Union[datetime, Column[datetime]] = Column(
+        "created_date", DateTime, default=text("CURRENT_TIMESTAMP")
+    )
+    __updated_date: Union[datetime, Column[datetime]] = Column(
+        "updated_date",
+        DateTime,
+        default=text("CURRENT_TIMESTAMP"),
+        onupdate=text("CURRENT_TIMESTAMP"),
+    )
+
+    def __init__(
+        self,
+        card_number: str,
+        card_type: AccountPaymentType,
+        **kwargs
+    ):
+        self.__set_card_number(card_number)
+        self.__set_card_type(card_type)
+        self.id = str(uuid4())
+        self.card_id = str(uuid4())
+        super().__init__(**kwargs)
+
+    @property
+    def card_number(self):
+        return self.__card_number
+
+    @property
+    def card_type(self):
+        return self.__card_type
+
+    @property
+    def card_status(self):
+        raise CardValidationError("Can Not Access Private Attribute: [Card Status]")
+
+    @card_status.setter
+    def card_status(self, value: CardStatus) -> CardValidationError:
+        self.__set_card_status(value)
+
+    def __set_card_number(self, value: str) -> CardValidationError:
+        if not isinstance(value, str):
+            raise CardValidationError("Invalid Type for this Attribute.")
+        if len(value) != 20 or not value[:4] in [
+            card.value[1] for card in AccountPaymentType
+        ]:
+            raise CardValidationError("Invalid Card Number.")
+        self.__card_number = value
+
+    def __set_card_type(self, value: AccountPaymentType) -> CardValidationError:
+        if not isinstance(value, AccountPaymentType):
+            raise CardValidationError("Invalid Type for this Attribute.")
+        if value.value[1] != self.__card_number[:4]:
+            raise CardValidationError("Invalid Card Type.")
+        self.__card_type = value
+
+    def __set_card_status(self, value: CardStatus) -> CardValidationError:
+        if not isinstance(value, CardStatus):
+            raise CardValidationError("Invalid Type for this Attribute.")
+        if value not in [CardStatus.ACTIVE, CardStatus.INACTIVE]:
+            raise CardValidationError("Invalid Card Status.")
+        self.__card_status = value
+
+
 # """
 # User Module
 

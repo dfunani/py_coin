@@ -8,13 +8,15 @@ from string import ascii_lowercase, ascii_uppercase
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from cryptography.fernet import Fernet
-from lib.utils.constants.users import AccountCountry, AccountLanguage, AccountOccupation, Gender, ProfileInterest, SocialMediaLink
+from lib.utils.constants.users import AccountCountry, AccountLanguage, AccountOccupation, AccountPaymentType, Gender, ProfileInterest, SocialMediaLink
+from lib.utils.generators.users import generate_card_numbers
 from lib.utils.helpers.users import get_hash_value
 from models import ENGINE
 from models.user.accounts import Account
-from models.user.profile import Profile
+from models.user.profiles import Profile
 from models.user.users import User
 from config import AppConfig
+from models.user.warehouse import AccountCards
 
 alphabet = [
     *ascii_uppercase,
@@ -51,7 +53,6 @@ def main():
             session.add(account)
             session.commit()
             with open('image.webp', 'rb') as image:
-                print(image.read())
                 # Create Profile
                 profile = Profile(
                     # '76b87e18-481d-4d02-8e1b-38ec9997c740',
@@ -75,6 +76,7 @@ def main():
 
                 session.add(profile)
                 session.commit()
+            
         except IntegrityError as error:
             print(str(error))
         return 1

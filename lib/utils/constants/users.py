@@ -587,3 +587,15 @@ class SocialMediaLink(Enum):
     TWITCH = regex_compile(r"^https?:\/\/(www\.)?twitch\.tv\/[a-zA-Z0-9_]+$")
     SPOTIFY = regex_compile(r"^https?:\/\/open\.spotify\.com\/user\/[a-zA-Z0-9]+$")
     SOUNDCLOUD = regex_compile(r"^https?:\/\/(www\.)?soundcloud\.com\/[a-zA-Z0-9_-]+$")
+
+
+class AccountPaymentType(Enum):
+    CHEQUE = "cheque", "1991"
+    SAVINGS = "savings", "1992"
+    CREDIT = "credit", "1993"
+
+
+class CardStatus(Enum):
+    ACTIVE = 'Card is in Use.'
+    INACTIVE = 'Card not in Use.'
+    DISABLED = "Card can't be used."
