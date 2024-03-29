@@ -12,7 +12,19 @@ Example:
     >>> user_gender = Gender.MALE
 """
 
+class ApplicationError(Exception):
+    """Custom Error For Application Errors."""
 
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+        self.message = message
+
+class UserError(Exception):
+    """Custom Error For Invalid Users."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+        self.message = message
 class UserAccountError(Exception):
     """Custom Error For User Account (Users) Model."""
 

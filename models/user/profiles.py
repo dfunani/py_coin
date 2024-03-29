@@ -60,7 +60,7 @@ class Profile(Base):
 
     __tablename__ = "profiles"
 
-    id = Column(
+    __id = Column(
         "id",
         String(256),
         default=text(f"'{str(uuid4())}'"),

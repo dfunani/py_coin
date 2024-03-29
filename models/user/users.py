@@ -4,9 +4,8 @@ from json import dumps
 from os import getenv
 from typing import Union
 from uuid import uuid4
-from cryptography.fernet import Fernet
-from sqlalchemy import Column, DateTime, String, text
-from lib.interfaces.exceptions import FernetError, UserEmailError, UserPasswordError
+from sqlalchemy import Column, DateTime, Integer, String, text
+from lib.interfaces.exceptions import FernetError, UserEmailError, UserError, UserPasswordError
 from lib.utils.constants.users import DateFormat, Regex
 from lib.utils.helpers.users import get_hash_value
 from models import Base
@@ -31,10 +30,10 @@ class User(Base):
     __tablename__ = "users"
 
     __id = Column(
-        "id", String(256), default=text(f"'{str(uuid4())}'"), primary_key=True
+        "id", Integer, primary_key=True, autoincrement=True
     )
-    user_id: Union[str, Column[str]] = Column(
-        "user_id", String(256), default=text(f"'{str(uuid4())}'")
+    __user_id = Column(
+        "user_id", String(256), nullable=False
     )
     __created = Column("created", DateTime, default=text("CURRENT_TIMESTAMP"))
     __email: Union[str, Column[str]] = Column(
@@ -59,10 +58,46 @@ class User(Base):
             UserEmailError: Custom User Email Error.
             UserPasswordError: Custom User Password Error.
         """
+
         self.__salt_value = str(uuid4())
         self.__set_email(email)
         self.__set_password(password)
         self.user_id = get_hash_value(email + password, AppConfig().salt_value)
+
+    def __str__(self) -> str:
+        """String Representation of the Accounts Object.
+
+        Returns:
+            str: Representation of a User Object.
+        """
+        return f"User: {self.user_id}"
+
+    @property
+    def user_id(self) -> Union[str, UserError, FernetError]:
+        """
+        Returns Encrypted User Data.
+
+        Returns:
+        - str: An encrypted string representing the user's ID information.
+        """
+        data = {}
+        for keys in [ self.__id,
+            self.__created.strftime(DateFormat.HYPHEN.value),
+            self.__email,
+            self.__password,
+            self.__salt_value,]:
+            if not keys:
+                raise UserError('Invalid User.')
+        data = {
+            "id": self.__id,
+            "created": self.__created.strftime(DateFormat.HYPHEN.value),
+            "email": self.__email,
+            "password": self.__password,
+            "salt_value": self.__salt_value,
+        }
+        # if not fkey:
+            
+        # return .encrypt(dumps(data).encode()).decode()
 
     @property
     def email(self) -> UserEmailError:
@@ -109,26 +144,7 @@ class User(Base):
         """
         self.__set_password(value)
 
-    @property
-    def user(self) -> str:
-        """
-        Returns Encrypted User Data.
-
-        Returns:
-        - str: An encrypted string representing the user's ID information.
-        """
-        data = {
-            "id": self.__id,
-            "user_id": self.user_id,
-            "created": self.__created.strftime(DateFormat.HYPHEN.value),
-            "email": self.__email,
-            "password": self.__password,
-            "salt_value": self.__salt_value,
-        }
-        fkey = getenv("FERNET_KEY")
-        if not fkey:
-            raise FernetError("Fernet Key not found.")
-        return Fernet(fkey).encrypt(dumps(data).encode()).decode()
+    
 
     @property
     def salt_value(self) -> Union[str, Column[str]]:
@@ -149,9 +165,9 @@ class User(Base):
             UserEmailError: Invalid User Email.
         """
         if not isinstance(value, str):
-            raise UserEmailError("No Email Provided")
+            raise UserEmailError("Invalid Type for this Attribute.")
         if not Regex.EMAIL.value.match(value):
-            raise UserEmailError("Invalid User Email.")
+            raise UserEmailError("Invalid Email.")
         self.__email = value
 
     def __set_password(self, value: str) -> UserPasswordError:
@@ -163,8 +179,8 @@ class User(Base):
         Raises:
             UserPasswordError: Invalid User Password.
         """
-        if not Regex.PASSWORD.value.match(value):
-            raise UserPasswordError("Invalid User Password.")
         if not isinstance(value, str):
             raise UserPasswordError("No Password Provided")
+        if not Regex.PASSWORD.value.match(value):
+            raise UserPasswordError("Invalid User Password.")
         self.__password = get_hash_value(value, self.__salt_value)

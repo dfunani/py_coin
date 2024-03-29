@@ -37,7 +37,7 @@ class Account(Base):
 
     __tablename__ = "accounts"
 
-    id = Column(
+    __id = Column(
         "id",
         String(256),
         default=text(f"'{str(uuid4())}'"),

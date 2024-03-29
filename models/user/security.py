@@ -1,6 +1,6 @@
 # class UserSecurityInformation(Base):
 #     __tablename__ = "user_security_information"
-#     id = Column(
+#     __id = Column(
 #         Integer, primary_key=True, unique=True, nullable=False, autoincrement="auto"
 #     )
 #     email_verification_status = Column(Enum(AcountEmailVerification),

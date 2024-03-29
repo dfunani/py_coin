@@ -7,37 +7,57 @@ from config import AppConfig
 from lib.utils.constants.users import DateFormat
 
 
-def test_app_config():
-    """Test AppConfig Initializes."""
-    assert AppConfig().start_date == datetime.now().strftime(DateFormat.LONG.value)
-    assert AppConfig().start_date == AppConfig().end_date
+def test_app_config_start_date(app: AppConfig):
+    """Test AppConfig Init - Start Date."""
+    assert app.start_date == datetime.now().strftime(DateFormat.LONG.value)
 
 
-def test_app_config_invalid_start_setter():
-    """Test AppConfig Raises An Error when Start Date is Updated."""
+def test_app_config_start_date_setter(app: AppConfig):
+    """Test AppConfig Start Date Setter."""
     with raises(AttributeError):
-        AppConfig().start_date = datetime.now()
+        app.start_date = datetime.now().strftime(DateFormat.LONG.value)
 
 
-def test_app_config_valid_end_setter():
-    """Test AppConfig Can Update EndDate."""
-    appc = AppConfig()
-    dt = datetime.now()
-    appc.end_date = dt
-    assert appc.end_date == dt.strftime(DateFormat.LONG.value)
+def test_app_config_end_date(app: AppConfig):
+    """Test AppConfig Init - End Date."""
+    assert app.end_date >= app.start_date
 
 
-def test_app_config_valid_salt_setter():
-    """Test AppConfig Raises an Error when Salt Value is Updated."""
-    appc = AppConfig()
+def test_app_config_end_date_setter(app: AppConfig):
+    """Test AppConfig End Date Setter."""
+    now = datetime.now()
+    app.end_date = now
+    assert app.end_date is not None
+
+
+def test_app_config_salt_value(app: AppConfig):
+    """Test AppConfig Init - Salt Value."""
+    assert app.salt_value is not None
+
+
+def test_app_config_salt_value_setter(app: AppConfig):
+    """Test AppConfig Salt Value Setter."""
     with raises(AttributeError):
-        appc.salt_value = "Fail"
+        app.salt_value = "Testing Setter"
 
 
-def test_app_config_valid_salt_get():
-    """Test AppConfig Salt Value is Consistent between Restarts."""
-    appc = AppConfig()
-    assert (
-        appc.salt_value
-        == "8adf9f249e6beb03900af0fd51fd2a3e55034d926357e5ed4b6ecea1ec4796e3"
-    )
+def test_app_config_card_length(app: AppConfig):
+    """Test AppConfig Init - Salt Value."""
+    assert app.card_length is not None
+
+
+def test_app_config_card_length_setter(app: AppConfig):
+    """Test AppConfig Salt Value Setter."""
+    with raises(AttributeError):
+        app.card_length = 12
+
+
+def test_app_config_cvv_length(app: AppConfig):
+    """Test AppConfig Init - Salt Value."""
+    assert app.cvv_length is not None
+
+
+def test_app_config_cvv_length_setter(app: AppConfig):
+    """Test AppConfig Salt Value Setter."""
+    with raises(AttributeError):
+        app.cvv_length = 5

@@ -2,15 +2,16 @@ from datetime import datetime
 from typing import Union
 from uuid import uuid4
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, String, text
+from sqlalchemy.orm import relationship
 from lib.interfaces.exceptions import CardValidationError
 from lib.utils.constants.users import AccountPaymentType, CardStatus
 from models import Base
 
 
-class AccountCards(Base):
-    __tablename__ = "account_cards"
+class Cards(Base):
+    __tablename__ = "cards"
 
-    id = Column(
+    __id = Column(
         "id",
         String(256),
         default=text(f"'{str(uuid4())}'"),
