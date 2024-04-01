@@ -61,7 +61,7 @@ class User(Base):
         self.__salt_value = str(uuid4())
         self.__set_email__(email)
         self.__set_password__(password)
-        self.user_id = get_hash_value(email + password, str(AppConfig().salt_value))
+        self.__set_user_id__()
 
     def __str__(self) -> str:
         """String Representation of the Accounts Object.
@@ -100,6 +100,7 @@ class User(Base):
             UserEmailError: Invalid Password Value.
         """
         self.__set_password__(str(value))
+        self.__set_user_id__()
 
     @property
     def salt_value(self) -> Union[str, Column[str]]:
@@ -130,7 +131,20 @@ class User(Base):
             raise UserError("Invalid User Data")
         return fernet.encrypt(dumps(data).encode()).decode()
 
-    def __set_email__(self, value: str) -> UserEmailError:
+    def __set_user_id__(self) -> Union[str, ValueError]:
+        """Validates the value and sets the Private Attribute.
+
+        Args:
+            value (str): Valid User ID.
+
+        Raises:
+            UserEmailError: Invalid User ID.
+        """
+        self.user_id = str(get_hash_value(
+            str(self.__email) + str(self.__password), str(AppConfig().salt_value)
+        ))
+
+    def __set_email__(self, value: str) -> Union[ValueError, UserEmailError]:
         """Validates the value and sets the Private Attribute.
 
         Args:
@@ -140,9 +154,9 @@ class User(Base):
             UserEmailError: Invalid User Email.
         """
         self.__validate_email__(value)
-        self.__email = get_hash_value(value, self.__salt_value)
+        self.__email = str(get_hash_value(value, self.__salt_value))
 
-    def __set_password__(self, value: str) -> UserPasswordError:
+    def __set_password__(self, value: str) -> Union[ValueError, UserPasswordError]:
         """Validates the value and sets the Private Attribute.
 
         Args:
@@ -152,7 +166,7 @@ class User(Base):
             UserPasswordError: Invalid User Password.
         """
         self.__validate_password__(value)
-        self.__password = get_hash_value(value, self.__salt_value)
+        self.__password = str(get_hash_value(value, self.__salt_value))
 
     def __vallidate_user_data__(self) -> UserError:
         for key in [

@@ -26,7 +26,9 @@ def check_account_status(
     return new_account_status in __get_valid_account_status()[old_account_status]
 
 
-def get_hash_value(value: Union[str, Column[str]], salt_value: Union[str, Column[str]] = "") -> str:
+def get_hash_value(
+    value: Union[str, Column[str]], salt_value: Union[str, Column[str]] = ""
+) -> Union[str, ValueError]:
     """Generates a new Hash Value.
 
     Args:
@@ -34,6 +36,8 @@ def get_hash_value(value: Union[str, Column[str]], salt_value: Union[str, Column
 
     Returns:
         str: Hash value as a UTF-8 decoded string.
+    Raises:
+        ValueError: Invalid Hashing Values.
     """
     if not isinstance(value, str):
         raise ValueError("Value must be a String")
