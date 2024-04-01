@@ -1,7 +1,5 @@
 """Test Config Module for Users Modules."""
 
-from typing import Union
-from os import getenv
 from pytest import fixture
 from models.user.users import User
 
@@ -40,13 +38,3 @@ def get_user() -> User:
         "never_to_be_used_email_address_its_for_test@test_mail.test",
         "password11313@",
     )
-
-
-@fixture
-def fkey() -> Union[str, None]:
-    """_summary_
-
-    Returns:
-        str: _description_
-    """
-    return getenv("FERNET_KEY")

@@ -1,11 +1,16 @@
 """Users Module: Contains User Model for Mapping Users."""
 
 from json import dumps
-from os import getenv
 from typing import Union
 from uuid import uuid4
-from sqlalchemy import Column, DateTime, Integer, String, text
-from lib.interfaces.exceptions import FernetError, UserEmailError, UserError, UserPasswordError
+from cryptography.fernet import Fernet
+from sqlalchemy import Column, DateTime, String, text
+from lib.interfaces.exceptions import (
+    FernetError,
+    UserEmailError,
+    UserError,
+    UserPasswordError,
+)
 from lib.utils.constants.users import DateFormat, Regex
 from lib.utils.helpers.users import get_hash_value
 from models import Base
@@ -23,19 +28,17 @@ class User(Base):
     Properties:
         - __tablename__ (str): The name of the database table for users.
         - user_id (str): User's Public ID.
-        - user (str): Encrypted User Data.
+        - user_data (str): Encrypted User Data.
 
     """
 
     __tablename__ = "users"
 
     __id = Column(
-        "id", Integer, primary_key=True, autoincrement=True
+        "id", String(256), default=text(f"'{str(uuid4())}'"), primary_key=True
     )
-    __user_id = Column(
-        "user_id", String(256), nullable=False
-    )
-    __created = Column("created", DateTime, default=text("CURRENT_TIMESTAMP"))
+    user_id: Union[str, Column[str]] = Column("user_id", String(256), nullable=False)
+    __created_date = Column("created_date", DateTime, default=text("CURRENT_TIMESTAMP"))
     __email: Union[str, Column[str]] = Column(
         "email", String(256), unique=True, nullable=False
     )
@@ -43,9 +46,6 @@ class User(Base):
         "password", String(256), nullable=False
     )
     __salt_value: Union[str, Column[str]] = Column("salt_value", String(256))
-
-    def __str__(self):
-        return f'User: {self.user_id}'
 
     def __init__(self, email: str, password: str) -> None:
         """User Object Constructor.
@@ -58,11 +58,10 @@ class User(Base):
             UserEmailError: Custom User Email Error.
             UserPasswordError: Custom User Password Error.
         """
-
         self.__salt_value = str(uuid4())
-        self.__set_email(email)
-        self.__set_password(password)
-        self.user_id = get_hash_value(email + password, AppConfig().salt_value)
+        self.__set_email__(email)
+        self.__set_password__(password)
+        self.user_id = get_hash_value(email + password, str(AppConfig().salt_value))
 
     def __str__(self) -> str:
         """String Representation of the Accounts Object.
@@ -70,92 +69,103 @@ class User(Base):
         Returns:
             str: Representation of a User Object.
         """
-        return f"User: {self.user_id}"
+        return f"User ID: {self.user_id}"
 
     @property
-    def user_id(self) -> Union[str, UserError, FernetError]:
-        """
-        Returns Encrypted User Data.
+    def user_data(self) -> Union[str, UserError, FernetError]:
+        """Getter For User Data.
 
         Returns:
-        - str: An encrypted string representing the user's ID information.
+            str: Encrypted User Data.
         """
-        data = {}
-        for keys in [ self.__id,
-            self.__created.strftime(DateFormat.HYPHEN.value),
-            self.__email,
-            self.__password,
-            self.__salt_value,]:
-            if not keys:
-                raise UserError('Invalid User.')
-        data = {
-            "id": self.__id,
-            "created": self.__created.strftime(DateFormat.HYPHEN.value),
-            "email": self.__email,
-            "password": self.__password,
-            "salt_value": self.__salt_value,
-        }
-        # if not fkey:
-            
-        # return .encrypt(dumps(data).encode()).decode()
-
-    @property
-    def email(self) -> UserEmailError:
-        """Getter For User Email.
-
-        Raises:
-            UserEmailError: Raises a User Email Error.
-        """
-        raise UserEmailError("Can Not Access Private Attribute: [Email]")
-
-    @email.setter
-    def email(self, value: Union[str, Column[str]]) -> UserEmailError:
-        """Setter For User Email.
-
-        Args:
-            value (str): Value to set attribute to.
-
-        Raises:
-            UserEmailError: Custom Exception for Invalid Email Actions.
-
-        """
-
-        self.__set_email(value)
-        
+        return self.__get_encrypted_user_data__()
 
     @property
     def password(self) -> UserPasswordError:
         """Getter For User Password.
 
         Raises:
-            UserPasswordlError: Raises a User Password Error.
+            UserPasswordlError: Invalid Password Value.
         """
         raise UserPasswordError("Can Not Access Private Attribute: [PASSWORD]")
 
     @password.setter
     def password(self, value: Union[str, Column[str]]) -> UserPasswordError:
-        """Setter For User Pasword
+        """Setter For User Pasword.
 
         Args:
-            value (str): Value to set attribute to.
+            value (str): Valid Password Value.
 
         Raises:
-            UserEmailError: Custom Exception for Invalid Password Actions.
+            UserEmailError: Invalid Password Value.
         """
-        self.__set_password(value)
-
-    
+        self.__set_password__(str(value))
 
     @property
     def salt_value(self) -> Union[str, Column[str]]:
         """The value used to salt the Hash Generated for the User.
 
         Returns:
-            salt_value: The Salt Value used for Current User.
+            salt_value: Valid Salt Value.
         """
         return self.__salt_value
-    
-    def __set_email(self, value: str) -> UserEmailError:
+
+    def __get_encrypted_user_data__(self) -> Union[str, UserError, FernetError]:
+        """Public User ID.
+
+        Returns:
+            str: Encrypted User Data.
+        """
+        self.__vallidate_user_data__()
+        data = {
+            "id": self.__id,
+            "user_id": self.user_id,
+            "created_date": self.__created_date.strftime(DateFormat.HYPHEN.value),
+            "email": self.__email,
+            "password": self.__password,
+            "salt_value": self.__salt_value,
+        }
+        fernet = AppConfig().fernet
+        if not isinstance(fernet, Fernet):
+            raise UserError("Invalid User Data")
+        return fernet.encrypt(dumps(data).encode()).decode()
+
+    def __set_email__(self, value: str) -> UserEmailError:
+        """Validates the value and sets the Private Attribute.
+
+        Args:
+            value (str): Valid Email value.
+
+        Raises:
+            UserEmailError: Invalid User Email.
+        """
+        self.__validate_email__(value)
+        self.__email = get_hash_value(value, self.__salt_value)
+
+    def __set_password__(self, value: str) -> UserPasswordError:
+        """Validates the value and sets the Private Attribute.
+
+        Args:
+            value (str): Valid Password value.
+
+        Raises:
+            UserPasswordError: Invalid User Password.
+        """
+        self.__validate_password__(value)
+        self.__password = get_hash_value(value, self.__salt_value)
+
+    def __vallidate_user_data__(self) -> UserError:
+        for key in [
+            self.__id,
+            self.__created_date,
+            self.__email,
+            self.__password,
+            self.__salt_value,
+        ]:
+            if not key:
+                raise UserError("Invalid User.")
+
+    def __validate_email__(self, value: str) -> UserEmailError:
         """Validates the value and sets the Private Attribute.
 
         Args:
@@ -168,9 +178,8 @@ class User(Base):
             raise UserEmailError("Invalid Type for this Attribute.")
         if not Regex.EMAIL.value.match(value):
             raise UserEmailError("Invalid Email.")
-        self.__email = value
 
-    def __set_password(self, value: str) -> UserPasswordError:
+    def __validate_password__(self, value: str) -> UserPasswordError:
         """Validates the value and sets the Private Attribute.
 
         Args:
@@ -183,4 +192,3 @@ class User(Base):
             raise UserPasswordError("No Password Provided")
         if not Regex.PASSWORD.value.match(value):
             raise UserPasswordError("Invalid User Password.")
-        self.__password = get_hash_value(value, self.__salt_value)

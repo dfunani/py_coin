@@ -3,6 +3,7 @@
 from datetime import datetime
 from os import getenv
 from typing import Union
+from uuid import UUID, uuid4
 from cryptography.fernet import Fernet
 from lib.interfaces.exceptions import ApplicationError
 from lib.utils.constants.users import DateFormat
@@ -11,12 +12,30 @@ from lib.utils.constants.users import DateFormat
 class AppConfig:
     """AppConfig Singleton Class."""
 
+    __session__id__ = uuid4()
     __START_DATE__ = datetime.now()
-    __END_DATE__ = datetime.now()
-    __SALT_VALUE__ = getenv("SALT_VALUE") or ""
-    __FERNET_KEY__ = getenv("FERNET_KEY") or ""
+    __end_date__ = datetime.now()
+    __SALT_VALUE__ = getenv("SALT_VALUE")
+    __FERNET_KEY__ = getenv("FERNET_KEY")
     __CARD_LENGTH__ = 13
     __CVV_LENGTH__ = 3
+
+    def __str__(self) -> str:
+        self.__validate_session_id__()
+        return f"Application Session: {self.session_id}"
+
+    @property
+    def session_id(self) -> Union[str, ApplicationError]:
+        """Getter for Session ID.
+
+        Raises:
+            ApplicationError: Session ID.
+
+        Returns:
+            str: Valid Session ID.
+        """
+        self.__validate_session_id__()
+        return str(AppConfig.session_id)
 
     @property
     def start_date(self) -> Union[str, ApplicationError]:
@@ -42,7 +61,7 @@ class AppConfig:
             str: Valid End Date.
         """
         self.__validate_end_date__()
-        return AppConfig.__END_DATE__.strftime(DateFormat.LONG.value)
+        return self.__end_date__.strftime(DateFormat.LONG.value)
 
     @end_date.setter
     def end_date(self, value: datetime) -> ApplicationError:
@@ -58,7 +77,7 @@ class AppConfig:
             str: Valid End Date.
         """
         self.__validate_end_date__()
-        AppConfig.__END_DATE__ = value
+        self.__end_date__ = value
 
     @property
     def salt_value(self) -> Union[str, ApplicationError]:
@@ -71,7 +90,9 @@ class AppConfig:
             str: Valid Salt Value.
         """
         self.__set_salt_value__()
-        return AppConfig.__SALT_VALUE__
+        if not self.__SALT_VALUE__:
+            raise ApplicationError('Invalid Salt Value')
+        return self.__SALT_VALUE__
 
     @property
     def card_length(self) -> Union[int, ApplicationError]:
@@ -110,19 +131,9 @@ class AppConfig:
             str: Valid Fernet Key.
         """
         self.__set_fernet_key__()
+        if not self.__FERNET_KEY__:
+            raise ApplicationError('Invalid Fernet Key.')
         return Fernet(self.__FERNET_KEY__)
-
-    def __validate_start_date__(self) -> ApplicationError:
-        """Validates Start Date."""
-        if not isinstance(self.__START_DATE__, datetime):
-            raise ApplicationError("Invalid Type for this Attribute. [Start Date]")
-
-    def __validate_end_date__(self) -> ApplicationError:
-        """Validates End Date."""
-        if not isinstance(self.__END_DATE__, datetime):
-            raise ApplicationError("Invalid Type for this Attribute. [End Date]")
-        if self.__END_DATE__ <= self.__START_DATE__:
-            raise ApplicationError("Invalid End Date.")
 
     def __set_salt_value__(self) -> ApplicationError:
         """Validates Salt Value."""
@@ -138,6 +149,18 @@ class AppConfig:
         if not self.__FERNET_KEY__:
             raise ApplicationError("Invalid Fernet Key.")
 
+    def __validate_start_date__(self) -> ApplicationError:
+        """Validates Start Date."""
+        if not isinstance(self.__START_DATE__, datetime):
+            raise ApplicationError("Invalid Type for this Attribute. [Start Date]")
+
+    def __validate_end_date__(self) -> ApplicationError:
+        """Validates End Date."""
+        if not isinstance(self.__end_date__, datetime):
+            raise ApplicationError("Invalid Type for this Attribute. [End Date]")
+        if self.__end_date__ <= self.__START_DATE__:
+            raise ApplicationError("Invalid End Date.")
+
     def __validate_card_length__(self):
         """Validates Card length."""
         if not isinstance(self.__CARD_LENGTH__, int):
@@ -151,3 +174,7 @@ class AppConfig:
             raise ApplicationError("Invalid Type for this Attribute. [CVV Length]")
         if self.__CVV_LENGTH__ <= 0:
             raise ApplicationError("Invalid CVV Length.")
+
+    def __validate_session_id__(self) -> ApplicationError:
+        if not isinstance(self.__session__id__, UUID):
+            raise ApplicationError("Invalid Session ID.")

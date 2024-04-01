@@ -25,21 +25,18 @@ def upgrade() -> None:
     op.create_table(
         "users",
         sa.Column(
-            "id", sa.String(256), default=f"'{str(uuid4())}'", nullable=False
-        ),
-        sa.Column(
-            "user_id",
+            "id",
             sa.String(256),
-            default=f"'{str(uuid4())}'",
             nullable=False,
+            unique=True,
+            default=sa.text(f"'{str(uuid4())}'"),
+            primary_key=True,
         ),
-        sa.Column(
-            "created", sa.DateTime(), default=sa.text("CURRENT_TIMESTAMP")
-        ),
-        sa.Column("email", sa.String(256), nullable=False, unique=True),
+        sa.Column("user_id", sa.String(256), nullable=False),
+        sa.Column("created_date", sa.DateTime, default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column("email", sa.String(256), unique=True, nullable=False),
         sa.Column("password", sa.String(256), nullable=False),
-        sa.Column('salt_value', sa.String(256)),
-        sa.PrimaryKeyConstraint("id"),
+        sa.Column("salt_value", sa.String(256)),
     )
     # ### end Alembic commands ###
 

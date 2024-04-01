@@ -3,7 +3,7 @@
 from json import loads
 from pytest import raises
 from sqlalchemy.orm import Session
-from cryptography.fernet import Fernet
+from config import AppConfig
 from lib.interfaces.exceptions import UserEmailError, UserPasswordError
 from models import ENGINE
 from models.user.users import User
@@ -15,10 +15,6 @@ def test_base_user_valid():
     user = User("test@test.com", "test@test123")
     with raises(AttributeError):
         assert user.get("__email") and user.get("__password")
-    with raises(UserEmailError):
-        assert user.email
-    with raises(UserPasswordError):
-        assert user.password
 
 
 def test_base_user_invalid_email():
@@ -45,7 +41,7 @@ def test_base_user_no_password():
         User("TEST@TEST.COM", None)
 
 
-def test_create_user(get_user, fkey):
+def test_create_user(get_user):
     """_summary_
 
     Args:
@@ -54,8 +50,11 @@ def test_create_user(get_user, fkey):
     """
     with Session(ENGINE) as session:
         user_test_commit(get_user, session)
-        user_data = loads(Fernet(fkey).decrypt(get_user.user.encode()))
+        user_data = loads(AppConfig().fernet.decrypt(get_user.user_data.encode()))
 
         assert "id" in user_data and user_data.get("id")
+        assert "email" in user_data and user_data.get("email")
+        assert "password" in user_data and user_data.get("password")
+        assert "salt_value" in user_data and user_data.get("salt_value")
 
         user_test_teardown(user_data.get("id"), User, session)
