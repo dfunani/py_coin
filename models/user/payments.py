@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import json
 from random import randint
 from typing import Union
@@ -11,7 +12,9 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    column,
     func,
+    select,
     text,
 )
 from lib.utils.constants.users import CardType, Regex, CardStatus
@@ -38,7 +41,7 @@ class PaymentProfile(Base):
     """
 
     __tablename__ = "payment_profiles"
-    __id = Column(
+    id = Column(
         "id",
         String(256),
         default=text(f"'{str(uuid4())}'"),
@@ -53,10 +56,10 @@ class PaymentProfile(Base):
         unique=True,
         nullable=False,
     )
-    account_id: Column[str] = Column(
-        "account_id", ForeignKey("accounts.id"), nullable=False
-    )
-    __card_id = Column("card_id", String(256), ForeignKey("cards.card_id"))
+    # account_id: Column[str] = Column(
+    #     "account_id", ForeignKey("accounts.id"), nullable=False
+    # )
+    __card_id = Column("card_id", String(256), ForeignKey("cards.id"), nullable=False)
     __name = Column("name", String(256), nullable=False, default="New Payment Account.")
     __description = Column(
         "description",
@@ -69,24 +72,21 @@ class PaymentProfile(Base):
         DateTime,
         default=text("CURRENT_TIMESTAMP"),
     )
-    __expiration_date = Column(
-        "expiration_date",
-        DateTime,
-        default=func.date_add(func.now(), func.text("INTERVAL 5 YEAR")),
-    )
-    __pin = Column("expiration_date", String(256), nullable=False)
+    __expiration_date = Column("expiration_date", DateTime)
+    __pin = Column("pin", String(256), nullable=False)
 
-    def __init__(self, name: str, description: str, card_type: CardType):
+    def __init__(self, name: str, description: str, card_type: CardType, pin: str):
         """User Payment Information Constructor.
 
         Args:
             name (str): Custom Name for the Payment Profile.
             description (str): Short Description for the Payment Profile.
         """
+        self.__expiration_date = datetime.now() + timedelta(days=365 * 5)
         self.__set_card_id__(card_type)
         self.__set_name__(name)
         self.__set_deccription__(description)
-        self.__set_pin__()
+        self.__set_pin__(pin)
 
     def __str__(self) -> str:
         """String Representation of the Payment Profile Object.
@@ -135,10 +135,11 @@ class PaymentProfile(Base):
             "ccv_number": self.__get_ccv_number__(),
             "card_pin": self.__pin,
             "card_type": self.__get_card_type__(),
+            "expiration_date": self.__expiration_date,
         }
         fernet = AppConfig().fernet
         if not fernet:
-            raise PaymentProfileError('Invalid Payment Information.')
+            raise PaymentProfileError("Invalid Payment Information.")
         return fernet.decrypt(json.dumps(data).encode()).decode()
 
     @name.setter
@@ -212,9 +213,7 @@ class PaymentProfile(Base):
         """
         with Session(ENGINE) as session:
             card = (
-                session.query(Card)
-                .filter(Card.card_id == self.__card_id)
-                .one_or_none()
+                session.query(Card).filter(Card.card_id == self.__card_id).one_or_none()
             )
             return card
 
@@ -224,7 +223,7 @@ class PaymentProfile(Base):
         Raises:
             PaymentProfileError: Invalid Card ID.
         """
-        self.__card_id = PaymentProfile.__assign_card_id__(card_type)
+        self.__card_id = self.__assign_card_id__(card_type)
 
     def __set_name__(self, value: str) -> PaymentProfileError:
         """Sets Valid Card Name.
@@ -244,15 +243,14 @@ class PaymentProfile(Base):
         self.__validate_description__(value)
         self.__description = value
 
-    def __set_pin__(self) -> PaymentProfileError:
+    def __set_pin__(self, value: str) -> PaymentProfileError:
         """Sets Valid Card Pin.
 
         Raises:
             PaymentProfileError: Invalid Card Pin.
         """
-        pin = "".join([randint(0, 9) for _ in range(6)])
-        self.__validate_pin__(pin)
-        self.__pin = str(get_hash_value(pin, AppConfig().salt_value))
+        self.__validate_pin__(value)
+        self.__pin = str(get_hash_value(value, AppConfig().salt_value))
 
     def __validate_name__(self, value: str) -> PaymentProfileError:
         """Validates Card Name.
@@ -302,12 +300,11 @@ class PaymentProfile(Base):
         with Session(ENGINE) as session:
             card_id = (
                 session.query(Card)
-                .filter(Card.card_status == CardStatus.INACTIVE)
-                .filter(Card.card_type == card_type)
-                .order_by(Card.card_id)
+                .filter(Card.__table__.c.card_type == card_type)
+                .filter(Card.__table__.c.card_status == CardStatus.INACTIVE)
+                .order_by(Card.__table__.c.card_type)
                 .first()
-                .card_id
             )
             if not card_id:
                 raise CardValidationError("No Card Found.")
-            return card_id
+            return card_id.id

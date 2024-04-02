@@ -4,6 +4,7 @@ import json
 from random import shuffle
 from string import ascii_lowercase, ascii_uppercase
 from sys import argv
+import sys
 from sqlalchemy import update
 from sqlalchemy.orm import Session
 from cryptography.fernet import Fernet
@@ -12,6 +13,7 @@ from config import AppConfig
 from lib.utils.constants.users import CardType
 from lib.utils.helpers.users import get_hash_value
 from models import ENGINE
+from models.user.payments import PaymentProfile
 from models.user.users import User
 from models.warehouse.users.payments.cards import Card
 
@@ -102,6 +104,11 @@ def main(func, **kwargs):
 
 
 if __name__ == "__main__":
+    # payment = PaymentProfile('Hello World Again.', 'Testing The Hello World Account Payment Profile.', CardType.SAVINGS, '123456')
+    # with Session(ENGINE) as session:
+    #     session.add(payment)
+    #     session.commit()
+    # sys.exit()
     if len(argv) > 1:
         func = argv[1]
         args = argv[2:]
