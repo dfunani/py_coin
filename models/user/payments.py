@@ -1,3 +1,4 @@
+import json
 from random import randint
 from typing import Union
 from uuid import uuid4
@@ -13,15 +14,16 @@ from sqlalchemy import (
     func,
     text,
 )
+from lib.utils.constants.users import CardType, Regex, CardStatus
 from sqlalchemy.orm import Session, relationship
 from config import AppConfig
-from lib.interfaces.exceptions import CardValidationError, PaymentInformationError
-from lib.utils.constants.users import AccountPaymentType, CardStatus
+from lib.interfaces.exceptions import CardValidationError, PaymentProfileError
+from lib.utils.helpers.users import get_hash_value
 from models import ENGINE, Base
-from models.warehouse.users.cards import AccountCards
+from models.warehouse.users.payments.cards import Card
 
 
-class PaymentInformation(Base):
+class PaymentProfile(Base):
     """Model representing a User's Payment Information.
 
     Args:
@@ -35,7 +37,7 @@ class PaymentInformation(Base):
 
     """
 
-    __tablename__ = "payment_information"
+    __tablename__ = "payment_profiles"
     __id = Column(
         "id",
         String(256),
@@ -52,14 +54,16 @@ class PaymentInformation(Base):
         nullable=False,
     )
     account_id: Column[str] = Column(
-        "account_id", ForeignKey("accounts.account_id"), nullable=False
+        "account_id", ForeignKey("accounts.id"), nullable=False
     )
-    __card_id = Column(
-        "card_id",
+    __card_id = Column("card_id", String(256), ForeignKey("cards.card_id"))
+    __name = Column("name", String(256), nullable=False, default="New Payment Account.")
+    __description = Column(
+        "description",
         String(256),
-        foreign_keys=ForeignKey("account_cards.card_id"),
+        nullable=False,
+        default="New Payment Account Created for Block Chain Transactions.",
     )
-    __cvv_number = Column("cvv_number", String(256), nullable=False)
     __created_date = Column(
         "created_date",
         DateTime,
@@ -70,74 +74,135 @@ class PaymentInformation(Base):
         DateTime,
         default=func.date_add(func.now(), func.text("INTERVAL 5 YEAR")),
     )
-    __billing_address = Column("billing_address", JSON, nullable=False)
-    account_type = Column("account_type", Enum(AccountPaymentType), nullable=False)
+    __pin = Column("expiration_date", String(256), nullable=False)
 
-    def __init__(self, **kwargs):
-        """User Payment Information Constructor."""
-        super().__init__(**kwargs)
-        self.__set_card_id()
-        self.__set_cvv_number()
+    def __init__(self, name: str, description: str, card_type: CardType):
+        """User Payment Information Constructor.
 
-    @property
-    def card_number(self):
-        """Getter for the Card Number Property.
+        Args:
+            name (str): Custom Name for the Payment Profile.
+            description (str): Short Description for the Payment Profile.
+        """
+        self.__set_card_id__(card_type)
+        self.__set_name__(name)
+        self.__set_deccription__(description)
+        self.__set_pin__()
+
+    def __str__(self) -> str:
+        """String Representation of the Payment Profile Object.
 
         Returns:
-            str: Representation of the Card Number.
+            str: Representation of a Payment Profile Object.
         """
-        if not self.__card_id:
-            raise PaymentInformationError("Invalid Card Information.")
-        card_number = self.__get_card_number()
-        return (
-            card_number[:4] + ("x" * (AppConfig().card_length - 8)) + card_number[-4:]
-        )
+        return f"Payment ID: {self.payment_id}"
 
     @property
-    def cvv_number(self):
-        """Getter for the CVV Number Property.
+    def name(self) -> str:
+        """Getter for the Payment Profile Name.
 
         Returns:
-            str: Representation of the CVV Number.
+            str: Representation of the Payment Profile Name.
         """
-        if not self.__cvv_number:
-            raise PaymentInformationError("Invalid CVV Number.")
-        return "x" * AppConfig().cvv_length
+        return self.__name
 
     @property
-    def card_type(self):
-        """Getter for the Card Type Property.
+    def description(self) -> str:
+        """Getter for the Payment Profile Description.
 
         Returns:
-            str: Representation of the Card Type.
+            str: Representation of the Payment Profile Description.
         """
-        if not self.__card_id:
-            raise PaymentInformationError("Invalid Card Information.")
-        return self.__get_card_type()
-    
+        return self.__description
+
     @property
-    def card_information(self):
-        salt_value = 
+    def pin(self) -> str:
+        """Getter for the Payment Profile Pin.
 
-    def __set_card_id(self) -> PaymentInformationError:
-        """Sets the Private Attribute."""
-        self.__card_id = PaymentInformation.__assign_card_id()
+        Raises:
+            UserPasswordError: Representation of the Payment Profile Pin.
+        """
+        raise PaymentProfileError("Can Not Access Private Attribute: [PIN].")
 
-    def __set_cvv_number(self) -> PaymentInformationError:
-        """Sets the Private Attribute."""
-        cvv_number = "".join([randint(0, 9) for _ in AppConfig().cvv_length])
-        if len(cvv_number) != AppConfig().cvv_length:
-            raise PaymentInformationError("Invalid Payment Information.")
-        self.__cvv_number = cvv_number
+    @property
+    def card_information(self) -> Union[str, PaymentProfileError]:
+        """Getter for the Payment Profile Card Information.
 
-    def __get_card_number(self) -> str:
-        return self.__get_card_information().card_number
+        Raises:
+            UserPasswordError: Encrypted Card Data.
+        """
+        data = {
+            "card_number": self.__get_card_number__(),
+            "ccv_number": self.__get_ccv_number__(),
+            "card_pin": self.__pin,
+            "card_type": self.__get_card_type__(),
+        }
+        fernet = AppConfig().fernet
+        if not fernet:
+            raise PaymentProfileError('Invalid Payment Information.')
+        return fernet.decrypt(json.dumps(data).encode()).decode()
 
-    def __get_card_type(self) -> str:
-        return self.__get_card_information().card_type
+    @name.setter
+    def name(self, value: str) -> PaymentProfileError:
+        """Setter for the Payment Profile Name.
 
-    def __get_card_information(self) -> Union[CardValidationError, AccountCards]:
-        """Gets a Valid Card Information.
+        Returns:
+            str: Representation of the Payment Profile Name.
+        """
+        self.__set_name__(value)
+
+    @description.setter
+    def description(self, value: str) -> PaymentProfileError:
+        """Setter for the Payment Profile Description.
+
+        Returns:
+            str: Representation of the Payment Profile Description.
+        """
+        self.__set_deccription__(value)
+
+    @pin.setter
+    def pin(self, value: str) -> PaymentProfileError:
+        """Setter for the Payment Profile Pin.
+
+        Returns:
+            str: Representation of the Payment Profile Pin.
+        """
+        self.__set_pin__(value)
+
+    def __get_card_number__(self) -> str:
+        """Gets Valid Card Number.
+
+        Raises:
+            CardValidationError: Invalid Card Number.
+
+        Returns:
+            str: Valid Card Number.
+        """
+        return self.__get_card_information__().card_number
+
+    def __get_ccv_number__(self) -> str:
+        """Gets Valid CVV Number.
+
+        Raises:
+            CardValidationError: Invalid CVV Number.
+
+        Returns:
+            str: Valid CVV Number.
+        """
+        return self.__get_card_information__().cvv_number
+
+    def __get_card_type__(self) -> str:
+        """Gets Valid Card Type.
+
+        Raises:
+            CardValidationError: Invalid Card Type.
+
+        Returns:
+            str: Valid Card Type.
+        """
+        return self.__get_card_information__().card_type
+
+    def __get_card_information__(self) -> Union[CardValidationError, Card]:
+        """Gets Valid Card Information.
 
         Raises:
             CardValidationError: Invalid Card Information.
@@ -147,17 +212,86 @@ class PaymentInformation(Base):
         """
         with Session(ENGINE) as session:
             card = (
-                session.query(AccountCards)
-                .filter(AccountCards.card_id == self.__card_information)
+                session.query(Card)
+                .filter(Card.card_id == self.__card_id)
                 .one_or_none()
             )
             return card
 
+    def __set_card_id__(self, card_type) -> PaymentProfileError:
+        """Sets Valid Card ID.
+
+        Raises:
+            PaymentProfileError: Invalid Card ID.
+        """
+        self.__card_id = PaymentProfile.__assign_card_id__(card_type)
+
+    def __set_name__(self, value: str) -> PaymentProfileError:
+        """Sets Valid Card Name.
+
+        Raises:
+            PaymentProfileError: Invalid Card Name.
+        """
+        self.__validate_name__(value)
+        self.__name = value
+
+    def __set_deccription__(self, value: str) -> PaymentProfileError:
+        """Sets Valid Card Description.
+
+        Raises:
+            PaymentProfileError: Invalid Card Description.
+        """
+        self.__validate_description__(value)
+        self.__description = value
+
+    def __set_pin__(self) -> PaymentProfileError:
+        """Sets Valid Card Pin.
+
+        Raises:
+            PaymentProfileError: Invalid Card Pin.
+        """
+        pin = "".join([randint(0, 9) for _ in range(6)])
+        self.__validate_pin__(pin)
+        self.__pin = str(get_hash_value(pin, AppConfig().salt_value))
+
+    def __validate_name__(self, value: str) -> PaymentProfileError:
+        """Validates Card Name.
+
+        Raises:
+            PaymentProfileError: Invalid Card Name.
+        """
+        if not isinstance(value, str):
+            raise PaymentProfileError("Invalid Type for this Attribute.")
+        if not Regex.TITLE.value.match(value):
+            raise PaymentProfileError("Invalid Payment Information.")
+
+    def __validate_description__(self, value: str) -> PaymentProfileError:
+        """Validates Card Description.
+
+        Raises:
+            PaymentProfileError: Invalid Card Description.
+        """
+        if not isinstance(value, str):
+            raise PaymentProfileError("Invalid Type for this Attribute.")
+        if not Regex.DESCRIPTION.value.match(value):
+            raise PaymentProfileError("Invalid Payment Information.")
+
+    def __validate_pin__(self, value: str) -> PaymentProfileError:
+        """Validates Card Pin.
+
+        Raises:
+            PaymentProfileError: Invalid Card Pin.
+        """
+        if not isinstance(value, str):
+            raise PaymentProfileError("Invalid Type for this Attribute.")
+        if not Regex.PIN.value.match(value):
+            raise PaymentProfileError("Invalid Payment Information.")
+
     @staticmethod
-    def __assign_card_id(
-        payment_type: AccountPaymentType,
+    def __assign_card_id__(
+        card_type: CardType,
     ) -> Union[CardValidationError, str]:
-        """Gets a Valid Card ID.
+        """Assigns a Valid Card ID.
 
         Raises:
             CardValidationError: Invalid Card ID.
@@ -167,10 +301,10 @@ class PaymentInformation(Base):
         """
         with Session(ENGINE) as session:
             card_id = (
-                session.query(AccountCards)
-                .filter(AccountCards.card_status == CardStatus.INACTIVE)
-                .filter(AccountCards.card_type == payment_type)
-                .order_by(AccountCards.card_id)
+                session.query(Card)
+                .filter(Card.card_status == CardStatus.INACTIVE)
+                .filter(Card.card_type == card_type)
+                .order_by(Card.card_id)
                 .first()
                 .card_id
             )

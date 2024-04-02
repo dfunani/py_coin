@@ -49,7 +49,10 @@ class Regex(Enum):
     LAST_NAME = regex_compile(r"^[a-zA-Z]{1,30}$")
     USERNAME = regex_compile(r"^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z0-9_]{3,30}$")
     MOBILE_NUMBER = regex_compile(r"^\+?[0-9]+(?:[ -][0-9]+)*$")
-    BIOGRAPHY = regex_compile(r"^(?!\s+$).{8,}$")
+    TITLE = regex_compile(r"^(?!\s+$).{8,30}$")
+    DESCRIPTION = regex_compile(r"^(?!\s+$).{8,60}$")
+    BIOGRAPHY = regex_compile(r"^(?!\s+$).{8,250}$")
+    PIN = regex_compile(r"^\d{6}$")
 
 
 class Gender(Enum):
@@ -589,7 +592,7 @@ class SocialMediaLink(Enum):
     SOUNDCLOUD = regex_compile(r"^https?:\/\/(www\.)?soundcloud\.com\/[a-zA-Z0-9_-]+$")
 
 
-class AccountPaymentType(Enum):
+class CardType(Enum):
     CHEQUE = "cheque", "1991"
     SAVINGS = "savings", "1992"
     CREDIT = "credit", "1993"

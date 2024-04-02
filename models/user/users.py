@@ -61,10 +61,10 @@ class User(Base):
         self.__salt_value = str(uuid4())
         self.__set_email__(email)
         self.__set_password__(password)
-        self.__set_user_id__()
+        self.__set_user_id__(password)
 
     def __str__(self) -> str:
-        """String Representation of the Accounts Object.
+        """String Representation of the User Object.
 
         Returns:
             str: Representation of a User Object.
@@ -85,9 +85,18 @@ class User(Base):
         """Getter For User Password.
 
         Raises:
-            UserPasswordlError: Invalid Password Value.
+            UserPasswordlError: Invalid Access to Password Attribute.
         """
-        raise UserPasswordError("Can Not Access Private Attribute: [PASSWORD]")
+        raise UserPasswordError("Can Not Access Private Attribute: [PASSWORD].")
+
+    @property
+    def salt_value(self) -> Union[str, Column[str]]:
+        """The value used to salt the Hash Generated for the User.
+
+        Returns:
+            salt_value: Valid Salt Value.
+        """
+        return self.__salt_value
 
     @password.setter
     def password(self, value: Union[str, Column[str]]) -> UserPasswordError:
@@ -100,19 +109,10 @@ class User(Base):
             UserEmailError: Invalid Password Value.
         """
         self.__set_password__(str(value))
-        self.__set_user_id__()
-
-    @property
-    def salt_value(self) -> Union[str, Column[str]]:
-        """The value used to salt the Hash Generated for the User.
-
-        Returns:
-            salt_value: Valid Salt Value.
-        """
-        return self.__salt_value
+        self.__set_user_id__(str(value))
 
     def __get_encrypted_user_data__(self) -> Union[str, UserError, FernetError]:
-        """Public User ID.
+        """Get User Information.
 
         Returns:
             str: Encrypted User Data.
@@ -131,21 +131,23 @@ class User(Base):
             raise UserError("Invalid User Data")
         return fernet.encrypt(dumps(data).encode()).decode()
 
-    def __set_user_id__(self) -> Union[str, ValueError]:
-        """Validates the value and sets the Private Attribute.
+    def __set_user_id__(self, value: str) -> Union[str, ValueError]:
+        """Sets the Private Attribute.
 
         Args:
-            value (str): Valid User ID.
+            email (str): Valid User Email.
+            password (str): Valid User Password.
 
         Raises:
             UserEmailError: Invalid User ID.
         """
-        self.user_id = str(get_hash_value(
-            str(self.__email) + str(self.__password), str(AppConfig().salt_value)
-        ))
+        self.__validate_password__(value)
+        self.user_id = str(
+            get_hash_value(str(self.__email) + value, str(AppConfig().salt_value))
+        )
 
     def __set_email__(self, value: str) -> Union[ValueError, UserEmailError]:
-        """Validates the value and sets the Private Attribute.
+        """Sets the Private Attribute.
 
         Args:
             value (str): Valid Email value.
@@ -154,10 +156,10 @@ class User(Base):
             UserEmailError: Invalid User Email.
         """
         self.__validate_email__(value)
-        self.__email = str(get_hash_value(value, self.__salt_value))
+        self.__email = str(get_hash_value(value, str(AppConfig().salt_value)))
 
     def __set_password__(self, value: str) -> Union[ValueError, UserPasswordError]:
-        """Validates the value and sets the Private Attribute.
+        """Sets the Private Attribute.
 
         Args:
             value (str): Valid Password value.
@@ -169,6 +171,14 @@ class User(Base):
         self.__password = str(get_hash_value(value, self.__salt_value))
 
     def __vallidate_user_data__(self) -> UserError:
+        """Validates the Private Attribute.
+
+        Args:
+            value (str): Valid User Data.
+
+        Raises:
+            UserEmailError: Invalid User Data.
+        """
         for key in [
             self.__id,
             self.__created_date,
@@ -177,10 +187,10 @@ class User(Base):
             self.__salt_value,
         ]:
             if not key:
-                raise UserError("Invalid User.")
+                raise UserError("Invalid User Data.")
 
     def __validate_email__(self, value: str) -> UserEmailError:
-        """Validates the value and sets the Private Attribute.
+        """Validates the Private Attribute.
 
         Args:
             value (str): Valid Email value.
@@ -194,7 +204,7 @@ class User(Base):
             raise UserEmailError("Invalid Email.")
 
     def __validate_password__(self, value: str) -> UserPasswordError:
-        """Validates the value and sets the Private Attribute.
+        """Validates the Private Attribute.
 
         Args:
             value (str): Valid Password value.

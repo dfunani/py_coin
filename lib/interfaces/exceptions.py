@@ -81,7 +81,7 @@ class UserSocialMediaLinkError(Exception):
         self.message = message
 
 
-class PaymentInformationError(Exception):
+class PaymentProfileError(Exception):
     """Custom Error For Invalid Payment Information."""
 
     def __init__(self, message: str) -> None:
