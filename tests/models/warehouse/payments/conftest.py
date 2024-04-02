@@ -13,7 +13,8 @@ def get_card_number():
 @fixture
 def tear_down():
     with Session(ENGINE) as session:
-        
+        card = session.query(Card).where(Card.card_number[5:] == "999999999")
+        session.delete(card)
         session.commit() 
 
 

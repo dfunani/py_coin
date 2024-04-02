@@ -30,7 +30,7 @@ class Card(Base):
 
     __tablename__ = "cards"
 
-    id: Union[str, Column[str]] = Column(
+    __id: Union[str, Column[str]] = Column(
         "id",
         String(256),
         default=text(f"'{str(uuid4())}'"),
@@ -75,7 +75,7 @@ class Card(Base):
         Raises:
             CardValidationError: Invalid Card Information.
         """
-        self.id = str(uuid4())
+        self.__id = str(uuid4())
         self.card_id = str(uuid4())
         self.__set_card_type__(card_type)
         self.__set_card_number__(card_number)
