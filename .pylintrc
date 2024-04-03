@@ -438,6 +438,8 @@ disable=raw-checker-failed,
 # it should appear only once). See also the "--disable" option for examples.
 enable=
 
+[tests/models/users/test_user.py]
+disable = E1121
 
 [METHOD_ARGS]
 

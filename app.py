@@ -75,24 +75,7 @@ def get_user(email, password) -> User:
 
 
 
-def update_user(user_id, **kwargs) -> str:
-    with Session(ENGINE) as session:
-        # Retrieve the user from the database
-        user = session.query(User).filter(User.user_id == user_id).first()
 
-        if user is None:
-            return "User not found"
-
-        # Update the password if 'password' key is present in kwargs
-        
-        # session.execute(update(user))
-        for key in kwargs:
-            setattr(user, key, kwargs[key])
-
-        # Commit the changes to the database
-        session.add(user)
-        session.commit()
-        return 'Updated'
 
 
 

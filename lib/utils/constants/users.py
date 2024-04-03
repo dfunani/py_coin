@@ -41,7 +41,7 @@ class DateFormat(Enum):
 class Regex(Enum):
     """Holds Regex COnstants That are Applicable to the Application."""
 
-    EMAIL: Pattern = regex_compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-_]+\.[a-zA-Z]+$")
+    EMAIL: Pattern = regex_compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-_]+\.[a-zA-Z]+\.?[a-zA-Z]*$")
     PASSWORD: Pattern = regex_compile(
         r"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()-_+=]).{8,}$"
     )

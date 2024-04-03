@@ -1,4 +1,4 @@
-"""Test Module for the AppConfig."""
+"""App Module: Testing Application Configuration."""
 
 from datetime import datetime
 
@@ -30,15 +30,15 @@ def test_app_config_start_date_setter(app: AppConfig):
 
 def test_app_config_end_date(app: AppConfig):
     """Test AppConfig Init - End Date."""
-    assert datetime.strptime(str(app.end_date), DateFormat.LONG.value) >= datetime.strptime(
-        str(app.start_date), DateFormat.LONG.value
-    )
+    assert datetime.strptime(
+        str(app.end_date), DateFormat.LONG.value
+    ) >= datetime.strptime(str(app.start_date), DateFormat.LONG.value)
 
 
 def test_app_config_end_date_setter(app: AppConfig):
     """Test AppConfig End Date Setter."""
     now = datetime.now()
-    setattr(app, 'end_date', now)
+    setattr(app, "end_date", now)
     assert app.end_date is not None
 
 
