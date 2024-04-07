@@ -3,10 +3,8 @@
 from json import dumps
 from typing import Union
 
-from sqlalchemy import String, cast, select
+from sqlalchemy import Column, String, cast, select
 from sqlalchemy.orm import Session
-
-from cryptography.fernet import Fernet
 
 from config import AppConfig
 from lib.interfaces.exceptions import (
@@ -16,6 +14,7 @@ from lib.interfaces.exceptions import (
     UserPasswordError,
 )
 from lib.utils.constants.users import DateFormat, Regex
+from lib.utils.helpers.cards import decrypt_data, encrypt_data
 from lib.utils.helpers.users import get_hash_value
 from models import ENGINE
 from models.user.users import User
@@ -30,22 +29,17 @@ class UserSerialiser(User):
     """
 
     @classmethod
-    def get_user(cls, email: str, password: str) -> str:
+    def get_user(cls, user_id: str) -> Union[str, UserError, FernetError]:
         """CRUD Operation: Get User.
 
         Args:
-            email (str): User Email.
-            password (str): User Password.
+            user_id (str): Public User ID.
 
         Returns:
             str: User Object.
         """
         with Session(ENGINE) as session:
-            valid_email = cls.__get_valid_email__(email)
-            cls.__validate_password__(password)
-            user_id = cls.__get_valid_user_id__(str(valid_email), password)
-
-            query = select(User).where(cast(User.user_id, String) == user_id)
+            query = select(User).filter(cast(User.user_id, String) == user_id)
             user = session.execute(query).scalar_one_or_none()
 
             if not user:
@@ -69,7 +63,7 @@ class UserSerialiser(User):
 
             user.email = user.__get_valid_email__(email)
             user.password = user.__get_valid_password__(password)
-            user.user_id = user.__get_valid_user_id__(user.email, password)
+            user.user_id = user.get_validated_user_id(email, password)
 
             if not user:
                 raise UserError("User not created.")
@@ -81,7 +75,7 @@ class UserSerialiser(User):
             return user_id
 
     @classmethod
-    def update_user(cls, id: str, **kwargs) -> str:
+    def update_user(cls, private_id: str, **kwargs) -> str:
         """CRUD Operation: Update User.
 
         Args:
@@ -91,8 +85,7 @@ class UserSerialiser(User):
             str: User Object.
         """
         with Session(ENGINE) as session:
-            query = select(cls).filter(cast(User.id, String) == id)
-            user = session.execute(query).scalar_one_or_none()
+            user = session.get(cls, private_id)
 
             if user is None:
                 raise UserError("User Not Found.")
@@ -102,7 +95,9 @@ class UserSerialiser(User):
                     raise UserError("Invalid attribute to Update.")
 
                 valid_password = user.__get_valid_password__(value)
-                valid_user_id = user.__get_valid_user_id__(str(user.email), value)
+                valid_user_id = user.get_validated_user_id(
+                    decrypt_data(user.email), value
+                )
                 setattr(user, key, valid_password)
                 setattr(user, "user_id", valid_user_id)
 
@@ -113,7 +108,7 @@ class UserSerialiser(User):
             return user_id
 
     @classmethod
-    def delete_user(cls, id: str) -> str:
+    def delete_user(cls, private_id: str) -> str:
         """CRUD Operation: Delete User.
 
         Args:
@@ -123,42 +118,29 @@ class UserSerialiser(User):
             str: User Object.
         """
         with Session(ENGINE) as session:
-            user = session.get(User, id)
+            user = session.get(User, private_id)
 
             if not user:
                 raise UserError("User Not Found")
 
             session.delete(user)
             session.commit()
-            return f"Deleted: {id}"
 
-    @classmethod
-    def __get_valid_email__(cls, email: str) -> Union[str, ValueError, UserEmailError]:
+            return f"Deleted: {private_id}"
+
+    def __get_valid_email__(
+        self, email: str
+    ) -> Union[str, ValueError, UserPasswordError, UserError]:
         """Sets the Private Attribute.
 
         Args:
-            email (str): Valid Email value.
+            email (str): Valid Email.
 
         Raises:
-            UserEmailError: Invalid User Email.
+            UserPasswordError: Invalid User Email.
         """
         UserSerialiser.__validate_email__(email)
-        return str(get_hash_value(email, str(AppConfig().salt_value)))
-
-    @staticmethod
-    def __validate_email__(email: str) -> UserEmailError:
-        """Validates the Private Attribute.
-
-        Args:
-            email (str): Valid Email value.
-
-        Raises:
-            UserEmailError: Invalid User Email.
-        """
-        if not isinstance(email, str):
-            raise UserEmailError("Invalid Type for this Attribute.")
-        if not Regex.EMAIL.value.match(email):
-            raise UserEmailError("Invalid Email.")
+        return encrypt_data(email.encode())
 
     def __get_valid_password__(
         self, password: str
@@ -166,43 +148,13 @@ class UserSerialiser(User):
         """Sets the Private Attribute.
 
         Args:
-            password (str): Valid Password value.
+            password (str): Valid Password.
 
         Raises:
             UserPasswordError: Invalid User Password.
         """
         UserSerialiser.__validate_password__(password)
         return str(get_hash_value(password, self.salt_value))
-
-    @staticmethod
-    def __validate_password__(password: str) -> UserPasswordError:
-        """Validates the Private Attribute.
-
-        Args:
-            value (str): Valid Password value.
-
-        Raises:
-            UserPasswordError: Invalid User Password.
-        """
-        if not isinstance(password, str):
-            raise UserPasswordError("No Password Provided")
-        if not Regex.PASSWORD.value.match(password):
-            raise UserPasswordError("Invalid User Password.")
-
-    @classmethod
-    def __get_valid_user_id__(
-        cls, email: str, password: str
-    ) -> Union[str, ValueError, UserEmailError]:
-        """Sets the Private Attribute.
-
-        Args:
-            email (str): Valid Email value.
-            password (str): Valid Password value.
-
-        Raises:
-            UserEmailError: Invalid User.
-        """
-        return str(get_hash_value(email + password, str(AppConfig().salt_value)))
 
     @classmethod
     def __get_encrypted_user_data__(
@@ -217,14 +169,42 @@ class UserSerialiser(User):
         data = {
             "id": user.id,
             "created_date": user.created_date.strftime(DateFormat.HYPHEN.value),
+            "updated_date": user.updated_date.strftime(DateFormat.HYPHEN.value),
             "email": user.email,
             "password": user.password,
             "salt_value": user.salt_value,
         }
-        fernet = AppConfig().fernet
-        if not isinstance(fernet, Fernet):
-            raise UserError("Invalid User Data")
-        return fernet.encrypt(dumps(data).encode()).decode()
+        return encrypt_data(dumps(data).encode())
+
+    @staticmethod
+    def __validate_email__(email: str) -> UserEmailError:
+        """Validates the Private Attribute.
+
+        Args:
+            email (str): Valid Email.
+
+        Raises:
+            UserEmailError: Invalid User Email.
+        """
+        if not isinstance(email, str):
+            raise UserEmailError("Invalid Type for this Attribute.")
+        if not Regex.EMAIL.value.match(email):
+            raise UserEmailError("Invalid Email.")
+
+    @staticmethod
+    def __validate_password__(password: str) -> UserPasswordError:
+        """Validates the Private Attribute.
+
+        Args:
+            value (str): Valid Password.
+
+        Raises:
+            UserPasswordError: Invalid User Password.
+        """
+        if not isinstance(password, str):
+            raise UserPasswordError("No Password Provided")
+        if not Regex.PASSWORD.value.match(password):
+            raise UserPasswordError("Invalid User Password.")
 
     @staticmethod
     def __vallidate_user__(user: User) -> UserError:
@@ -245,3 +225,20 @@ class UserSerialiser(User):
         ]:
             if not key:
                 raise UserError("Invalid User Data.")
+
+    @staticmethod
+    def get_validated_user_id(
+        email: Union[str, Column[str]], password: str
+    ) -> Union[str, ValueError, UserEmailError]:
+        """Sets the Private Attribute.
+
+        Args:
+            email (str): Valid Email.
+            password (str): Valid Password.
+
+        Raises:
+            UserEmailError: Invalid User.
+        """
+        UserSerialiser.__validate_email__(email)
+        UserSerialiser.__validate_password__(password)
+        return str(get_hash_value(str(email) + password, str(AppConfig().salt_value)))

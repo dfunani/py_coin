@@ -22,7 +22,7 @@ def password() -> str:
     return "testing@123"
 
 
-def user_test_commit(object, session):
+def setup_test_commit(object, session):
     """Abstraction of the persistence functionality.
 
     Args:
@@ -33,13 +33,13 @@ def user_test_commit(object, session):
     session.commit()
 
 
-def user_test_teardown(model_id, model, session):
+def run_test_teardown(private_id, model, session):
     """Abstraction of the Clearing of the Test Database.
 
     Args:
         model (Model): Model to Persist
         session (Session): Database Session
     """
-    model = session.get(model, model_id)
+    model = session.get(model, private_id)
     session.delete(model)
     session.commit()

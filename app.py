@@ -15,7 +15,7 @@ from lib.utils.helpers.users import get_hash_value
 from models import ENGINE
 from models.user.payments import PaymentProfile
 from models.user.users import User
-from models.warehouse.users.payments.cards import Card
+from models.warehouse.cards import Card
 
 # from models.warehouse.users.cards import AccountCards
 

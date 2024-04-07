@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 
 from lib.utils.constants.users import CardType
 from models import ENGINE
-from models.warehouse.users.payments.cards import Card
+from models.warehouse.cards import Card
 
 
 def __generate_card_numbers(prefix='', length=9):

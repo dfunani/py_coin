@@ -20,7 +20,8 @@ class User(Base):
         - __tablename__ (str): The name of the database table for users.
         - id (str): User's Private ID.
         - user_id (str): User's Public ID.
-        - created_date (datetime): User Date.
+        - created_date (datetime): User Created Date.
+        - updated_date (datetime): User Updated Date.
         - email (str): User's Email.
         - password (str): User's Password.
         - salt_value (str): User's Hash Salt Value.

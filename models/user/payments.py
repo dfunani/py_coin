@@ -23,7 +23,7 @@ from config import AppConfig
 from lib.interfaces.exceptions import CardValidationError, PaymentProfileError
 from lib.utils.helpers.users import get_hash_value
 from models import ENGINE, Base
-from models.warehouse.users.payments.cards import Card
+from models.warehouse.cards import Card
 
 
 class PaymentProfile(Base):
@@ -72,8 +72,7 @@ class PaymentProfile(Base):
         DateTime,
         default=text("CURRENT_TIMESTAMP"),
     )
-    __expiration_date = Column("expiration_date", DateTime)
-    __pin = Column("pin", String(256), nullable=False)
+
 
     def __init__(self, name: str, description: str, card_type: CardType, pin: str):
         """User Payment Information Constructor.
@@ -243,14 +242,7 @@ class PaymentProfile(Base):
         self.__validate_description__(value)
         self.__description = value
 
-    def __set_pin__(self, value: str) -> PaymentProfileError:
-        """Sets Valid Card Pin.
-
-        Raises:
-            PaymentProfileError: Invalid Card Pin.
-        """
-        self.__validate_pin__(value)
-        self.__pin = str(get_hash_value(value, AppConfig().salt_value))
+    
 
     def __validate_name__(self, value: str) -> PaymentProfileError:
         """Validates Card Name.
@@ -274,17 +266,7 @@ class PaymentProfile(Base):
         if not Regex.DESCRIPTION.value.match(value):
             raise PaymentProfileError("Invalid Payment Information.")
 
-    def __validate_pin__(self, value: str) -> PaymentProfileError:
-        """Validates Card Pin.
-
-        Raises:
-            PaymentProfileError: Invalid Card Pin.
-        """
-        if not isinstance(value, str):
-            raise PaymentProfileError("Invalid Type for this Attribute.")
-        if not Regex.PIN.value.match(value):
-            raise PaymentProfileError("Invalid Payment Information.")
-
+    
     @staticmethod
     def __assign_card_id__(
         card_type: CardType,

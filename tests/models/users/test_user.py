@@ -10,7 +10,7 @@ from config import AppConfig
 from models import ENGINE
 from models.user.users import User
 from lib.utils.helpers.users import get_hash_value
-from tests.conftest import user_test_commit, user_test_teardown
+from tests.conftest import test_commit, test_teardown
 
 
 def test_user_invalid_no_args():
@@ -44,5 +44,5 @@ def test_user_valid(email, password):
         user_id = str(get_hash_value(email + password, str(AppConfig().salt_value)))
         user.user_id = user_id
 
-        user_test_commit(user, session)
-        user_test_teardown(user.id, User, session)
+        test_commit(user, session)
+        test_teardown(user.id, User, session)
