@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 
 
 from serialisers.warehouse.cards import CardSerialiser
-from lib.utils.constants.users import CardStatus, CardType
+from lib.utils.constants.users import Status, CardType
 from models import ENGINE
 from models.warehouse.cards import Card
 from tests.conftest import setup_test_commit, run_test_teardown
@@ -47,6 +47,6 @@ def test_card_valid():
 
             setup_test_commit(card, session)
 
-            assert card.card_status == CardStatus.NEW
+            assert card.card_status == Status.NEW
 
             run_test_teardown(card.id, Card, session)

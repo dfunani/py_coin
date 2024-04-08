@@ -12,7 +12,7 @@ from uuid import uuid4
 from alembic import op
 import sqlalchemy as sa
 
-from lib.utils.constants.users import PaymentStatus
+from lib.utils.constants.users import Status
 
 # revision identifiers, used by Alembic.
 revision: str = "264138947100"
@@ -49,8 +49,8 @@ def upgrade() -> None:
         ),
         sa.Column(
             "payment_status",
-            sa.Enum(PaymentStatus, name="payment_status"),
-            default=PaymentStatus.NEW,
+            sa.Enum(Status, name="payment_status"),
+            default=Status.NEW,
         ),
         sa.Column("balance", sa.Float, default=0.0, nullable=False),
     )

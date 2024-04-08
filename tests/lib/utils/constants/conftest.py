@@ -44,11 +44,11 @@ def email_status():
     """Testing Enumeration of Email Verification Statuses"""
 
     return [
-        "New Email Unverified",
-        "Email Verified",
-        "Email Verification Requested",
-        "Email Verification Failed",
-        "Email Verification Request Expired",
+        "New and Unverified",
+        "Verified",
+        "Verification Requested",
+        "Verification Failed",
+        "Verification Request Expired",
     ]
 
 

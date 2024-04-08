@@ -3,6 +3,7 @@
 from datetime import datetime
 from typing import Union
 from uuid import uuid4
+from sqlalchemy.orm import relationship
 from sqlalchemy import (
     Column,
     DateTime,
@@ -10,9 +11,9 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     String,
-    text,
+    text
 )
-from lib.utils.constants.users import PaymentStatus
+from lib.utils.constants.users import Status
 from models import Base
 
 
@@ -45,6 +46,7 @@ class PaymentProfile(Base):
     card_id: Union[str, Column[str]] = Column(
         "card_id", String(256), ForeignKey("cards.id"), nullable=False
     )
+    card = relationship('Card', backref='Card')
     name: Union[str, Column[str]] = Column(
         "name", String(256), nullable=False, default="New Payment Account."
     )
@@ -54,8 +56,8 @@ class PaymentProfile(Base):
         nullable=False,
         default="New Payment Account Created for Block Chain Transactions.",
     )
-    payment_status: Union[PaymentStatus, Column[PaymentStatus]] = Column(
-        "payment_status", Enum(PaymentStatus), default=PaymentStatus.NEW
+    payment_status: Union[Status, Column[Status]] = Column(
+        "payment_status", Enum(Status), default=Status.NEW
     )
     balance: Union[float, Column[float]] = Column(
         "balance", Float, default=0.0, nullable=False

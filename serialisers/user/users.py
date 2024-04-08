@@ -13,7 +13,7 @@ from lib.interfaces.exceptions import (
     UserError,
     UserPasswordError,
 )
-from lib.utils.constants.users import DateFormat, Regex, UserStatus
+from lib.utils.constants.users import DateFormat, Regex, Status
 from lib.utils.helpers.cards import decrypt_data, encrypt_data
 from lib.utils.helpers.users import get_hash_value
 from models import ENGINE
@@ -235,10 +235,10 @@ class UserSerialiser(User):
                 raise UserError("Invalid User Data.")
 
     @staticmethod
-    def __validate_user_status__(value: UserStatus):
-        if not isinstance(value, UserStatus):
+    def __validate_user_status__(value: Status):
+        if not isinstance(value, Status):
             raise UserError("Invalid Type for this Attribute.")
-        if value not in [UserStatus.ACTIVE, UserStatus.DELETED]:
+        if value not in [Status.ACTIVE, Status.DELETED]:
             raise UserError("Invalid User Status.")
 
     @staticmethod

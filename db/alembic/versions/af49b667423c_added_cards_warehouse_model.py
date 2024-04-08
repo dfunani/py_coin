@@ -13,7 +13,7 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-from lib.utils.constants.users import CardStatus, CardType
+from lib.utils.constants.users import Status, CardType
 
 # revision identifiers, used by Alembic.
 revision: str = "af49b667423c"
@@ -44,9 +44,9 @@ def upgrade() -> None:
         sa.Column("card_type", sa.Enum(CardType, name=f"card_type"), nullable=False),
         sa.Column(
             "card_status",
-            sa.Enum(CardStatus, name=f"card_status"),
+            sa.Enum(Status, name=f"card_status"),
             nullable=False,
-            default=CardStatus.NEW,
+            default=Status.NEW,
         ),
         sa.Column("pin", sa.String(256), nullable=False),
         sa.Column("expiration_date", sa.Date, nullable=False),

@@ -6,7 +6,7 @@ from re import compile as regex_compile
 from pytest import raises
 from sqlalchemy.orm import Session
 
-from lib.utils.constants.users import CardType, PaymentStatus
+from lib.utils.constants.users import CardType, Status
 from lib.utils.helpers.cards import decrypt_data
 from models.user.payments import PaymentProfile
 from models.warehouse.cards import Card

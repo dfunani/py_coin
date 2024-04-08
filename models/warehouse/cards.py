@@ -4,7 +4,7 @@ from datetime import date, datetime
 from typing import Union
 from uuid import uuid4
 from sqlalchemy import Column, Date, DateTime, Enum, String, text
-from lib.utils.constants.users import CardType, CardStatus
+from lib.utils.constants.users import CardType, Status
 from models import Base
 
 
@@ -22,7 +22,7 @@ class Card(Base):
         - card_number (str): Valid Card Number.
         - cvv_number (str): Valid CVV Number.
         - card_type (CardType): Valid Card Type.
-        - card_status (CardStatus): Valid Card Status.
+        - card_status (Status): Valid Card Status.
         - expiration_date (date): Card Expiration date.
         - pin (str): Card Pin.
         - created_date (date): Card Created Date.
@@ -53,8 +53,8 @@ class Card(Base):
     card_type: Union[CardType, Column[CardType]] = Column(
         "card_type", Enum(CardType), nullable=False
     )
-    card_status: Union[CardStatus, Column[CardStatus]] = Column(
-        "card_status", Enum(CardStatus), nullable=False, default=CardStatus.NEW
+    card_status: Union[Status, Column[Status]] = Column(
+        "card_status", Enum(Status), nullable=False, default=Status.NEW
     )
     pin = Column("pin", String(256), nullable=False)
     expiration_date: Union[date, Column[date]] = Column(

@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from config import AppConfig
 from lib.interfaces.exceptions import CardValidationError
-from lib.utils.constants.users import CardStatus, CardType, DateFormat, Regex
+from lib.utils.constants.users import Status, CardType, DateFormat, Regex
 from lib.utils.helpers.cards import decrypt_data, encrypt_data
 from lib.utils.helpers.users import get_hash_value
 from models import ENGINE
@@ -277,7 +277,7 @@ class CardSerialiser(Card):
             raise CardValidationError("Invalid CVV Number.")
 
     @staticmethod
-    def __validate_card_status__(value: CardStatus) -> CardValidationError:
+    def __validate_card_status__(value: Status) -> CardValidationError:
         """Validates the Private Attribute.
 
         Args:
@@ -286,9 +286,9 @@ class CardSerialiser(Card):
         Raises:
             CardValidationError: Invalid Card Status.
         """
-        if not isinstance(value, CardStatus):
+        if not isinstance(value, Status):
             raise CardValidationError("Invalid Type for this Attribute.")
-        if value not in [CardStatus.ACTIVE, CardStatus.DELETED]:
+        if value not in [Status.ACTIVE, Status.DELETED]:
             raise CardValidationError("Invalid Card Status.")
 
     @staticmethod
@@ -357,8 +357,8 @@ class CardSerialiser(Card):
             cards_count = (
                 session.query(Card)
                 .filter(
-                    cast(Card.card_status, Enum(CardStatus, name="card_status"))
-                    != CardStatus.INACTIVE,
+                    cast(Card.card_status, Enum(Status, name="card_status"))
+                    != Status.INACTIVE,
                     cast(Card.card_number, String) == card_number,
                     cast(Card.card_type, Enum(CardType, name="card_type")) == card_type,
                     cast(Card.cvv_number, String) == cvv_number,

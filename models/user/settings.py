@@ -7,7 +7,7 @@ from sqlalchemy import Boolean, Column, DateTime, Enum, String, ARRAY
 from lib.utils.constants.users import (
     Communication,
     DataSharingPreference,
-    EmailVerification,
+    Verification,
     ProfileVisibility,
     Theme,
 )
@@ -24,7 +24,7 @@ class SettingsProfile(Base):
     Properties:
         id (str): Unique Private Profile ID.
         settings_id (str): Unique Public Profile ID.
-        email_status (EmailVerification): Status of the User's Email.
+        email_status (Verification): Status of the User's .
         mfa_enabled (bool): Has MFA Been Enabled.
         mfa_last_used_date (datetime): Last login with MFA.
         profile_visibility (ProfileVisibility): Visibility of the profile.
@@ -44,8 +44,15 @@ class SettingsProfile(Base):
     # account_id: Column[str] = Column(
     #     "account_id", ForeignKey("accounts.id"), nullable=False
     # )
-    email_status: Union[EmailVerification, Column[EmailVerification]] = Column(
-        "email_status", Enum(EmailVerification), default=EmailVerification.UNVERIFIED
+    email_status: Union[Verification, Column[Verification]] = Column(
+        "email_status",
+        Enum(Verification, name="email_verification"),
+        default=Verification.UNVERIFIED,
+    )
+    communication_status: Union[Verification, Column[Verification]] = Column(
+        "communication_status",
+        Enum(Verification, name="communication_verification"),
+        default=Verification.UNVERIFIED,
     )
     mfa_enabled = Column("mfa_enabled", Boolean, default=False)
     mfa_last_used_date = Column("mfa_last_used_date", DateTime, nullable=True)
@@ -53,7 +60,7 @@ class SettingsProfile(Base):
         ProfileVisibility, Column[ProfileVisibility]
     ] = Column(
         "profile_visibility_preference",
-        Enum(ProfileVisibility),
+        Enum(ProfileVisibility, name="profilevisibility"),
         default=ProfileVisibility.PUBLIC,
     )
     data_sharing_preferences: Union[
@@ -64,14 +71,19 @@ class SettingsProfile(Base):
         default=[DataSharingPreference.ACCOUNT],
     )
     communication_preference: Union[Communication, Column[Communication]] = Column(
-        "communication_preference", Enum(Communication), default=Communication.EMAIL
+        "communication_preference",
+        Enum(Communication, name="communication"),
+        default=Communication.EMAIL,
     )
     location_tracking_enabled = Column(
         "location_tracking_enabled", Boolean, default=False
     )
     cookies_enabled = Column("cookies_enabled", Boolean, default=False)
     theme_preference: Union[Theme, Column[Theme]] = Column(
-        "theme_preference", Enum(Theme), nullable=False, default=Theme.LIGHT
+        "theme_preference",
+        Enum(Theme, name="theme"),
+        nullable=False,
+        default=Theme.LIGHT,
     )
 
     def __init__(self) -> None:

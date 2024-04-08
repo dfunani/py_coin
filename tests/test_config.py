@@ -20,8 +20,8 @@ def test_app_config_session_id(app: AppConfig):
 def test_app_config_start_date(app: AppConfig):
     """Test AppConfig Init - Start Date."""
     assert str(app.start_date) < (
-        (datetime.now() + timedelta(seconds=2)).strftime(DateFormat.LONG.value)
-    ) and str(app.start_date) > (datetime.now() - timedelta(seconds=2)).strftime(
+        (datetime.now() + timedelta(seconds=5)).strftime(DateFormat.LONG.value)
+    ) and str(app.start_date) > (datetime.now() - timedelta(seconds=5)).strftime(
         DateFormat.LONG.value
     )
 

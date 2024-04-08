@@ -2,8 +2,6 @@
 
 from string import ascii_lowercase, ascii_uppercase
 
-# from models.warehouse.users.cards import AccountCards
-
 alphabet = [
     *ascii_uppercase,
     *ascii_lowercase,

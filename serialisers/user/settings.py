@@ -11,7 +11,7 @@ from lib.interfaces.exceptions import (
 from lib.utils.constants.users import (
     Communication,
     DataSharingPreference,
-    EmailVerification,
+    Verification,
     ProfileVisibility,
     Theme,
 )
@@ -130,6 +130,7 @@ class SettingsProfileSerialiser(SettingsProfile):
             "id": settings_profile.id,
             "settings_id": settings_profile.settings_id,
             "email_status": settings_profile.email_status,
+            "communication_status": settings_profile.communication_status,
             "mfa_enabled": settings_profile.mfa_enabled,
             "mfa_last_used_date": settings_profile.mfa_last_used_date,
             "profile_visibility_preference": settings_profile.profile_visibility_preference,
@@ -170,12 +171,16 @@ class SettingsProfileSerialiser(SettingsProfile):
             setattr(settings_profile, key, value)
 
         if key == "email_status":
-            settings_profile.__validate_primitive_type__(value, EmailVerification)
+            settings_profile.__validate_primitive_type__(value, Verification)
             settings_profile.email_status = value
+
+        if key == "communication_status":
+            settings_profile.__validate_primitive_type__(value, Verification)
+            settings_profile.communication_status = value
 
         if key == "data_sharing_preferences":
             settings_profile.__validate_primitive_type__(value, DataSharingPreference)
-            settings_profile.data_sharing_preferences = value
+            settings_profile.data_sharing_preferences.append(value)
 
         if key == "communication_preference":
             settings_profile.__validate_primitive_type__(value, Communication)
@@ -223,6 +228,7 @@ class SettingsProfileSerialiser(SettingsProfile):
             settings_profile.id,
             settings_profile.settings_id,
             settings_profile.email_status,
+            settings_profile.communication_status,
             settings_profile.mfa_enabled,
             settings_profile.profile_visibility_preference,
             settings_profile.data_sharing_preferences,

@@ -9,7 +9,7 @@ from config import AppConfig
 
 from models import ENGINE
 from models.user.users import User
-from lib.utils.constants.users import UserStatus
+from lib.utils.constants.users import Status
 from lib.utils.helpers.users import get_hash_value
 from tests.conftest import setup_test_commit, run_test_teardown
 
@@ -47,6 +47,6 @@ def test_user_valid(email, password):
 
         setup_test_commit(user, session)
 
-        assert user.user_status == UserStatus.NEW
+        assert user.user_status == Status.NEW
 
         run_test_teardown(user.id, User, session)

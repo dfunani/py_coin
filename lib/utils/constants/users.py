@@ -50,7 +50,7 @@ class Regex(Enum):
     )
     FIRST_NAME = regex_compile(r"^[a-zA-Z]{1,30}$")
     LAST_NAME = regex_compile(r"^[a-zA-Z]{1,30}$")
-    USERNAME = regex_compile(r"^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z0-9_]{3,30}$")
+    USERNAME = regex_compile(r"^[a-zA-Z][a-zA-Z0-9\s\-,._]{8,30}$")
     MOBILE_NUMBER = regex_compile(r"^\+?[0-9]+(?:[ -][0-9]+)*$")
     TITLE = regex_compile(r"^[a-zA-Z][a-zA-Z0-9\s\-,._]{8,30}$")
     DESCRIPTION = regex_compile(r"^[a-zA-Z][a-zA-Z0-9\s\-,._]{8,125}$")
@@ -568,34 +568,14 @@ class CardType(Enum):
     CREDIT = "credit", "1993"
 
 
-class CardStatus(Enum):
-    """Enumeration of Card Statuses."""
+class Status(Enum):
+    """Enumeration of Statuses."""
 
-    NEW = "New Card Created."
-    ACTIVE = "Card is in Use."
-    INACTIVE = "Card not in Use."
-    DISABLED = "Card can't be used."
-    DELETED = "Card Deleted."
-
-
-class UserStatus(Enum):
-    """Enumeration of User Statuses."""
-
-    NEW = "New User Created."
-    ACTIVE = "Active User."
-    INACTIVE = "Inactive User."
-    DISABLED = "User Disabled."
-    DELETED = "User Requested to be Deleted."
-
-
-class PaymentStatus(Enum):
-    """Enumeration of Payment Profile Statuses."""
-
-    NEW = "New Payment Profile Created."
-    ACTIVE = "Payment Profile is in Use."
-    INACTIVE = "Payment Profile not in Use."
-    DISABLED = "Payment Profile can't be used."
-    DELETED = "Payment Profile Deleted."
+    NEW = "Newly Created."
+    ACTIVE = "Actively is in Use."
+    INACTIVE = "Not Actively in Use."
+    DISABLED = "Can't be used."
+    DELETED = "Has been Deleted."
 
 
 class DataSharingPreference(Enum):
@@ -626,14 +606,14 @@ class Theme(Enum):
     BLUE = "Blue Theme Preferred."
 
 
-class EmailVerification(Enum):
-    """Enumeration of Email Verification Statuses."""
+class Verification(Enum):
+    """Enumeration of Verification Statuses."""
 
-    UNVERIFIED = "New Email Unverified"
-    VERIFIED = "Email Verified"
-    VERIFYING = "Email Verification Requested"
-    FAILED = "Email Verification Failed"
-    EXPIRED = "Email Verification Request Expired"
+    UNVERIFIED = "New and Unverified"
+    VERIFIED = "Verified"
+    VERIFYING = "Verification Requested"
+    FAILED = "Verification Failed"
+    EXPIRED = "Verification Request Expired"
 
 
 class UserDevicePermission(Enum):

@@ -6,7 +6,7 @@ from re import compile as regex_compile
 from pytest import raises
 from sqlalchemy.orm import Session
 
-from lib.utils.constants.users import UserStatus
+from lib.utils.constants.users import Status
 from serialisers.user.users import UserSerialiser
 from lib.interfaces.exceptions import UserEmailError, UserError, UserPasswordError
 from models import ENGINE
@@ -72,7 +72,7 @@ def test_userserialiser_update_valid_user_status(email, password, app):
     user_id = UserSerialiser().get_validated_user_id(email, password)
     user = UserSerialiser().get_user(user_id)
     user_data = json.loads(app.fernet.decrypt(user.encode()).decode())
-    UserSerialiser().update_user(user_data.get("id"), user_status=UserStatus.ACTIVE)
+    UserSerialiser().update_user(user_data.get("id"), user_status=Status.ACTIVE)
     UserSerialiser().delete_user(user_data.get("id"))
 
 
@@ -144,7 +144,7 @@ def test_userserialiser_update_invalid_kwarg_disabled(email, password, app):
     user = UserSerialiser().get_user(user_id)
     user_data = json.loads(app.fernet.decrypt(user.encode()).decode())
     with raises(UserError):
-        UserSerialiser().update_user(user_data.get("id"), user_status=UserStatus.DISABLED)
+        UserSerialiser().update_user(user_data.get("id"), user_status=Status.DISABLED)
     UserSerialiser().delete_user(user_data.get("id"))
 
 def test_userserialiser_delete_invalid():

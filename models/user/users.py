@@ -6,7 +6,7 @@ from uuid import uuid4
 
 from sqlalchemy import Column, DateTime, Enum, String, text
 
-from lib.utils.constants.users import UserStatus
+from lib.utils.constants.users import Status
 from models import Base
 
 
@@ -36,8 +36,8 @@ class User(Base):
     email: Union[str, Column[str]] = Column(
         "email", String(256), unique=True, nullable=False
     )
-    user_status: Union[UserStatus, Column[UserStatus]] = Column(
-        "user_status", Enum(UserStatus), nullable=False, default=UserStatus.NEW
+    user_status: Union[Status, Column[Status]] = Column(
+        "user_status", Enum(Status), nullable=False, default=Status.NEW
     )
     password: Union[str, Column[str]] = Column("password", String(256), nullable=False)
     salt_value: Union[str, Column[str]] = Column(

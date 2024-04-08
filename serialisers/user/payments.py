@@ -8,7 +8,7 @@ from lib.interfaces.exceptions import (
     FernetError,
     PaymentProfileError,
 )
-from lib.utils.constants.users import PaymentStatus, Regex
+from lib.utils.constants.users import Status, Regex
 from models import ENGINE
 from models.user.payments import PaymentProfile
 from models.warehouse.cards import Card
@@ -146,6 +146,7 @@ class PaymentProfileSerialiser(PaymentProfile):
             "payment_id": payment_data.payment_id,
             # "account_id":  payment_data.
             "card_id": payment_data.card_id,
+            "card": payment_data.card,
             "name": payment_data.name,
             "description": payment_data.description,
             "payment_status": payment_data.payment_status,
@@ -185,11 +186,11 @@ class PaymentProfileSerialiser(PaymentProfile):
 
     @staticmethod
     def __validate_payment_status__(
-        payment_status: PaymentStatus,
+        payment_status: Status,
     ) -> PaymentProfileError:
-        if not isinstance(payment_status, PaymentStatus):
+        if not isinstance(payment_status, Status):
             raise PaymentProfileError("Invalid Type for this Attribute.")
-        if payment_status not in [PaymentStatus.ACTIVE, PaymentStatus.DELETED]:
+        if payment_status not in [Status.ACTIVE, Status.DELETED]:
             raise PaymentProfileError("Invalid Payment Information.")
 
     @staticmethod
@@ -209,6 +210,7 @@ class PaymentProfileSerialiser(PaymentProfile):
             payment_profile.payment_id,
             #   payment_profile.account_id
             payment_profile.card_id,
+            payment_profile.card,
             payment_profile.name,
             payment_profile.description,
             payment_profile.payment_status,

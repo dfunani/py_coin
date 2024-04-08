@@ -12,7 +12,7 @@ from uuid import uuid4
 from alembic import op
 import sqlalchemy as sa
 
-from lib.utils.constants.users import UserStatus
+from lib.utils.constants.users import Status
 
 
 # revision identifiers, used by Alembic.
@@ -43,7 +43,7 @@ def upgrade() -> None:
         ),
         sa.Column("email", sa.String(256), unique=True, nullable=False),
         sa.Column("password", sa.String(256), nullable=False),
-        sa.Column("user_status", sa.Enum(UserStatus, name="user_status"), nullable=False, default=UserStatus.NEW),
+        sa.Column("user_status", sa.Enum(Status, name="user_status"), nullable=False, default=Status.NEW),
         sa.Column("salt_value", sa.String(256)),
     )
     # ### end Alembic commands ###

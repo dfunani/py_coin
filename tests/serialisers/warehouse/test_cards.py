@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 
 from serialisers.warehouse.cards import CardSerialiser
 from lib.interfaces.exceptions import CardValidationError
-from lib.utils.constants.users import CardStatus, CardType
+from lib.utils.constants.users import Status, CardType
 from models import ENGINE
 from models.warehouse.cards import Card
 from tests.conftest import run_test_teardown
@@ -92,7 +92,7 @@ def test_cardserialiser_update_card_status(app):
         card = CardSerialiser().get_card(card_id)
         card_data = json.loads(app.fernet.decrypt(card.encode()).decode())
         assert CardSerialiser().update_card(
-            card_data.get("id"), card_status=CardStatus.ACTIVE
+            card_data.get("id"), card_status=Status.ACTIVE
         )
         CardSerialiser().delete_card(card_data.get("id"))
 
@@ -180,7 +180,7 @@ def test_cardserialiser_update_invalid_card_status(app):
         card_data = json.loads(app.fernet.decrypt(card.encode()).decode())
         with raises(CardValidationError):
             CardSerialiser().update_card(
-                card_data.get("id"), card_status=CardStatus.DISABLED
+                card_data.get("id"), card_status=Status.DISABLED
             )
         CardSerialiser().delete_card(card_data.get("id"))
 

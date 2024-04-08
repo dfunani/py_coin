@@ -6,7 +6,7 @@ from lib.utils.constants.users import (
     Gender,
     AccountRole,
     AccountStatus,
-    EmailVerification,
+    Verification,
     UserDevicePermission,
     AccountLoginMethod,
     Communication,
@@ -81,7 +81,7 @@ def test_email_verification_status(email_status: list[str]):
         email_status (list): list of Email Status that should always
         be present.
     """
-    for status in EmailVerification:
+    for status in Verification:
         assert status.value in email_status
 
 

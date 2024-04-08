@@ -11,7 +11,7 @@ from models import ENGINE
 from models.user.payments import PaymentProfile
 from models.warehouse.cards import Card
 from lib.utils.helpers.cards import decrypt_data
-from lib.utils.constants.users import CardType, PaymentStatus
+from lib.utils.constants.users import CardType, Status
 from serialisers.warehouse.cards import CardSerialiser
 from tests.conftest import setup_test_commit, run_test_teardown
 
@@ -57,7 +57,7 @@ def test_payment_profile_valid():
 
         setup_test_commit(payment_profile, session)
 
-        assert payment_profile.payment_status == PaymentStatus.NEW
+        assert payment_profile.payment_status == Status.NEW
         assert payment_profile.id is not None
         assert payment_profile.balance == 0.0
 
