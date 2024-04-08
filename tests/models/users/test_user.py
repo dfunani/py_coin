@@ -1,4 +1,4 @@
-"""Base Test Module testing the User Abstract Class"""
+"""Users Module: Testing the User Abstract Class."""
 
 from pytest import raises
 

@@ -1,7 +1,7 @@
-"""Controllers Module: Testing User Serialiser."""
+"""Serialisers Module: Testing User Serialiser."""
 
 import json
-from re import compile as regex_regex_compile
+from re import compile as regex_compile
 
 from pytest import raises
 from sqlalchemy.orm import Session
@@ -17,7 +17,7 @@ from tests.conftest import run_test_teardown
 def test_userserialiser_create(email, password):
     """Testing User Serialiser: Create User."""
     user = UserSerialiser().create_user(email, password)
-    regex = regex_regex_compile(r"^User ID: (.*)$")
+    regex = regex_compile(r"^User ID: (.*)$")
     regex_match = regex.match(user)
     matches = regex_match.groups()
     assert regex_match is not None
