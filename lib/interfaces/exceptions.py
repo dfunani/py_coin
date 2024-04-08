@@ -95,3 +95,10 @@ class CardValidationError(Exception):
     def __init__(self, message: str) -> None:
         super().__init__(message)
         self.message = message
+
+class SettingsProfileError(Exception):
+    """Custom Error For User Settings Error."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+        self.message = message

@@ -57,7 +57,9 @@ class PaymentProfile(Base):
     payment_status: Union[PaymentStatus, Column[PaymentStatus]] = Column(
         "payment_status", Enum(PaymentStatus), default=PaymentStatus.NEW
     )
-    balance: Union[float, Column[float]] = Column('balance', Float, default=0.0, nullable=False)
+    balance: Union[float, Column[float]] = Column(
+        "balance", Float, default=0.0, nullable=False
+    )
     created_date: Union[datetime, Column[datetime]] = Column(
         "created_date",
         DateTime,

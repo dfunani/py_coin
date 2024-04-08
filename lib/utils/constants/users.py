@@ -88,43 +88,6 @@ class AccountRole(Enum):
     DEVELOPER = "Application developer"
 
 
-class EmailVerification(Enum):
-    """Enumeration of Email Verification Statuses."""
-
-    UNVERIFIED = "New Email Unverified"
-    VERIFIED = "Email Verified"
-    VERIFYING = "Email Verification Requested"
-    FAILED = "Email Verification Failed"
-    EXPIRED = "Email Verification Request Expired"
-
-
-class UserDevicePermission(Enum):
-    """Enumeration of Email Verification Statuses."""
-
-    CAMERA = "camera"
-    STORAGE = "STORAGE"
-    CONTACTS = "contacts"
-
-
-class AccountLoginMethod(Enum):
-    """Enumeration of Email Verification Statuses."""
-
-    EMAIL = "User Email and Password"
-    GITHUB = "Github SSO"
-    SLACK = "Slack SSO"
-    GOOGLE = "Google SSO"
-    FACEBOOK = "Facebook SSO"
-
-
-class AccountCommunication(Enum):
-    """Enumeration of Email Verification Statuses."""
-
-    EMAIL = "Email Messenger"
-    SMS = "SMS"
-    CELL = "Mobile Phone"
-    SLACK = "Slack Messenger"
-
-
 class AccountCountry(Enum):
     """Enumeration of Email Verification Statuses."""
 
@@ -642,3 +605,59 @@ class DataSharingPreference(Enum):
     PROFILE = "Share Profile Data."
     SETTINGS = "Share Settings Data."
     TRANSACTIONS = "Share Transaction Data."
+
+
+class ProfileVisibility(Enum):
+    """Enumeration of Profile Visibility Options."""
+
+    PRIVATE = "Private"
+    PUBLIC = "Public"
+    ADMIN = "ADMIN"
+
+
+class Theme(Enum):
+    """Enumeration of Theme Options."""
+
+    SYSTEM = "Defaults to Device Settings."
+    DARK = "DARK Theme Preferred."
+    LIGHT = "Light Theme Preferred."
+    RED = "Red Theme Preferred."
+    GREEN = "Green Theme Preferred."
+    BLUE = "Blue Theme Preferred."
+
+
+class EmailVerification(Enum):
+    """Enumeration of Email Verification Statuses."""
+
+    UNVERIFIED = "New Email Unverified"
+    VERIFIED = "Email Verified"
+    VERIFYING = "Email Verification Requested"
+    FAILED = "Email Verification Failed"
+    EXPIRED = "Email Verification Request Expired"
+
+
+class UserDevicePermission(Enum):
+    """Enumeration of Email Verification Statuses."""
+
+    CAMERA = "camera"
+    STORAGE = "STORAGE"
+    CONTACTS = "contacts"
+
+
+class AccountLoginMethod(Enum):
+    """Enumeration of Email Verification Statuses."""
+
+    EMAIL = "User Email and Password"
+    GITHUB = "Github SSO"
+    SLACK = "Slack SSO"
+    GOOGLE = "Google SSO"
+    FACEBOOK = "Facebook SSO"
+
+
+class Communication(Enum):
+    """Enumeration of Email Verification Statuses."""
+
+    EMAIL = "Email Messenger"
+    SMS = "SMS"
+    CELL = "Mobile Phone"
+    SLACK = "Slack Messenger"

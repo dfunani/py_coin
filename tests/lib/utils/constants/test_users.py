@@ -9,13 +9,15 @@ from lib.utils.constants.users import (
     EmailVerification,
     UserDevicePermission,
     AccountLoginMethod,
-    AccountCommunication,
+    Communication,
     AccountOccupation,
     AccountCountry,
     AccountLanguage,
 )
 
 print(sys.path)
+
+
 def test_regex_constants_email_success():
     """Testing Email Regex Match - Valid Email"""
 
@@ -38,7 +40,6 @@ def test_regex_constants_password_error():
     """Testing Password Regex Match - Invalid Password"""
 
     assert Regex.PASSWORD.value.match("password") is None
-
 
 
 def test_gender_enum(genders: list[str]):
@@ -113,7 +114,7 @@ def account_communication(communications: list[str]):
         communications (list): list of Account Communication
         Prefereces that should always be present.
     """
-    for status in AccountCommunication:
+    for status in Communication:
         assert status.value in communications
 
 
