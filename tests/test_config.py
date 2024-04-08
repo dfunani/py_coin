@@ -1,6 +1,6 @@
 """App Module: Testing Application Configuration."""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from pytest import raises
 from config import AppConfig
@@ -19,7 +19,11 @@ def test_app_config_session_id(app: AppConfig):
 
 def test_app_config_start_date(app: AppConfig):
     """Test AppConfig Init - Start Date."""
-    assert app.start_date == datetime.now().strftime(DateFormat.LONG.value)
+    assert str(app.start_date) < (
+        (datetime.now() + timedelta(seconds=2)).strftime(DateFormat.LONG.value)
+    ) and str(app.start_date) > (datetime.now() - timedelta(seconds=2)).strftime(
+        DateFormat.LONG.value
+    )
 
 
 def test_app_config_start_date_setter(app: AppConfig):

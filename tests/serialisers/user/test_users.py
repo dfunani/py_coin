@@ -6,7 +6,8 @@ from re import compile as regex_regex_compile
 from pytest import raises
 from sqlalchemy.orm import Session
 
-from controllers.serialisers.user.users import UserSerialiser
+from lib.utils.constants.users import UserStatus
+from serialisers.user.users import UserSerialiser
 from lib.interfaces.exceptions import UserEmailError, UserError, UserPasswordError
 from models import ENGINE
 from models.user.users import User
@@ -56,13 +57,22 @@ def test_userserialiser_delete(email, password, app):
     UserSerialiser().delete_user(user_data.get("id"))
 
 
-def test_userserialiser_update(email, password, app):
+def test_userserialiser_update_valid_password(email, password, app):
     """Testing User Serialiser: Update User."""
     UserSerialiser().create_user(email, password)
     user_id = UserSerialiser().get_validated_user_id(email, password)
     user = UserSerialiser().get_user(user_id)
     user_data = json.loads(app.fernet.decrypt(user.encode()).decode())
     UserSerialiser().update_user(user_data.get("id"), password=password)
+    UserSerialiser().delete_user(user_data.get("id"))
+
+def test_userserialiser_update_valid_user_status(email, password, app):
+    """Testing User Serialiser: Update User."""
+    UserSerialiser().create_user(email, password)
+    user_id = UserSerialiser().get_validated_user_id(email, password)
+    user = UserSerialiser().get_user(user_id)
+    user_data = json.loads(app.fernet.decrypt(user.encode()).decode())
+    UserSerialiser().update_user(user_data.get("id"), user_status=UserStatus.ACTIVE)
     UserSerialiser().delete_user(user_data.get("id"))
 
 
@@ -126,6 +136,16 @@ def test_userserialiser_update_invalid_kwarg(email, password, app):
         UserSerialiser().update_user(user_data.get("id"), email="email@test.com")
     UserSerialiser().delete_user(user_data.get("id"))
 
+
+def test_userserialiser_update_invalid_kwarg_disabled(email, password, app):
+    """Testing User Serialiser: Invalid Update User [Password]."""
+    UserSerialiser().create_user(email, password)
+    user_id = UserSerialiser().get_validated_user_id(email, password)
+    user = UserSerialiser().get_user(user_id)
+    user_data = json.loads(app.fernet.decrypt(user.encode()).decode())
+    with raises(UserError):
+        UserSerialiser().update_user(user_data.get("id"), user_status=UserStatus.DISABLED)
+    UserSerialiser().delete_user(user_data.get("id"))
 
 def test_userserialiser_delete_invalid():
     """Testing User Serialiser: Invalid Delete User."""

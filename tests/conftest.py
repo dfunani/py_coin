@@ -1,6 +1,8 @@
 """App Module: Testing Configuration."""
 
+from typing import Any
 from pytest import fixture
+from sqlalchemy.orm import Session
 from config import AppConfig
 
 
@@ -22,21 +24,22 @@ def password() -> str:
     return "testing@123"
 
 
-def setup_test_commit(object, session):
+def setup_test_commit(model: Any, session: Session):
     """Abstraction of the persistence functionality.
 
     Args:
-        entity (Model): Model to Persist
+        model (Model): Model to Persist
         session (Session): Database Session
     """
-    session.add(object)
+    session.add(model)
     session.commit()
 
 
-def run_test_teardown(private_id, model, session):
+def run_test_teardown(private_id: str, model: Any, session: Session):
     """Abstraction of the Clearing of the Test Database.
 
     Args:
+        private_id (str): Model Private ID.
         model (Model): Model to Persist
         session (Session): Database Session
     """

@@ -7,7 +7,7 @@ from re import compile as regex_regex_compile
 from pytest import raises
 from sqlalchemy.orm import Session
 
-from controllers.serialisers.warehouse.cards import CardSerialiser
+from serialisers.warehouse.cards import CardSerialiser
 from lib.interfaces.exceptions import CardValidationError
 from lib.utils.constants.users import CardStatus, CardType
 from models import ENGINE
@@ -26,7 +26,7 @@ def test_cardserialiser_create():
         assert len(matches) == 1
         card_id = matches[0]
         with Session(ENGINE) as session:
-            card = session.query(Card).filter(Card.card_id == card_id).one_or_none()
+            card = session.get(Card, card_id)
             run_test_teardown(card.id, Card, session)
 
 
@@ -63,7 +63,7 @@ def test_cardserialiser_delete():
         matches = regex_match.groups()
         card_id = matches[0]
         with Session(ENGINE) as session:
-            card = session.query(Card).filter(Card.card_id == card_id).one_or_none()
+            card = session.get(Card, card_id)
             CardSerialiser().delete_card(card.id)
 
 
@@ -92,7 +92,7 @@ def test_cardserialiser_update_card_status(app):
         card = CardSerialiser().get_card(card_id)
         card_data = json.loads(app.fernet.decrypt(card.encode()).decode())
         assert CardSerialiser().update_card(
-            card_data.get("id"), card_status=CardStatus.INACTIVE
+            card_data.get("id"), card_status=CardStatus.ACTIVE
         )
         CardSerialiser().delete_card(card_data.get("id"))
 
@@ -112,19 +112,6 @@ def test_cardserialiser_update_card_number(app):
                 card_data.get("id"), card_number="254635"
             )
         CardSerialiser().delete_card(card_data.get("id"))
-
-
-def test_cardserialiser_disabled(app):
-    """Testing Card Serialiser: Update Card."""
-    for key in CardType:
-        card = CardSerialiser().create_card(key, "123456")
-        regex = regex_regex_compile(r"^Card ID: (.*)$")
-        regex_match = regex.match(card)
-        matches = regex_match.groups()
-        card_id = matches[0]
-        card = CardSerialiser().get_card(card_id)
-        card_data = json.loads(app.fernet.decrypt(card.encode()).decode())
-        assert CardSerialiser().disable_card(card_data.get("id"))
 
 
 def test_cardserialiser_create_invalid_card_type():
@@ -202,12 +189,6 @@ def test_cardserialiser_delete_invalid():
     """Testing Card Serialiser: Invalid Delete Card."""
     with raises(CardValidationError):
         CardSerialiser().delete_card("id")
-
-
-def test_cardserialiser_disable_invalid():
-    """Testing Card Serialiser: Invalid Delete Card."""
-    with raises(CardValidationError):
-        CardSerialiser().disable_card("id")
 
 
 def test_cardserialiser_get_validated_card_id():

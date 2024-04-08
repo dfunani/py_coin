@@ -7,8 +7,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 
-from controllers.serialisers.warehouse.cards import CardSerialiser
-from lib.utils.constants.users import CardType
+from serialisers.warehouse.cards import CardSerialiser
+from lib.utils.constants.users import CardStatus, CardType
 from models import ENGINE
 from models.warehouse.cards import Card
 from tests.conftest import setup_test_commit, run_test_teardown
@@ -46,4 +46,7 @@ def test_card_valid():
             card.expiration_date = date.today().replace(day=1)
 
             setup_test_commit(card, session)
+
+            assert card.card_status == CardStatus.NEW
+
             run_test_teardown(card.id, Card, session)

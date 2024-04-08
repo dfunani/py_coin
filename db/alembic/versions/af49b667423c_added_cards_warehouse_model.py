@@ -46,7 +46,7 @@ def upgrade() -> None:
             "card_status",
             sa.Enum(CardStatus, name=f"card_status"),
             nullable=False,
-            default=CardStatus.INACTIVE,
+            default=CardStatus.NEW,
         ),
         sa.Column("pin", sa.String(256), nullable=False),
         sa.Column("expiration_date", sa.Date, nullable=False),

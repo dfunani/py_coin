@@ -13,7 +13,7 @@ from lib.interfaces.exceptions import (
     UserError,
     UserPasswordError,
 )
-from lib.utils.constants.users import DateFormat, Regex
+from lib.utils.constants.users import DateFormat, Regex, UserStatus
 from lib.utils.helpers.cards import decrypt_data, encrypt_data
 from lib.utils.helpers.users import get_hash_value
 from models import ENGINE
@@ -91,15 +91,19 @@ class UserSerialiser(User):
                 raise UserError("User Not Found.")
 
             for key, value in kwargs.items():
-                if key != "password":
+                if key not in ["password", "user_status"]:
                     raise UserError("Invalid attribute to Update.")
 
-                valid_password = user.__get_valid_password__(value)
-                valid_user_id = user.get_validated_user_id(
-                    decrypt_data(user.email), value
-                )
-                setattr(user, key, valid_password)
-                setattr(user, "user_id", valid_user_id)
+                if key == "password":
+                    valid_password = user.__get_valid_password__(value)
+                    valid_user_id = user.get_validated_user_id(
+                        str(decrypt_data(str(user.email))), value
+                    )
+                    setattr(user, key, valid_password)
+                    setattr(user, "user_id", valid_user_id)
+                if key == "user_status":
+                    user.__validate_user_status__(value)
+                    setattr(user, key, value)
 
             user_id = str(user)
             session.add(user)
@@ -168,11 +172,13 @@ class UserSerialiser(User):
         cls.__vallidate_user__(user)
         data = {
             "id": user.id,
+            "user_id": user.user_id,
             "created_date": user.created_date.strftime(DateFormat.HYPHEN.value),
             "updated_date": user.updated_date.strftime(DateFormat.HYPHEN.value),
             "email": user.email,
             "password": user.password,
             "salt_value": user.salt_value,
+            "user_status": user.user_status.value,
         }
         return encrypt_data(dumps(data).encode())
 
@@ -219,12 +225,21 @@ class UserSerialiser(User):
         for key in [
             user.id,
             user.created_date,
+            user.updated_date,
             user.email,
             user.password,
             user.salt_value,
+            user.user_status,
         ]:
             if not key:
                 raise UserError("Invalid User Data.")
+
+    @staticmethod
+    def __validate_user_status__(value: UserStatus):
+        if not isinstance(value, UserStatus):
+            raise UserError("Invalid Type for this Attribute.")
+        if value not in [UserStatus.ACTIVE, UserStatus.DELETED]:
+            raise UserError("Invalid User Status.")
 
     @staticmethod
     def get_validated_user_id(

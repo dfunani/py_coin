@@ -42,7 +42,9 @@ class DateFormat(Enum):
 class Regex(Enum):
     """Holds Regex COnstants That are Applicable to the Application."""
 
-    EMAIL: Pattern = regex_compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-_]+\.[a-zA-Z]+\.?[a-zA-Z]*$")
+    EMAIL: Pattern = regex_compile(
+        r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-_]+\.[a-zA-Z]+\.?[a-zA-Z]*$"
+    )
     PASSWORD: Pattern = regex_compile(
         r"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()-_+=]).{8,}$"
     )
@@ -50,8 +52,8 @@ class Regex(Enum):
     LAST_NAME = regex_compile(r"^[a-zA-Z]{1,30}$")
     USERNAME = regex_compile(r"^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z0-9_]{3,30}$")
     MOBILE_NUMBER = regex_compile(r"^\+?[0-9]+(?:[ -][0-9]+)*$")
-    TITLE = regex_compile(r"^(?!\s+$).{8,30}$")
-    DESCRIPTION = regex_compile(r"^(?!\s+$).{8,60}$")
+    TITLE = regex_compile(r"^[a-zA-Z][a-zA-Z0-9\s\-,._]{8,30}$")
+    DESCRIPTION = regex_compile(r"^[a-zA-Z][a-zA-Z0-9\s\-,._]{8,125}$")
     BIOGRAPHY = regex_compile(r"^(?!\s+$).{8,250}$")
     PIN = regex_compile(r"^\d{6}$")
 
@@ -572,6 +574,8 @@ class ProfileInterest(Enum):
 
 
 class SocialMediaLink(Enum):
+    """Enumeration of Social Media Links."""
+
     GITHUB = regex_compile(r"^https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9_-]+$")
     FACEBOOK = regex_compile(r"^https?:\/\/(www\.)?facebook\.com\/[a-zA-Z0-9._-]+$")
     TWITTER = regex_compile(r"^https?:\/\/(www\.)?twitter\.com\/[a-zA-Z0-9_]+$")
@@ -594,12 +598,38 @@ class SocialMediaLink(Enum):
 
 
 class CardType(Enum):
+    """Enumeration of Card Types."""
+
     CHEQUE = "cheque", "1991"
     SAVINGS = "savings", "1992"
     CREDIT = "credit", "1993"
 
 
 class CardStatus(Enum):
-    ACTIVE = 'Card is in Use.'
-    INACTIVE = 'Card not in Use.'
+    """Enumeration of Card Statuses."""
+
+    NEW = "New Card Created."
+    ACTIVE = "Card is in Use."
+    INACTIVE = "Card not in Use."
     DISABLED = "Card can't be used."
+    DELETED = "Card Deleted."
+
+
+class UserStatus(Enum):
+    """Enumeration of User Statuses."""
+
+    NEW = "New User Created."
+    ACTIVE = "Active User."
+    INACTIVE = "Inactive User."
+    DISABLED = "User Disabled."
+    DELETED = "User Requested to be Deleted."
+
+
+class PaymentStatus(Enum):
+    """Enumeration of Payment Profile Statuses."""
+
+    NEW = "New Payment Profile Created."
+    ACTIVE = "Payment Profile is in Use."
+    INACTIVE = "Payment Profile not in Use."
+    DISABLED = "Payment Profile can't be used."
+    DELETED = "Payment Profile Deleted."

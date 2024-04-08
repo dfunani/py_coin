@@ -28,18 +28,17 @@ class CardSerialiser(Card):
     __CARD_VALID_YEARS__ = 365 * 5
 
     @classmethod
-    def get_card(cls, card_id: str) -> Union[str, CardValidationError]:
+    def get_card(cls, private_id: str) -> Union[str, CardValidationError]:
         """CRUD Operation: Get Card.
 
         Args:
-            id (str): Card ID.
+            id (str): Private Card ID.
 
         Returns:
             str: Card Object.
         """
         with Session(ENGINE) as session:
-            query = select(Card).filter(cast(Card.card_id, String) == card_id)
-            card = session.execute(query).scalar_one_or_none()
+            card = session.get(Card, private_id)
 
             if not card:
                 raise CardValidationError("No Card Found.")
@@ -114,8 +113,8 @@ class CardSerialiser(Card):
             return card_id
 
     @classmethod
-    def disable_card(cls, private_id: str) -> Union[str, CardValidationError]:
-        """CRUD Operation: Disable Card.
+    def delete_card(cls, private_id: str) -> Union[str, CardValidationError]:
+        """CRUD Operation: Delete Card.
 
         Args:
             id (str): Private Card ID.
@@ -124,18 +123,15 @@ class CardSerialiser(Card):
             str: Card Object.
         """
         with Session(ENGINE) as session:
-            card = session.get(cls, private_id)
+            card = session.get(Card, private_id)
 
             if card is None:
                 raise CardValidationError("Card Not Found.")
 
-            setattr(card, "card_status", CardStatus.DISABLED)
-
-            card_id = str(card)
-            session.add(card)
+            session.delete(card)
             session.commit()
 
-            return card_id
+            return f"Deleted: {private_id}"
 
     def __get_card_number__(self) -> Union[str, CardValidationError]:
         """Sets the Private Attribute.
@@ -223,6 +219,7 @@ class CardSerialiser(Card):
         cls.__vallidate_card__(card)
         data = {
             "id": card.id,
+            "card_id": card.card_id,
             "updated_date": card.updated_date.strftime(DateFormat.HYPHEN.value),
             "created_date": card.created_date.strftime(DateFormat.HYPHEN.value),
             "card_number": card.card_number,
@@ -290,7 +287,7 @@ class CardSerialiser(Card):
         """
         if not isinstance(value, CardStatus):
             raise CardValidationError("Invalid Type for this Attribute.")
-        if value not in [CardStatus.ACTIVE, CardStatus.INACTIVE]:
+        if value not in [CardStatus.ACTIVE, CardStatus.DELETED]:
             raise CardValidationError("Invalid Card Status.")
 
     @staticmethod
@@ -371,24 +368,3 @@ class CardSerialiser(Card):
             if cards_count != 0:
                 raise CardValidationError("Card Number Already Exists.")
             return card_number
-
-    @staticmethod
-    def delete_card(private_id: str) -> Union[str, CardValidationError]:
-        """CRUD Operation: Delete Card.
-
-        Args:
-            id (str): Private Card ID.
-
-        Returns:
-            str: Card Object.
-        """
-        with Session(ENGINE) as session:
-            card = session.get(Card, private_id)
-
-            if card is None:
-                raise CardValidationError("Card Not Found.")
-
-            session.delete(card)
-            session.commit()
-
-            return f"Deleted: {private_id}"

@@ -1,6 +1,5 @@
 """Exceptions: Testing Module."""
 
-from pytest import raises
 from lib.interfaces.exceptions import ApplicationError
 
 

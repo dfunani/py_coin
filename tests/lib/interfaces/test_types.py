@@ -1,6 +1,11 @@
 """Testing the library of types"""
 
-from lib.interfaces.exceptions import UserAccountError, UserEmailError, UserPasswordError, FernetError
+from lib.interfaces.exceptions import (
+    UserAccountError,
+    UserEmailError,
+    UserPasswordError,
+    FernetError,
+)
 
 
 def test_user_account_error():
@@ -27,6 +32,7 @@ def test_user_password_error():
         raise UserPasswordError("Testing Password Error.")
     except UserPasswordError as error:
         assert str(error) == "Testing Password Error."
+
 
 def test_fernet_key_error():
     """Testing the Custom Fernet Exception"""

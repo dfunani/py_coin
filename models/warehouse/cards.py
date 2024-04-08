@@ -6,9 +6,10 @@ from uuid import uuid4
 from sqlalchemy import Column, Date, DateTime, Enum, String, text
 from lib.utils.constants.users import CardType, CardStatus
 from models import Base
+from models.models import Model
 
 
-class Card(Base):
+class Card(Base, Model):
     """
     Model representing an Account Card.
 
@@ -36,8 +37,6 @@ class Card(Base):
     id: Union[str, Column[str]] = Column(
         "id",
         String(256),
-        default=text(f"'{str(uuid4())}'"),
-        nullable=False,
         primary_key=True,
     )
     card_id: Union[str, Column[str]] = Column(
@@ -56,35 +55,18 @@ class Card(Base):
         "card_type", Enum(CardType), nullable=False
     )
     card_status: Union[CardStatus, Column[CardStatus]] = Column(
-        "card_status", Enum(CardStatus), nullable=False, default=CardStatus.INACTIVE
+        "card_status", Enum(CardStatus), nullable=False, default=CardStatus.NEW
     )
     pin = Column("pin", String(256), nullable=False)
     expiration_date: Union[date, Column[date]] = Column(
         "expiration_date", Date, nullable=False
-    )
-    created_date: Union[datetime, Column[datetime]] = Column(
-        "created_date", DateTime, default=text("CURRENT_TIMESTAMP")
-    )
-    updated_date: Union[datetime, Column[datetime]] = Column(
-        "updated_date",
-        DateTime,
-        default=text("CURRENT_TIMESTAMP"),
-        onupdate=text("CURRENT_TIMESTAMP"),
     )
     salt_value: Union[str, Column[str]] = Column(
         "salt_value", String(256), nullable=False
     )
 
     def __init__(self):
-        """Card Object Constructor.
-
-        Args:
-            card_type (CardType): Valid Card Type.
-            card_number (str): Valid Card Number.
-
-        Raises:
-            CardValidationError: Invalid Card Information.
-        """
+        """Card Object Constructor."""
         self.id = str(uuid4())
         self.salt_value = str(uuid4())
 
@@ -94,7 +76,7 @@ class Card(Base):
         Returns:
             str: Representation of a Card Object.
         """
-        return f"Card ID: {self.card_id}"
+        return f"Card ID: {self.id}"
 
     def __repr__(self) -> str:
         """String Representation of the Card Object.
