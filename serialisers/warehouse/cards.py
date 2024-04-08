@@ -28,17 +28,18 @@ class CardSerialiser(Card):
     __CARD_VALID_YEARS__ = 365 * 5
 
     @classmethod
-    def get_card(cls, private_id: str) -> Union[str, CardValidationError]:
+    def get_card(cls, card_id: str) -> Union[str, CardValidationError]:
         """CRUD Operation: Get Card.
 
         Args:
-            id (str): Private Card ID.
+            card_id (str): Public Card ID.
 
         Returns:
             str: Card Object.
         """
         with Session(ENGINE) as session:
-            card = session.get(Card, private_id)
+            query = select(Card).filter(cast(Card.card_id, String) == card_id)
+            card = session.execute(query).scalar_one_or_none()
 
             if not card:
                 raise CardValidationError("No Card Found.")

@@ -26,7 +26,7 @@ def test_cardserialiser_create():
         assert len(matches) == 1
         card_id = matches[0]
         with Session(ENGINE) as session:
-            card = session.get(Card, card_id)
+            card = session.query(Card).filter(Card.card_id == card_id).one_or_none()
             run_test_teardown(card.id, Card, session)
 
 
@@ -63,7 +63,7 @@ def test_cardserialiser_delete():
         matches = regex_match.groups()
         card_id = matches[0]
         with Session(ENGINE) as session:
-            card = session.get(Card, card_id)
+            card = session.query(Card).filter(Card.card_id == card_id).one_or_none()
             CardSerialiser().delete_card(card.id)
 
 

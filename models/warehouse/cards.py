@@ -6,10 +6,9 @@ from uuid import uuid4
 from sqlalchemy import Column, Date, DateTime, Enum, String, text
 from lib.utils.constants.users import CardType, CardStatus
 from models import Base
-from models.models import Model
 
 
-class Card(Base, Model):
+class Card(Base):
     """
     Model representing an Account Card.
 
@@ -64,6 +63,17 @@ class Card(Base, Model):
     salt_value: Union[str, Column[str]] = Column(
         "salt_value", String(256), nullable=False
     )
+    created_date: Union[datetime, Column[datetime]] = Column(
+        "created_date",
+        DateTime,
+        default=text("CURRENT_TIMESTAMP"),
+    )
+    updated_date: Union[datetime, Column[datetime]] = Column(
+        "updated_date",
+        DateTime,
+        default=text("CURRENT_TIMESTAMP"),
+        onupdate=text("CURRENT_TIMESTAMP"),
+    )
 
     def __init__(self):
         """Card Object Constructor."""
@@ -76,7 +86,7 @@ class Card(Base, Model):
         Returns:
             str: Representation of a Card Object.
         """
-        return f"Card ID: {self.id}"
+        return f"Card ID: {self.card_id}"
 
     def __repr__(self) -> str:
         """String Representation of the Card Object.

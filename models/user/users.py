@@ -1,5 +1,6 @@
 """Users Module: Contains User Model for Mapping Users."""
 
+from datetime import datetime
 from typing import Union
 from uuid import uuid4
 
@@ -41,6 +42,17 @@ class User(Base):
     password: Union[str, Column[str]] = Column("password", String(256), nullable=False)
     salt_value: Union[str, Column[str]] = Column(
         "salt_value", String(256), nullable=False
+    )
+    created_date: Union[datetime, Column[datetime]] = Column(
+        "created_date",
+        DateTime,
+        default=text("CURRENT_TIMESTAMP"),
+    )
+    updated_date: Union[datetime, Column[datetime]] = Column(
+        "updated_date",
+        DateTime,
+        default=text("CURRENT_TIMESTAMP"),
+        onupdate=text("CURRENT_TIMESTAMP"),
     )
 
     def __init__(self) -> None:

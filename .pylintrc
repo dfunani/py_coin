@@ -441,6 +441,9 @@ enable=
 [tests/models/users/test_user.py]
 disable = E1121
 
+[tests/models/*]
+disable = R0801
+
 [METHOD_ARGS]
 
 # List of qualified names (i.e., library.method) which require a timeout
