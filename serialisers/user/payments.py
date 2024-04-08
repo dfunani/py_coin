@@ -95,7 +95,7 @@ class PaymentProfileSerialiser(PaymentProfile):
                 raise PaymentProfileError("Payment Profile Not Found.")
 
             for key, value in kwargs.items():
-                if key not in ["name", "description", "payment_status"]:
+                if key not in ["name", "description", "payment_status", "balance"]:
                     raise PaymentProfileError("Invalid attribute to Update.")
 
                 if key == "name":
@@ -106,6 +106,9 @@ class PaymentProfileSerialiser(PaymentProfile):
                     setattr(payment_profile, key, value)
                 if key == "payment_status":
                     cls.__validate_payment_status__(value)
+                    setattr(payment_profile, key, value)
+                if key == "balance":
+                    cls.__validate_balance__(value)
                     setattr(payment_profile, key, value)
 
             payment_id = str(payment_profile)
@@ -212,3 +215,15 @@ class PaymentProfileSerialiser(PaymentProfile):
         ]:
             if not key:
                 raise PaymentProfileError("Invalid Payment Profile Data.")
+
+    @staticmethod
+    def __validate_balance__(amount: float):
+        """Validates Card Balance.
+
+        Raises:
+            PaymentProfileError: Invalid Card Balance.
+        """
+        if not isinstance(amount, float):
+            raise PaymentProfileError("Invalid Type for this Attribute.")
+        if amount <= 0.0:
+            raise PaymentProfileError("Invalid Payment Information.")

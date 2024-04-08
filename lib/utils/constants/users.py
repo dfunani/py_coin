@@ -88,7 +88,7 @@ class AccountRole(Enum):
     DEVELOPER = "Application developer"
 
 
-class AccountEmailVerification(Enum):
+class EmailVerification(Enum):
     """Enumeration of Email Verification Statuses."""
 
     UNVERIFIED = "New Email Unverified"
@@ -633,3 +633,12 @@ class PaymentStatus(Enum):
     INACTIVE = "Payment Profile not in Use."
     DISABLED = "Payment Profile can't be used."
     DELETED = "Payment Profile Deleted."
+
+
+class DataSharingPreference(Enum):
+    """Enumeration of Data Sharing Options."""
+
+    ACCOUNT = "Share All Permissible Account Data."
+    PROFILE = "Share Profile Data."
+    SETTINGS = "Share Settings Data."
+    TRANSACTIONS = "Share Transaction Data."

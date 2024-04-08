@@ -54,6 +54,8 @@ class User(Base):
         default=text("CURRENT_TIMESTAMP"),
         onupdate=text("CURRENT_TIMESTAMP"),
     )
+    # login_history = Column(UserLoginHistory, unique=True, nullable=False)
+    # registered_user_devices = Column(UserDevice)
 
     def __init__(self) -> None:
         """User Object Constructor."""

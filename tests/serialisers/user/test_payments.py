@@ -1,165 +1,328 @@
-# """Serialisers Module: Testing Payments Serialiser."""
+"""Serialisers Module: Testing Payments Serialiser."""
 
-# import json
-# from re import compile as regex_compile
+import json
+from re import compile as regex_compile
 
-# from pytest import raises
-# from sqlalchemy.orm import Session
+from pytest import raises
+from sqlalchemy.orm import Session
 
-# from lib.utils.constants.users import UserStatus
-# from serialisers.user.users import UserSerialiser
-# from lib.interfaces.exceptions import UserEmailError, UserError, UserPasswordError
-# from models import ENGINE
-# from models.user.users import User
-# from tests.conftest import run_test_teardown
-
-
-# def test_userserialiser_create(email, password):
-#     """Testing User Serialiser: Create User."""
-#     user = UserSerialiser().create_user(email, password)
-#     regex = regex_compile(r"^User ID: (.*)$")
-#     regex_match = regex.match(user)
-#     matches = regex_match.groups()
-#     assert regex_match is not None
-#     assert len(matches) == 1
-#     user_id = matches[0]
-#     with Session(ENGINE) as session:
-#         user = session.query(User).filter(User.user_id == user_id).one_or_none()
-#         run_test_teardown(user.id, User, session)
+from lib.utils.constants.users import CardType, PaymentStatus
+from lib.utils.helpers.cards import decrypt_data
+from models.user.payments import PaymentProfile
+from models.warehouse.cards import Card
+from serialisers.user.payments import PaymentProfileSerialiser
+from lib.interfaces.exceptions import CardValidationError, PaymentProfileError
+from models import ENGINE
+from models.user.users import User
+from serialisers.warehouse.cards import CardSerialiser
+from tests.conftest import run_test_teardown
 
 
-# def test_userserialiser_get(email, password, app, user_keys):
-#     """Testing User Serialiser: Get User."""
-#     UserSerialiser().create_user(email, password)
-
-#     user_id = UserSerialiser().get_validated_user_id(email, password)
-#     user = UserSerialiser().get_user(user_id)
-#     user_data = json.loads(app.fernet.decrypt(user.encode()).decode())
-
-#     assert isinstance(user_data, dict)
-#     for key in user_keys:
-#         assert key in user_data
-#         assert user_data[key] is not None
-
-#     for key in user_data:
-#         assert key in user_keys
-
-#     with Session(ENGINE) as session:
-#         run_test_teardown(user_data["id"], User, session)
-
-
-# def test_userserialiser_delete(email, password, app):
-#     """Testing User Serialiser: Delete User."""
-#     UserSerialiser().create_user(email, password)
-#     user_id = UserSerialiser().get_validated_user_id(email, password)
-#     user = UserSerialiser().get_user(user_id)
-#     user_data = json.loads(app.fernet.decrypt(user.encode()).decode())
-#     UserSerialiser().delete_user(user_data.get("id"))
-
-
-# def test_userserialiser_update_valid_password(email, password, app):
-#     """Testing User Serialiser: Update User."""
-#     UserSerialiser().create_user(email, password)
-#     user_id = UserSerialiser().get_validated_user_id(email, password)
-#     user = UserSerialiser().get_user(user_id)
-#     user_data = json.loads(app.fernet.decrypt(user.encode()).decode())
-#     UserSerialiser().update_user(user_data.get("id"), password=password)
-#     UserSerialiser().delete_user(user_data.get("id"))
-
-# def test_userserialiser_update_valid_user_status(email, password, app):
-#     """Testing User Serialiser: Update User."""
-#     UserSerialiser().create_user(email, password)
-#     user_id = UserSerialiser().get_validated_user_id(email, password)
-#     user = UserSerialiser().get_user(user_id)
-#     user_data = json.loads(app.fernet.decrypt(user.encode()).decode())
-#     UserSerialiser().update_user(user_data.get("id"), user_status=UserStatus.ACTIVE)
-#     UserSerialiser().delete_user(user_data.get("id"))
+def test_paymentprofileserialiser_create(name, description):
+    """Testing PaymentProfile Serialiser: Create PaymentProfile."""
+    card = CardSerialiser().create_card(CardType.SAVINGS, "123456")
+    regex = regex_compile(r"^Card ID: (.*)$")
+    regex_match = regex.match(card)
+    matches = regex_match.groups()
+    assert regex_match is not None
+    assert len(matches) == 1
+    card_id = matches[0]
+    card = CardSerialiser().get_card(card_id)
+    card_data = json.loads(decrypt_data(card))
+    payment_profile = PaymentProfileSerialiser().create_payment_profile(
+        name, description, card_data.get("id")
+    )
+    regex = regex_compile(r"^Payment Profile ID: (.*)$")
+    regex_match = regex.match(payment_profile)
+    matches = regex_match.groups()
+    assert regex_match is not None
+    assert len(matches) == 1
+    payment_id = matches[0]
+    with Session(ENGINE) as session:
+        payment = (
+            session.query(PaymentProfile)
+            .filter(PaymentProfile.payment_id == payment_id)
+            .one_or_none()
+        )
+        card = session.query(Card).filter(Card.card_id == card_id).one_or_none()
+        run_test_teardown(payment.id, PaymentProfile, session)
+        run_test_teardown(card.id, Card, session)
 
 
-# def test_userserialiser_create_invalid_email(password):
-#     """Testing User Serialiser: Invalid Create User [Email]."""
-#     with raises(UserEmailError):
-#         UserSerialiser().create_user("email", password)
+def test_paymentprofileserialiser_get(name, description):
+    """Testing PaymentProfile Serialiser: Get PaymentProfile."""
+    card = CardSerialiser().create_card(CardType.SAVINGS, "123456")
+    regex = regex_compile(r"^Card ID: (.*)$")
+    regex_match = regex.match(card)
+    matches = regex_match.groups()
+    assert regex_match is not None
+    assert len(matches) == 1
+    card_id = matches[0]
+    card = CardSerialiser().get_card(card_id)
+    card_data = json.loads(decrypt_data(card))
+    payment_profile = PaymentProfileSerialiser().create_payment_profile(
+        name, description, card_data.get("id")
+    )
+    regex = regex_compile(r"^Payment Profile ID: (.*)$")
+    regex_match = regex.match(payment_profile)
+    matches = regex_match.groups()
+    assert regex_match is not None
+    assert len(matches) == 1
+    payment_id = matches[0]
+    profile = PaymentProfileSerialiser().get_payment_profile(payment_id)
+    assert profile.get("id") is not None
+    with Session(ENGINE) as session:
+        payment = (
+            session.query(PaymentProfile)
+            .filter(PaymentProfile.payment_id == payment_id)
+            .one_or_none()
+        )
+        card = session.query(Card).filter(Card.card_id == card_id).one_or_none()
+        run_test_teardown(payment.id, PaymentProfile, session)
+        run_test_teardown(card.id, Card, session)
 
 
-# def test_userserialiser_create_invalid_password(email):
-#     """Testing User Serialiser: Invalid Create User [Password]."""
-#     with raises(UserPasswordError):
-#         UserSerialiser().create_user(email, "password")
+def test_paymentprofileserialiser_delete(name, description):
+    """Testing PaymentProfile Serialiser: Delete PaymentProfile."""
+    card = CardSerialiser().create_card(CardType.SAVINGS, "123456")
+    regex = regex_compile(r"^Card ID: (.*)$")
+    regex_match = regex.match(card)
+    matches = regex_match.groups()
+    assert regex_match is not None
+    assert len(matches) == 1
+    card_id = matches[0]
+    card = CardSerialiser().get_card(card_id)
+    card_data = json.loads(decrypt_data(card))
+    payment_profile = PaymentProfileSerialiser().create_payment_profile(
+        name, description, card_data.get("id")
+    )
+    regex = regex_compile(r"^Payment Profile ID: (.*)$")
+    regex_match = regex.match(payment_profile)
+    matches = regex_match.groups()
+    assert regex_match is not None
+    assert len(matches) == 1
+    payment_id = matches[0]
+    payment_data = PaymentProfileSerialiser().get_payment_profile(payment_id)
+    assert PaymentProfileSerialiser().delete_payment_profile(payment_data.get("id"))
+    with Session(ENGINE) as session:
+        card = session.query(Card).filter(Card.card_id == card_id).one_or_none()
+        run_test_teardown(card.id, Card, session)
 
 
-# def test_userserialiser_get_invalid_email(password):
-#     """Testing User Serialiser: Invalid Get User [Email]."""
-#     with raises(UserEmailError):
-#         user_id = UserSerialiser().get_validated_user_id("email", password)
-#         UserSerialiser().get_user(user_id)
+def test_paymentprofileserialiser_update_valid_balance(name, description):
+    """Testing PaymentProfile Serialiser: Update PaymentProfile."""
+    card = CardSerialiser().create_card(CardType.SAVINGS, "123456")
+    regex = regex_compile(r"^Card ID: (.*)$")
+    regex_match = regex.match(card)
+    matches = regex_match.groups()
+    assert regex_match is not None
+    assert len(matches) == 1
+    card_id = matches[0]
+    card = CardSerialiser().get_card(card_id)
+    card_data = json.loads(decrypt_data(card))
+    payment_profile = PaymentProfileSerialiser().create_payment_profile(
+        name, description, card_data.get("id")
+    )
+    regex = regex_compile(r"^Payment Profile ID: (.*)$")
+    regex_match = regex.match(payment_profile)
+    matches = regex_match.groups()
+    assert regex_match is not None
+    assert len(matches) == 1
+    payment_id = matches[0]
+    payment_data = PaymentProfileSerialiser().get_payment_profile(payment_id)
+    assert PaymentProfileSerialiser().update_payment_profile(
+        payment_data.get("id"), balance=5.0
+    )
+    with Session(ENGINE) as session:
+        card = session.query(Card).filter(Card.card_id == card_id).one_or_none()
+        PaymentProfileSerialiser().delete_payment_profile(payment_data.get("id"))
+        run_test_teardown(card.id, Card, session)
 
 
-# def test_userserialiser_get_invalid_password(email):
-#     """Testing User Serialiser: Invalid Get User [Password]."""
-#     with raises(UserPasswordError):
-#         user_id = UserSerialiser().get_validated_user_id(email, "password")
-#         UserSerialiser().get_user(user_id)
+def test_paymentprofileserialiser_update_valid_name(name, description):
+    """Testing PaymentProfile Serialiser: Update PaymentProfile."""
+    card = CardSerialiser().create_card(CardType.SAVINGS, "123456")
+    regex = regex_compile(r"^Card ID: (.*)$")
+    regex_match = regex.match(card)
+    matches = regex_match.groups()
+    assert regex_match is not None
+    assert len(matches) == 1
+    card_id = matches[0]
+    card = CardSerialiser().get_card(card_id)
+    card_data = json.loads(decrypt_data(card))
+    payment_profile = PaymentProfileSerialiser().create_payment_profile(
+        name, description, card_data.get("id")
+    )
+    regex = regex_compile(r"^Payment Profile ID: (.*)$")
+    regex_match = regex.match(payment_profile)
+    matches = regex_match.groups()
+    assert regex_match is not None
+    assert len(matches) == 1
+    payment_id = matches[0]
+    payment_data = PaymentProfileSerialiser().get_payment_profile(payment_id)
+    assert PaymentProfileSerialiser().update_payment_profile(
+        payment_data.get("id"), name="Hello World"
+    )
+    with Session(ENGINE) as session:
+        card = session.query(Card).filter(Card.card_id == card_id).one_or_none()
+        PaymentProfileSerialiser().delete_payment_profile(payment_data.get("id"))
+        run_test_teardown(card.id, Card, session)
 
 
-# def test_userserialiser_get_invalid(email, password):
-#     """Testing User Serialiser: Invalid Get User."""
-#     with raises(UserError):
-#         user_id = UserSerialiser().get_validated_user_id(email, password)
-#         UserSerialiser().get_user(user_id)
+def test_paymentprofileserialiser_update_valid_description(name, description):
+    """Testing PaymentProfile Serialiser: Update PaymentProfile."""
+    card = CardSerialiser().create_card(CardType.SAVINGS, "123456")
+    regex = regex_compile(r"^Card ID: (.*)$")
+    regex_match = regex.match(card)
+    matches = regex_match.groups()
+    assert regex_match is not None
+    assert len(matches) == 1
+    card_id = matches[0]
+    card = CardSerialiser().get_card(card_id)
+    card_data = json.loads(decrypt_data(card))
+    payment_profile = PaymentProfileSerialiser().create_payment_profile(
+        name, description, card_data.get("id")
+    )
+    regex = regex_compile(r"^Payment Profile ID: (.*)$")
+    regex_match = regex.match(payment_profile)
+    matches = regex_match.groups()
+    assert regex_match is not None
+    assert len(matches) == 1
+    payment_id = matches[0]
+    payment_data = PaymentProfileSerialiser().get_payment_profile(payment_id)
+    assert PaymentProfileSerialiser().update_payment_profile(
+        payment_data.get("id"), description="Longer Description Hello World"
+    )
+    with Session(ENGINE) as session:
+        card = session.query(Card).filter(Card.card_id == card_id).one_or_none()
+        PaymentProfileSerialiser().delete_payment_profile(payment_data.get("id"))
+        run_test_teardown(card.id, Card, session)
 
 
-# def test_userserialiser_update_invalid():
-#     """Testing User Serialiser: Invalid Update User."""
-#     with raises(UserError):
-#         UserSerialiser().update_user("id")
+def test_paymentprofileserialiser_create_inavild_name(description):
+    """Testing PaymentProfile Serialiser: Create PaymentProfile Invalid [Name]."""
+    with raises(PaymentProfileError):
+        assert PaymentProfileSerialiser().create_payment_profile(
+            "name", description, "private_id"
+        )
 
 
-# def test_userserialiser_update_invalid_password(email, password, app):
-#     """Testing User Serialiser: Invalid Update User [Password]."""
-#     UserSerialiser().create_user(email, password)
-#     user_id = UserSerialiser().get_validated_user_id(email, password)
-#     user = UserSerialiser().get_user(user_id)
-#     user_data = json.loads(app.fernet.decrypt(user.encode()).decode())
-#     with raises(UserPasswordError):
-#         UserSerialiser().update_user(user_data.get("id"), password="password")
-#     UserSerialiser().delete_user(user_data.get("id"))
+def test_paymentprofileserialiser_create_inavild_description(name):
+    """Testing PaymentProfile Serialiser: Create PaymentProfile Invalid [Description]."""
+    with raises(PaymentProfileError):
+        assert PaymentProfileSerialiser().create_payment_profile(
+            name, "desc", "private_id"
+        )
 
 
-# def test_userserialiser_update_invalid_kwarg(email, password, app):
-#     """Testing User Serialiser: Invalid Update User [Password]."""
-#     UserSerialiser().create_user(email, password)
-#     user_id = UserSerialiser().get_validated_user_id(email, password)
-#     user = UserSerialiser().get_user(user_id)
-#     user_data = json.loads(app.fernet.decrypt(user.encode()).decode())
-#     with raises(UserError):
-#         UserSerialiser().update_user(user_data.get("id"), email="email@test.com")
-#     UserSerialiser().delete_user(user_data.get("id"))
+def test_paymentprofileserialiser_create_inavild_private_id(name, description):
+    """Testing PaymentProfile Serialiser: Create PaymentProfile Invalid [Card ID]."""
+    with raises(CardValidationError):
+        assert PaymentProfileSerialiser().create_payment_profile(
+            name, description, "private_id"
+        )
 
 
-# def test_userserialiser_update_invalid_kwarg_disabled(email, password, app):
-#     """Testing User Serialiser: Invalid Update User [Password]."""
-#     UserSerialiser().create_user(email, password)
-#     user_id = UserSerialiser().get_validated_user_id(email, password)
-#     user = UserSerialiser().get_user(user_id)
-#     user_data = json.loads(app.fernet.decrypt(user.encode()).decode())
-#     with raises(UserError):
-#         UserSerialiser().update_user(user_data.get("id"), user_status=UserStatus.DISABLED)
-#     UserSerialiser().delete_user(user_data.get("id"))
-
-# def test_userserialiser_delete_invalid():
-#     """Testing User Serialiser: Invalid Delete User."""
-#     with raises(UserError):
-#         UserSerialiser().delete_user("id")
+def test_paymentprofileserialiser_get_inavild_private_id():
+    """Testing PaymentProfile Serialiser: Create PaymentProfile Invalid [Card ID]."""
+    with raises(PaymentProfileError):
+        assert PaymentProfileSerialiser().get_payment_profile("id")
 
 
-# def test_userserialiser_get_validated_user_id_invalid_email(password):
-#     """Testing User Serialiser: Invalid User ID [Email]."""
-#     with raises(UserEmailError):
-#         UserSerialiser().get_validated_user_id("email", password)
+def test_paymentprofileserialiser_delete_inavild_private_id():
+    """Testing PaymentProfile Serialiser: Create PaymentProfile Invalid [Card ID]."""
+    with raises(PaymentProfileError):
+        assert PaymentProfileSerialiser().delete_payment_profile("id")
 
 
-# def test_userserialiser_get_validated_user_id_invalid_password(email):
-#     """Testing User Serialiser: Invalid User ID [Password]."""
-#     with raises(UserPasswordError):
-#         UserSerialiser().get_validated_user_id(email, "password")
+def test_paymentprofileserialiser_update_inavild_kwargs(name, description):
+    """Testing PaymentProfile Serialiser: Create PaymentProfile Invalid [Card ID]."""
+    with raises(PaymentProfileError):
+        card = CardSerialiser().create_card(CardType.SAVINGS, "123456")
+        regex = regex_compile(r"^Card ID: (.*)$")
+        regex_match = regex.match(card)
+        matches = regex_match.groups()
+        assert regex_match is not None
+        assert len(matches) == 1
+        card_id = matches[0]
+        card = CardSerialiser().get_card(card_id)
+        card_data = json.loads(decrypt_data(card))
+        payment_profile = PaymentProfileSerialiser().create_payment_profile(
+            name, description, card_data.get("id")
+        )
+        regex = regex_compile(r"^Payment Profile ID: (.*)$")
+        regex_match = regex.match(payment_profile)
+        matches = regex_match.groups()
+        assert regex_match is not None
+        assert len(matches) == 1
+        payment_id = matches[0]
+        payment_data = PaymentProfileSerialiser().get_payment_profile(payment_id)
+        assert PaymentProfileSerialiser().update_payment_profile(
+            payment_data.get("id"), email="Longer Description Hello World"
+        )
+    with Session(ENGINE) as session:
+        card = session.query(Card).filter(Card.card_id == card_id).one_or_none()
+        PaymentProfileSerialiser().delete_payment_profile(payment_data.get("id"))
+        run_test_teardown(card.id, Card, session)
+
+
+def test_paymentprofileserialiser_update_inavild_kwargs_name(name, description):
+    """Testing PaymentProfile Serialiser: Create PaymentProfile Invalid [Name]."""
+    with raises(PaymentProfileError):
+        card = CardSerialiser().create_card(CardType.SAVINGS, "123456")
+        regex = regex_compile(r"^Card ID: (.*)$")
+        regex_match = regex.match(card)
+        matches = regex_match.groups()
+        assert regex_match is not None
+        assert len(matches) == 1
+        card_id = matches[0]
+        card = CardSerialiser().get_card(card_id)
+        card_data = json.loads(decrypt_data(card))
+        payment_profile = PaymentProfileSerialiser().create_payment_profile(
+            name, description, card_data.get("id")
+        )
+        regex = regex_compile(r"^Payment Profile ID: (.*)$")
+        regex_match = regex.match(payment_profile)
+        matches = regex_match.groups()
+        assert regex_match is not None
+        assert len(matches) == 1
+        payment_id = matches[0]
+        payment_data = PaymentProfileSerialiser().get_payment_profile(payment_id)
+        assert PaymentProfileSerialiser().update_payment_profile(
+            payment_data.get("id"), name="short"
+        )
+    with Session(ENGINE) as session:
+        card = session.query(Card).filter(Card.card_id == card_id).one_or_none()
+        PaymentProfileSerialiser().delete_payment_profile(payment_data.get("id"))
+        run_test_teardown(card.id, Card, session)
+
+
+def test_paymentprofileserialiser_update_inavild_kwargs_description(name, description):
+    """Testing PaymentProfile Serialiser: Create PaymentProfile Invalid [Card ID]."""
+    with raises(PaymentProfileError):
+        card = CardSerialiser().create_card(CardType.SAVINGS, "123456")
+        regex = regex_compile(r"^Card ID: (.*)$")
+        regex_match = regex.match(card)
+        matches = regex_match.groups()
+        assert regex_match is not None
+        assert len(matches) == 1
+        card_id = matches[0]
+        card = CardSerialiser().get_card(card_id)
+        card_data = json.loads(decrypt_data(card))
+        payment_profile = PaymentProfileSerialiser().create_payment_profile(
+            name, description, card_data.get("id")
+        )
+        regex = regex_compile(r"^Payment Profile ID: (.*)$")
+        regex_match = regex.match(payment_profile)
+        matches = regex_match.groups()
+        assert regex_match is not None
+        assert len(matches) == 1
+        payment_id = matches[0]
+        payment_data = PaymentProfileSerialiser().get_payment_profile(payment_id)
+        assert PaymentProfileSerialiser().update_payment_profile(
+            payment_data.get("id"), description="Longer"
+        )
+    with Session(ENGINE) as session:
+        card = session.query(Card).filter(Card.card_id == card_id).one_or_none()
+        PaymentProfileSerialiser().delete_payment_profile(payment_data.get("id"))
+        run_test_teardown(card.id, Card, session)

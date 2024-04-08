@@ -16,3 +16,17 @@ def user_keys():
         "salt_value",
         "user_status",
     ]
+
+
+@fixture
+def payment_keys():
+    """Testing Card Serialiser: Create Card."""
+    return [
+        "id",
+        "payment_id",
+        # "account_id"
+        "card_id",
+        "name",
+        "description",
+        "payment_status",
+    ]

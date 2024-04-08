@@ -23,6 +23,17 @@ def password() -> str:
     """Initializes the Test Email."""
     return "testing@123"
 
+@fixture
+def name() -> str:
+    """Initializes the Test Name."""
+    return "testing123"
+
+
+@fixture
+def description() -> str:
+    """Initializes the Test Description."""
+    return "Longer Description for testing 123."
+
 
 def setup_test_commit(model: Any, session: Session):
     """Abstraction of the persistence functionality.

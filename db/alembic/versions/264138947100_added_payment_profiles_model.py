@@ -52,6 +52,7 @@ def upgrade() -> None:
             sa.Enum(PaymentStatus, name="payment_status"),
             default=PaymentStatus.NEW,
         ),
+        sa.Column("balance", sa.Float, default=0.0, nullable=False),
     )
     # ### end Alembic commands ###
 

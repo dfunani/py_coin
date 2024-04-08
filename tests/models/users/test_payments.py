@@ -59,6 +59,7 @@ def test_payment_profile_valid():
 
         assert payment_profile.payment_status == PaymentStatus.NEW
         assert payment_profile.id is not None
+        assert payment_profile.balance == 0.0
 
         print(card_data)
 
