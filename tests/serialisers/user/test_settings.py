@@ -507,6 +507,40 @@ def test_paymentprofileserialiser_update_invalid_data_sharing_preferences(
         run_test_teardown(account_data.id, Account, session)
         run_test_teardown(account_data.user_id, User, session)
 
+def test_paymentprofileserialiser_update_invalid_data_sharing_preferences_list(
+    get_account, regex_account, regex_settings
+):
+    """Testing Account Serialiser: Update Account."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        settings = SettingsProfileSerialiser().create_settings_profile(account_data.id)
+        settings_id = get_id_by_regex(regex_settings, settings)
+
+        settings_data = SettingsProfileSerialiser().get_settings_profile(settings_id)
+        settings_data["data_sharing_preferences"] = ["ProfileVisibility.ADMIN"]
+
+        settings_private_id = settings_data["id"]
+        del settings_data["id"]
+        del settings_data["settings_id"]
+        del settings_data["account_id"]
+
+        with raises(SettingsProfileError):
+            SettingsProfileSerialiser().update_settings_profile(
+                settings_private_id, **settings_data
+            )
+
+        SettingsProfileSerialiser().delete_settings_profile(settings_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
 
 def test_paymentprofileserialiser_update_valid_bool(
     get_account, regex_account, regex_settings

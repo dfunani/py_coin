@@ -13,7 +13,7 @@ def card_keys():
         "created_date",
         "card_number",
         "cvv_number",
-        "card_status",
+        "status",
         "card_type",
         "pin",
         "expiration_date",

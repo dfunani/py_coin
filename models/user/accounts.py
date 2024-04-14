@@ -50,9 +50,14 @@ class Account(Base):
         default=text(f"'{str(uuid4())}'"),
         unique=True,
     )
-    user_id: Union[str, Column[str]] = Column("user_id", String(256), ForeignKey("users.users.id"), nullable=False)
+    user_id: Union[str, Column[str]] = Column(
+        "user_id", String(256), ForeignKey("users.users.id"), nullable=False
+    )
     status: Union[Status, Column[Status]] = Column(
-        "status", Enum(Status, name="account_status"), default=Status.NEW, nullable=False
+        "status",
+        Enum(Status, name="account_status"),
+        default=Status.NEW,
+        nullable=False,
     )
     created_date = Column(
         "created_date", DateTime, default=text("CURRENT_TIMESTAMP"), nullable=False

@@ -9,9 +9,9 @@ from lib.utils.constants.users import (
     UserDevicePermission,
     AccountLoginMethod,
     Communication,
-    AccountOccupation,
-    AccountCountry,
-    AccountLanguage,
+    Occupation,
+    Country,
+    Language,
 )
 
 print(sys.path)
@@ -124,17 +124,17 @@ def account_occupations(occupations: list[str]):
         occupations (list): list of Account Communication Prefereces
         that should always be present.
     """
-    for status in AccountOccupation:
+    for status in Occupation:
         assert status.value in occupations
 
 
 def test_countries_enum():
     """Testing User Country Preferences Enum"""
-    for country in AccountCountry:
+    for country in Country:
         assert isinstance(country.value, tuple) and len(country.value[1]) == 2
 
 
 def test_languages_enum():
     """Testing User Language Preferences Enum"""
-    for country in AccountLanguage:
+    for country in Language:
         assert isinstance(country.value, tuple)

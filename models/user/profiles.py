@@ -16,11 +16,11 @@ from sqlalchemy import (
     Enum,
 )
 from lib.utils.constants.users import (
-    AccountCountry,
-    AccountLanguage,
-    AccountOccupation,
+    Country,
+    Language,
+    Occupation,
     Gender,
-    ProfileInterest,
+    Interest,
     Status,
 )
 from models import Base
@@ -64,10 +64,10 @@ class UserProfile(Base):
         primary_key=True,
         nullable=False,
     )
-    profile_id: Column[str] = Column(
+    profile_id: Union[str, Column[str]] = Column(
         "profile_id", String(256), default=text(f"'{str(uuid4())}'"), nullable=False
     )
-    account_id: Column[str] = Column(
+    account_id: Union[str, Column[str]] = Column(
         "account_id", String(256), ForeignKey("users.accounts.id"), nullable=False
     )
     first_name = Column("first_name", String(256), nullable=False)
@@ -76,17 +76,17 @@ class UserProfile(Base):
     date_of_birth: Union[date, Column[date]] = Column(
         "date_of_birth", Date, nullable=False
     )
-    gender: Column[str] = Column("gender", Enum(Gender, name="gender"), nullable=True)
+    gender: Union[str, Column[str]] = Column("gender", Enum(Gender, name="gender"), nullable=False)
     profile_picture = Column("profile_picture", LargeBinary, nullable=True)
     mobile_number = Column("mobile_number", String(256), nullable=True)
-    country: Union[AccountCountry, Column[AccountCountry]] = Column(
-        "country", Enum(AccountCountry, name="account_country"), nullable=True
+    country: Union[Country, Column[Country]] = Column(
+        "country", Enum(Country, name="account_country"), nullable=True
     )
-    language: Union[AccountLanguage, Column[AccountLanguage]] = Column(
+    language: Union[Language, Column[Language]] = Column(
         "language",
-        Enum(AccountLanguage, name="account_language"),
-        default=AccountLanguage.ENGLISH,
-        nullable=True,
+        Enum(Language, name="account_language"),
+        default=Language.ENGLISH,
+        nullable=False,
     )
     biography = Column(
         "biography",
@@ -94,19 +94,19 @@ class UserProfile(Base):
         default="This user has not provided a bio yet.",
         nullable=False,
     )
-    occupation: Union[AccountOccupation, Column[AccountOccupation]] = Column(
+    occupation: Union[Occupation, Column[Occupation]] = Column(
         "occupation",
-        Enum(AccountOccupation, name="account_occupation"),
-        default=AccountOccupation.OTHER,
-        nullable=True,
+        Enum(Occupation, name="account_occupation"),
+        default=Occupation.OTHER,
+        nullable=False,
     )
-    interests: Union[list[ProfileInterest], Column[list[ProfileInterest]]] = Column(
+    interests: Union[list[Interest], Column[list[Interest]]] = Column(
         "interests",
-        ARRAY(Enum(ProfileInterest, name="profile_interest")),
+        ARRAY(Enum(Interest, name="profile_interest")),
         default=[],
-        nullable=True,
+        nullable=False,
     )
-    social_media_links = Column("social_media_links", JSON, default={}, nullable=True)
+    social_media_links = Column("social_media_links", JSON, default={}, nullable=False)
     status: Union[Status, Column[Status]] = Column(
         "status",
         Enum(Status, name="profile_status"),

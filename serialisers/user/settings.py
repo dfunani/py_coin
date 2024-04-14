@@ -1,4 +1,4 @@
-"""Settings Serialiser Module: Serialiser for SettingsProfile Model."""
+"""User Serialiser Module: Serialiser for SettingsProfile Model."""
 
 from datetime import datetime
 from typing import Union
@@ -16,6 +16,10 @@ from lib.utils.constants.users import (
     ProfileVisibility,
     Theme,
 )
+from lib.validators.users import (
+    validate_data_sharing_preferences,
+    validate_profile_visibility_preference,
+)
 from models import ENGINE
 from models.user.settings import SettingsProfile
 
@@ -29,16 +33,24 @@ class SettingsProfileSerialiser(SettingsProfile):
     """
 
     __MUTABLE_ATTRIBUTES__ = {
-        "mfa_enabled": bool,
-        "location_tracking_enabled": bool,
-        "cookies_enabled": bool,
-        "email_status": Verification,
-        "data_sharing_preferences": list,
-        "communication_preference": Communication,
-        "theme_preference": Theme,
-        "profile_visibility_preference": ProfileVisibility,
-        "mfa_last_used_date": datetime,
-        "communication_status": Verification,
+        "mfa_enabled": (bool, False, None),
+        "location_tracking_enabled": (bool, False, None),
+        "cookies_enabled": (bool, False, None),
+        "email_status": (Verification, False, None),
+        "data_sharing_preferences": (
+            list,
+            False,
+            validate_data_sharing_preferences,
+        ),
+        "communication_preference": (Communication, False, None),
+        "theme_preference": (Theme, False, None),
+        "profile_visibility_preference": (
+            ProfileVisibility,
+            False,
+            validate_profile_visibility_preference,
+        ),
+        "mfa_last_used_date": (datetime, True, None),
+        "communication_status": (Verification, False, None),
     }
 
     def get_settings_profile(
@@ -104,23 +116,19 @@ class SettingsProfileSerialiser(SettingsProfile):
                 if key not in SettingsProfileSerialiser.__MUTABLE_ATTRIBUTES__:
                     raise SettingsProfileError("Invalid Setting.")
 
-                if (
-                    key == "mfa_last_used_date"
-                    and not isinstance(value, datetime)
-                    and value is not None
-                ) or (
-                    not isinstance(
-                        value, SettingsProfileSerialiser.__MUTABLE_ATTRIBUTES__[key]
-                    )
-                    and key != "mfa_last_used_date"
-                ):
-                    raise SettingsProfileError("Invalid Type for Attribute.")
+                data_type, nullable, validator = (
+                    SettingsProfileSerialiser.__MUTABLE_ATTRIBUTES__[key]
+                )
+                if not nullable and value is None:
+                    raise SettingsProfileError("Invalid Type for this Attribute.")
 
-                if (
-                    key == "profile_visibility_preference"
-                    and value == ProfileVisibility.ADMIN
-                ):
-                    raise SettingsProfileError("Invalid Profile Visibilty.")
+                if not isinstance(value, data_type) and value is not None:
+                    raise SettingsProfileError("Invalid Type for this Attribute.")
+
+                if validator and hasattr(validator, "__call__"):
+                    value = validator(value)
+
+                setattr(settings_profile, key, value)
 
             session.add(settings_profile)
             session.commit()

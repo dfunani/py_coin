@@ -1,4 +1,4 @@
-"""Accounts Module: Testing the Accounts Class."""
+"""Users Module: Testing the Accounts Class."""
 
 from pytest import raises
 

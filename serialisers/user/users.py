@@ -1,4 +1,4 @@
-"""Users Serialiser Module: Serialiser for User Model."""
+"""User Serialiser Module: Serialiser for User Model."""
 
 from json import dumps
 from typing import Union

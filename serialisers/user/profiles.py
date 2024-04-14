@@ -1,22 +1,31 @@
-"""Users Serialiser Module: Serialiser for User Profile Model."""
+"""User Serialiser Module: Serialiser for User Profile Model."""
 
 from datetime import date
-from typing import Any, Union
+from typing import Union
 from sqlalchemy import LargeBinary, String, cast, select
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from lib.interfaces.exceptions import (
     FernetError,
     UserProfileError,
 )
 from lib.utils.constants.users import (
-    AccountCountry,
-    AccountLanguage,
-    AccountOccupation,
+    Country,
+    Language,
+    Occupation,
     Gender,
-    ProfileInterest,
     Status,
-    Regex,
-    SocialMediaLink,
+)
+from lib.validators.users import (
+    validate_biography,
+    validate_date_of_birth,
+    validate_first_name,
+    validate_interests,
+    validate_last_name,
+    validate_mobile_number,
+    validate_social_media_links,
+    validate_status,
+    validate_username,
 )
 from models import ENGINE
 from models.user.profiles import UserProfile
@@ -30,9 +39,25 @@ class UserProfileSerialiser(UserProfile):
         UserProfile (class): Access Point to the UserProfile Model.
     """
 
-    @classmethod
+    __MUTABLE_ATTRIBUTES__ = {
+        "first_name": (str, False, validate_first_name),
+        "last_name": (str, False, validate_last_name),
+        "username": (str, False, validate_username),
+        "date_of_birth": (date, False, validate_date_of_birth),
+        "gender": (Gender, False, None),
+        "profile_picture": (LargeBinary, True, None),
+        "mobile_number": (str, True, validate_mobile_number),
+        "country": (Country, True, None),
+        "language": (Language, False, None),
+        "biography": (str, False, validate_biography),
+        "occupation": (Occupation, False, None),
+        "interests": (list, False, validate_interests),
+        "social_media_links": (dict, False, validate_social_media_links),
+        "status": (Status, False, validate_status),
+    }
+
     def get_user_profile(
-        cls, profile_id: str
+        self, profile_id: str
     ) -> Union[dict, UserProfileError, FernetError]:
         """CRUD Operation: Get User Profile.
 
@@ -44,45 +69,57 @@ class UserProfileSerialiser(UserProfile):
         """
         with Session(ENGINE) as session:
             query = select(UserProfile).filter(
-                cast(cls.profile_id, String) == profile_id
+                cast(UserProfile.profile_id, String) == profile_id
             )
             user_profile = session.execute(query).scalar_one_or_none()
 
             if not user_profile:
                 raise UserProfileError("No User Profile Found.")
 
-            return cls.__get_user_profile_data__(user_profile)
+            return self.__get_user_profile_data__(user_profile)
 
-    @classmethod
-    def create_user_profile(cls, **kwargs) -> Union[str, UserProfileError]:
+    def create_user_profile(
+        self, account_id: str, **kwargs
+    ) -> Union[str, UserProfileError]:
         """CRUD Operation: Add User Profile.
 
         Args:
-            name (str): User Profile Name.
-            description (str): User Profile Description.
-            card_id (str): User Profile's Card ID.
+            account_id (str): Unique Account ID.
 
         Returns:
-            dict: User Profile Object.
+            str: User Profile Object.
         """
         with Session(ENGINE) as session:
-            user_profile: Union[UserProfile, UserProfileError] = cls()
+            self.account_id = account_id
 
             for key, value in kwargs.items():
-                user_profile = cls.__set_profile__(user_profile, key, value)
+                if key not in UserProfileSerialiser.__MUTABLE_ATTRIBUTES__:
+                    raise UserProfileError("Invalid User Profile.")
 
-            if not user_profile:
-                raise UserProfileError("User Profile not created.")
+                data_type, nullable, validator = (
+                    UserProfileSerialiser.__MUTABLE_ATTRIBUTES__[key]
+                )
+                if not nullable and value is None:
+                    raise UserProfileError("Invalid Type for this Attribute.")
 
-            profile_id = str(user_profile)
-            session.add(user_profile)
-            session.commit()
+                if not isinstance(value, data_type) and value is not None:
+                    raise UserProfileError("Invalid Type for this Attribute.")
 
-            return profile_id
+                if validator and value is not None and hasattr(validator, "__call__"):
+                    value = validator(value)
 
-    @classmethod
+                setattr(self, key, value)
+
+            try:
+                session.add(self)
+                session.commit()
+            except IntegrityError as exc:
+                raise UserProfileError("User Profile Not Created.") from exc
+
+            return str(self)
+
     def update_user_profile(
-        cls, private_id: str, **kwargs
+        self, private_id: str, **kwargs
     ) -> Union[str, UserProfileError]:
         """CRUD Operation: Update User Profile.
 
@@ -94,23 +131,39 @@ class UserProfileSerialiser(UserProfile):
         """
         with Session(ENGINE) as session:
             user_profile: Union[UserProfile, UserProfileError, None] = session.get(
-                cls, private_id
+                UserProfile, private_id
             )
 
             if user_profile is None:
                 raise UserProfileError("User Profile Not Found.")
 
             for key, value in kwargs.items():
-                user_profile = cls.__set_profile__(user_profile, key, value)
+                if key not in UserProfileSerialiser.__MUTABLE_ATTRIBUTES__:
+                    raise UserProfileError("Invalid User Profile.")
 
-            profile_id = str(user_profile)
-            session.add(user_profile)
-            session.commit()
+                data_type, nullable, validator = (
+                    UserProfileSerialiser.__MUTABLE_ATTRIBUTES__[key]
+                )
+                if not nullable and value is None:
+                    raise UserProfileError("Invalid Type for this Attribute.")
 
-            return profile_id
+                if not isinstance(value, data_type) and value is not None:
+                    raise UserProfileError("Invalid Type for this Attribute.")
 
-    @classmethod
-    def delete_user_profile(cls, private_id: str) -> str:
+                if validator and value is not None and hasattr(validator, "__call__"):
+                    value = validator(value)
+
+                setattr(user_profile, key, value)
+
+            try:
+                session.add(user_profile)
+                session.commit()
+            except IntegrityError as exc:
+                raise UserProfileError("User Profile not Updated.") from exc
+
+            return str(user_profile)
+
+    def delete_user_profile(self, private_id: str) -> str:
         """CRUD Operation: Delete User Profile.
 
         Args:
@@ -130,12 +183,11 @@ class UserProfileSerialiser(UserProfile):
 
             return f"Deleted: {private_id}"
 
-    @classmethod
-    def __get_user_profile_data__(cls, user_profile: UserProfile):
-        cls.__validate_user_profile__(user_profile)
+    def __get_user_profile_data__(self, user_profile: UserProfile):
         return {
             "id": user_profile.id,
             "profile_id": user_profile.profile_id,
+            "account_id": user_profile.account_id,
             "first_name": user_profile.first_name,
             "last_name": user_profile.last_name,
             "username": user_profile.username,
@@ -149,224 +201,5 @@ class UserProfileSerialiser(UserProfile):
             "occupation": user_profile.occupation,
             "interests": user_profile.interests,
             "social_media_links": user_profile.social_media_links,
-            "created_date": user_profile.created_date,
+            "status": user_profile.status,
         }
-
-    @classmethod
-    def __set_profile__(
-        cls, user_profile: Union[UserProfile, UserProfileError], key: str, value: Any
-    ) -> Union[UserProfile, UserProfileError]:
-        if key not in [
-            "first_name",
-            "last_name",
-            "username",
-            "date_of_birth",
-            "gender",
-            "profile_picture",
-            "mobile_number",
-            "country",
-            "language",
-            "biography",
-            "occupation",
-            "interests",
-            "social_media_links",
-            "created_date",
-            "profile_status",
-        ]:
-            raise UserProfileError("Invalid User Profile.")
-        match key:
-            case "first_name":
-                cls.__validate_first_name(value)
-                setattr(user_profile, key, value)
-            case "last_name":
-                cls.__validate_last_name(value)
-                setattr(user_profile, key, value)
-            case "username":
-                cls.__validate_username(value)
-                setattr(user_profile, key, value)
-            case "date_of_birth":
-                cls.__validate_date_of_birth(value)
-                setattr(user_profile, key, value)
-            case "gender":
-                cls.__validate_primitive_type__(value, Gender)
-                setattr(user_profile, key, value)
-            case "profile_picture":
-                cls.__validate_primitive_type__(value, LargeBinary)
-                setattr(user_profile, key, value)
-            case "mobile_number":
-                cls.__validate_mobile_number(value)
-                setattr(user_profile, key, value)
-            case "country":
-                cls.__validate_primitive_type__(value, AccountCountry)
-                setattr(user_profile, key, value)
-            case "language":
-                cls.__validate_primitive_type__(value, AccountLanguage)
-                setattr(user_profile, key, value)
-            case "biography":
-                cls.__validate_biography(value)
-                setattr(user_profile, key, value)
-            case "occupation":
-                cls.__validate_primitive_type__(value, AccountOccupation)
-                setattr(user_profile, key, value)
-            case "profile_status":
-                cls.__validate_primitive_type__(value, Status)
-                setattr(user_profile, key, value)
-            case "interests":
-                cls.__validate_interests(value)
-                # cls.interests.extend()
-                temp = set(cls.interests)
-                cls.interests = list(temp)
-            case "social_media_links":
-                cls.__validate_social_media_links(value)
-                setattr(user_profile, key, value)
-
-        return user_profile
-
-    @staticmethod
-    def __validate_first_name(value: str) -> UserProfileError:
-        """Validates the value and sets the Private Attribute.
-
-        Args:
-            value (str): Valid First Name value.
-
-        Raises:
-            UserProfileError: String Value of No less than 8 characters. (Max: 30)
-        """
-        if not isinstance(value, str):
-            raise UserProfileError("Invalid Type for this Attribute.")
-        if not Regex.FIRST_NAME.value.match(value):
-            raise UserProfileError("Invalid First Name.")
-
-    @staticmethod
-    def __validate_last_name(value: str) -> UserProfileError:
-        """Validates the value and sets the Private Attribute.
-
-        Args:
-            value (str): Valid Last Name value.
-
-        Raises:
-            UserProfileError: String Value of No less than 8 characters. (Max: 30)
-        """
-        if not isinstance(value, str):
-            raise UserProfileError("Invalid Type for this Attribute.")
-        if not Regex.LAST_NAME.value.match(value):
-            raise UserProfileError("Invalid Last Name.")
-
-    @staticmethod
-    def __validate_username(value: str) -> UserProfileError:
-        """Validates the value and sets the Private Attribute.
-
-        Args:
-            value (str): Valid Username value.
-
-        Raises:
-            UserProfileError: String Value of No less than 8 characters. (Max: 30)
-        """
-        if not isinstance(value, str):
-            raise UserProfileError("Invalid Type for this Attribute.")
-        if not Regex.USERNAME.value.match(value):
-            raise UserProfileError("Invalid Username.")
-
-    @staticmethod
-    def __validate_date_of_birth(value: date):
-        """Validates the value and sets the Private Attribute.
-
-        Args:
-            value (date): Valid Date of Birth value.
-
-        Raises:
-            UserProfileError: Valid Date.
-        """
-        if not isinstance(value, date):
-            raise UserProfileError("Invalid Type for this Attribute.")
-
-    @staticmethod
-    def __validate_mobile_number(value: str) -> UserProfileError:
-        """Validates the value and sets the Private Attribute.
-
-        Args:
-            value (str): Valid Mobile Number value.
-
-        Raises:
-            UserProfileError: Valid Mobile Number.
-        """
-        if not isinstance(value, str):
-            raise UserProfileError("Invalid Type for this Attribute.")
-        if not Regex.MOBILE_NUMBER.value.match(value):
-            raise UserProfileError("Invalid Mobile Number.")
-
-    @staticmethod
-    def __validate_biography(value: str) -> UserProfileError:
-        """Validates the value and sets the Private Attribute.
-
-        Args:
-            value (str): Valid Biography value.
-
-        Raises:
-            UserProfileError: String Value of No less than 8 characters. (Max: 250)
-        """
-        if not isinstance(value, str):
-            raise UserProfileError("Invalid Type for this Attribute.")
-        if not Regex.BIOGRAPHY.value.match(value):
-            raise UserProfileError("Invalid Biography.")
-
-    @staticmethod
-    def __validate_interests(value: list[ProfileInterest]) -> UserProfileError:
-        """Validates the value and sets the Private Attribute.
-
-        Args:
-            value (list[str]): Valid Interests value.
-
-        Raises:
-            UserProfileError: List of Valid Interests.
-        """
-        if not isinstance(value, list):
-            raise UserProfileError("Invalid Type for this Attribute.")
-        temp = [isinstance(_, ProfileInterest) for _ in value]
-        if not all(temp):
-            raise UserProfileError("Invalid List of Interests.")
-
-    @staticmethod
-    def __validate_social_media_links(value: dict) -> UserProfileError:
-        """Validates the value and sets the Private Attribute.
-
-        Args:
-            value (dict): Dictionary of allowable Social Media Links.
-
-        Raises:
-            UserSocialMediaLinkError: Value must be a Key-Value Pair.
-        """
-        if not isinstance(value, dict):
-            raise UserProfileError("Invalid Social Media.")
-        response = {}
-        for key in value:
-            if key in SocialMediaLink and key.value.match(value[key]):
-                response[key.name] = value[key]
-        # social_media_links =
-        # social_media_links.update(response)(social_media_links)
-
-    @staticmethod
-    def __validate_user_profile__(
-        user_profile: UserProfile,
-    ) -> UserProfileError:
-        """Validates the Private Attribute.
-
-        Args:
-            value (str): Valid Settings Profile Data.
-
-        Raises:
-            UserProfileError: Invalid Settings Profile Data.
-        """
-        for key in [
-            user_profile.first_name,
-            user_profile.last_name,
-            user_profile.username,
-            user_profile.profile_status,
-        ]:
-            if key is None:
-                raise UserProfileError("Invalid Settings Profile Data.")
-
-    @staticmethod
-    def __validate_primitive_type__(value: Any, primitive: type) -> UserProfileError:
-        if not isinstance(value, primitive):
-            raise UserProfileError("Invalid Type for this Attribute.")

@@ -1,4 +1,4 @@
-"""Payments Serialiser Module: Serialiser for Payment Profile Model."""
+"""User Serialiser Module: Serialiser for Payment Profile Model."""
 
 from typing import Union
 from sqlalchemy import String, cast, select

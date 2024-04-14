@@ -12,6 +12,7 @@ from lib.interfaces.exceptions import CardValidationError
 from lib.utils.constants.users import Status, CardType, DateFormat, Regex
 from lib.utils.encryption.cryptography import decrypt_data, encrypt_data
 from lib.utils.encryption.encoders import get_hash_value
+from lib.validators.users import validate_status
 from models import ENGINE
 from models.warehouse.cards import Card
 
@@ -27,8 +28,7 @@ class CardSerialiser(Card):
     __MAX_RETRIES__ = 3
     __CARD_VALID_YEARS__ = 365 * 5
 
-    @classmethod
-    def get_card(cls, card_id: str) -> Union[str, CardValidationError]:
+    def get_card(self, card_id: str) -> Union[str, CardValidationError]:
         """CRUD Operation: Get Card.
 
         Args:
@@ -44,11 +44,10 @@ class CardSerialiser(Card):
             if not card:
                 raise CardValidationError("No Card Found.")
 
-            return cls.__get_encrypted_card_data__(card)
+            return self.__get_encrypted_card_data__(card)
 
-    @classmethod
     def create_card(
-        cls, card_type: CardType, pin: str
+        self, card_type: CardType, pin: str
     ) -> Union[str, CardValidationError]:
         """CRUD Operation: Add Card.
 
@@ -58,30 +57,26 @@ class CardSerialiser(Card):
         Returns:
             str: Card Object.
         """
-        card = cls()
-
-        card.__validate_card_type__(card_type)
-        card.card_type = card_type
-        card.cvv_number = card.__get_cvv_number__()
-        card.expiration_date = (
-            date.today() + timedelta(days=cls.__CARD_VALID_YEARS__)
+        self.__validate_card_type__(card_type)
+        self.card_type = card_type
+        self.cvv_number = str(self.__get_cvv_number__())
+        self.expiration_date = (
+            date.today() + timedelta(days=self.__CARD_VALID_YEARS__)
         ).replace(day=1)
-        card.card_number = card.__get_card_number__()
-        card.pin = card.__get_pin__(pin)
-        card.card_id = card.get_card_id(
-            decrypt_data(str(card.cvv_number)),
-            decrypt_data(str(card.card_number)),
-            card.expiration_date,
-        )
+        self.card_number = str(self.__get_card_number__())
+        self.pin = str(self.__get_pin__(pin))
+        self.card_id = str(self.get_card_id(
+            str(decrypt_data(str(self.cvv_number))),
+            str(decrypt_data(str(self.card_number))),
+            self.expiration_date,
+        ))
 
         with Session(ENGINE) as session:
-            card_id = str(card)
-            session.add(card)
+            session.add(self)
             session.commit()
-            return card_id
+            return str(self)
 
-    @classmethod
-    def update_card(cls, private_id: str, **kwargs) -> Union[str, CardValidationError]:
+    def update_card(self, private_id: str, **kwargs) -> Union[str, CardValidationError]:
         """CRUD Operation: Update Card.
 
         Args:
@@ -91,27 +86,26 @@ class CardSerialiser(Card):
             str: Card Object.
         """
         with Session(ENGINE) as session:
-            card = session.get(cls, private_id)
+            card = session.get(Card, private_id)
 
             if card is None:
                 raise CardValidationError("Card Not Found.")
 
             for key, value in kwargs.items():
-                if key not in ["card_status", "pin"]:
+                if key not in ["status", "pin"]:
                     raise CardValidationError("Invalid attribute to Update.")
 
                 if key == "pin":
-                    valid_pin = card.__get_pin__(value)
+                    valid_pin = self.__get_pin__(value)
                     setattr(card, key, valid_pin)
-                if key == "card_status":
-                    card.__validate_card_status__(value)
+                if key == "status":
+                    value = validate_status(value)
                     setattr(card, key, value)
 
-            card_id = str(card)
             session.add(card)
             session.commit()
 
-            return card_id
+            return str(card)
 
     @classmethod
     def delete_card(cls, private_id: str) -> Union[str, CardValidationError]:
@@ -225,7 +219,7 @@ class CardSerialiser(Card):
             "created_date": card.created_date.strftime(DateFormat.HYPHEN.value),
             "card_number": card.card_number,
             "cvv_number": card.cvv_number,
-            "card_status": card.card_status.value,
+            "status": card.status.value,
             "card_type": card.card_type.value[0],
             "pin": card.pin,
             "expiration_date": card.expiration_date.strftime(DateFormat.SHORT.value),
@@ -277,21 +271,6 @@ class CardSerialiser(Card):
             raise CardValidationError("Invalid CVV Number.")
 
     @staticmethod
-    def __validate_card_status__(value: Status) -> CardValidationError:
-        """Validates the Private Attribute.
-
-        Args:
-            value (str): Valid Card Status.
-
-        Raises:
-            CardValidationError: Invalid Card Status.
-        """
-        if not isinstance(value, Status):
-            raise CardValidationError("Invalid Type for this Attribute.")
-        if value not in [Status.ACTIVE, Status.DELETED]:
-            raise CardValidationError("Invalid Card Status.")
-
-    @staticmethod
     def __validate_pin__(pin: str) -> CardValidationError:
         """Validates Card Pin.
 
@@ -319,7 +298,7 @@ class CardSerialiser(Card):
             card.created_date,
             card.card_number,
             card.cvv_number,
-            card.card_status,
+            card.status,
             card.card_type,
             card.pin,
             card.expiration_date,
@@ -357,7 +336,7 @@ class CardSerialiser(Card):
             cards_count = (
                 session.query(Card)
                 .filter(
-                    cast(Card.card_status, Enum(Status, name="card_status"))
+                    cast(Card.status, Enum(Status, name="card_status"))
                     != Status.INACTIVE,
                     cast(Card.card_number, String) == card_number,
                     cast(Card.card_type, Enum(CardType, name="card_type")) == card_type,

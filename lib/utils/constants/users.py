@@ -13,9 +13,9 @@ Enums:
     - UserDevicePermission: Enumeration of Account or User Device Preferences
     - AccountLoginMethod: Enumeration of Account or User Login Preferences
     - AccountCommunication: Enumeration of Account or User Communication Preferences
-    - AccountCountry: Enumeration of Account or User Country Preferences
-    - AccountLanguage: Enumeration of Account or User Language Preferences
-    - AccountOccupation: Enumeration of Account or User Occupation Preferences
+    - Country: Enumeration of Account or User Country Preferences
+    - Language: Enumeration of Account or User Language Preferences
+    - Occupation: Enumeration of Account or User Occupation Preferences
 
 Example:
     >>> from enums import Gender
@@ -71,7 +71,7 @@ class Regex(Enum):
     FIRST_NAME = regex_compile(r"^[a-zA-Z]{1,30}$")
     LAST_NAME = regex_compile(r"^[a-zA-Z]{1,30}$")
     USERNAME = regex_compile(r"^[a-zA-Z][a-zA-Z0-9\s\-,._]{8,30}$")
-    MOBILE_NUMBER = regex_compile(r"^\+?[0-9]+(?:[ -][0-9]+)*$")
+    MOBILE_NUMBER = regex_compile(r"^\+\d{1,3}\d{3,14}$")
     TITLE = regex_compile(r"^[a-zA-Z][a-zA-Z0-9\s\-,._]{8,30}$")
     DESCRIPTION = regex_compile(r"^[a-zA-Z][a-zA-Z0-9\s\-,._]{8,125}$")
     BIOGRAPHY = regex_compile(r"^(?!\s+$).{8,250}$")
@@ -98,7 +98,7 @@ class AccountStatus(Enum):
     SUSPENDED = "suspended"
 
 
-class AccountCountry(Enum):
+class Country(Enum):
     """Enumeration of Email Verification Statuses."""
 
     AFGHANISTAN = "Afghanistan", "AF"
@@ -300,7 +300,7 @@ class AccountCountry(Enum):
     ZIMBABWE = "Zimbabwe", "ZW"
 
 
-class AccountLanguage(Enum):
+class Language(Enum):
     """Enumeration of Email Verification Statuses."""
 
     AFRIKAANS = "Afrikaans", "af"
@@ -390,7 +390,7 @@ class AccountLanguage(Enum):
     ZULU = "Zulu", "zu"
 
 
-class AccountOccupation(Enum):
+class Occupation(Enum):
     """Enumeration of Email Verification Statuses."""
 
     SOFTWARE_ENGINEER = "Software Engineer"
@@ -424,7 +424,7 @@ class AccountOccupation(Enum):
     OTHER = "Other"
 
 
-class ProfileInterest(Enum):
+class Interest(Enum):
     """Enumeration of Profile Interests."""
 
     ANIMALS = "Animals"

@@ -6,190 +6,1088 @@ from re import compile as regex_compile
 from pytest import raises
 from sqlalchemy.orm import Session
 
-from lib.interfaces.exceptions import UserProfileError
-from lib.utils.constants.users import Communication, Gender, ProfileVisibility
+from lib.interfaces.exceptions import UserError, UserProfileError
+from lib.utils.constants.users import (
+    Communication,
+    Country,
+    Gender,
+    Interest,
+    Language,
+    Occupation,
+    ProfileVisibility,
+    SocialMediaLink,
+    Status,
+)
+from models.user.accounts import Account
 from models.user.profiles import UserProfile
+from models.user.users import User
 from serialisers.user.profiles import UserProfileSerialiser
 from models import ENGINE
+from tests.conftest import get_id_by_regex, run_test_teardown, setup_test_commit
 
 
-def test_userprofileserialiser_create():
+def test_userprofileserialiser_create(get_account, regex_account, regex_user_profile):
     """Testing UserProfile Serialiser: Create UserProfile."""
-    user_profile = (
-        UserProfileSerialiser().create_user_profile(
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+        user_profile = UserProfileSerialiser().create_user_profile(
+            account.id,
             first_name="firstname",
             last_name="lastnaame",
             username="username_f1",
             date_of_birth=date(1991, 12, 31),
             gender=Gender.FEMALE,
-        ),
-    )
-    assert user_profile is not None
-
-
-def test_userprofileserialiser_create_kwargs():
-    """Testing UserProfile Serialiser: Create UserProfile."""
-    user_profile = UserProfileSerialiser().create_user_profile(
-        first_name="firstname",
-        last_name="lastnaame",
-        username="username_f1",
-        date_of_birth=date(1991, 12, 31),
-        gender=Gender.FEMALE,
-    )
-    regex = regex_compile(r"^User Profile ID: (.*)$")
-    regex_match = regex.match(user_profile)
-    matches = regex_match.groups()
-    assert regex_match is not None
-    assert len(matches) == 1
-    profile_id = matches[0]
-    with Session(ENGINE) as session:
-        user_data = (
-            session.query(UserProfile)
-            .filter(UserProfile.profile_id == profile_id)
-            .one_or_none()
         )
-        assert user_data.gender == Gender.FEMALE
         assert user_profile is not None
-        session.delete(user_data)
-        session.commit()
+        user_profile_id = get_id_by_regex(regex_user_profile, str(user_profile))
 
-
-def test_userprofileserialiser_get():
-    """Testing UserProfile Serialiser: Get UserProfile."""
-    user_profile = UserProfileSerialiser().create_user_profile(
-        first_name="firstname",
-        last_name="lastnaame",
-        username="username_f1",
-        date_of_birth=date(1991, 12, 31),
-        gender=Gender.FEMALE,
-    )
-    regex = regex_compile(r"^User Profile ID: (.*)$")
-    regex_match = regex.match(user_profile)
-    matches = regex_match.groups()
-    assert regex_match is not None
-    assert len(matches) == 1
-    profile_id = matches[0]
-    user_data = UserProfileSerialiser().get_user_profile(profile_id)
-    assert user_data.get("first_name") == "firstname"
-    assert user_data.get("id") is not None
-    with Session(ENGINE) as session:
-        user_data = (
+        user_profile_data = (
             session.query(UserProfile)
-            .filter(UserProfile.profile_id == profile_id)
+            .filter(UserProfile.profile_id == user_profile_id)
             .one_or_none()
         )
-        session.delete(user_data)
-        session.commit()
+        run_test_teardown(user_profile_data.id, UserProfile, session)
+        run_test_teardown(account.id, Account, session)
+        run_test_teardown(account.user_id, User, session)
 
 
-def test_userprofileserialiser_delete():
+def test_userprofileserialiser_create_kwargs(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Create UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+        user_profile = UserProfileSerialiser().create_user_profile(
+            account.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        assert user_profile is not None
+        user_profile_id = get_id_by_regex(regex_user_profile, str(user_profile))
+
+        user_profile_data = (
+            session.query(UserProfile)
+            .filter(UserProfile.profile_id == user_profile_id)
+            .one_or_none()
+        )
+        assert user_profile_data.gender == Gender.FEMALE
+        run_test_teardown(user_profile_data.id, UserProfile, session)
+        run_test_teardown(account.id, Account, session)
+        run_test_teardown(account.user_id, User, session)
+
+
+def test_userprofileserialiser_create_kwargs_invalid_in_creation(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Create UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+        with raises(UserProfileError):
+            UserProfileSerialiser().create_user_profile(
+                account.id,
+                first_name="first name",
+                last_name="last naame",
+                username="username_f1",
+                date_of_birth=date(1991, 12, 31),
+                gender=Gender.FEMALE,
+            )
+        run_test_teardown(account.id, Account, session)
+        run_test_teardown(account.user_id, User, session)
+
+
+def test_userprofileserialiser_create_kwargs_invalid():
+    """Testing UserProfile Serialiser: Create UserProfile."""
+
+    with raises(UserProfileError):
+        UserProfileSerialiser().create_user_profile(
+            "account.id",
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+
+
+def test_userprofileserialiser_get(
+    get_account, regex_account, regex_user_profile, user_profile_keys
+):
+    """Testing UserProfile Serialiser: Get UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+        user_profile = UserProfileSerialiser().create_user_profile(
+            account.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_profile_id = get_id_by_regex(regex_user_profile, str(user_profile))
+
+        user_profile_data = UserProfileSerialiser().get_user_profile(user_profile_id)
+
+        assert isinstance(user_profile_data, dict)
+        for key in user_profile_keys:
+            assert key in user_profile_data
+
+        for key in user_profile_data:
+            assert key in user_profile_keys
+
+        assert user_profile_data.get("gender") == Gender.FEMALE
+        run_test_teardown(user_profile_data.get("id"), UserProfile, session)
+        run_test_teardown(account.id, Account, session)
+        run_test_teardown(account.user_id, User, session)
+
+
+def test_userprofileserialiser_get_kwargs_invalid():
+    """Testing UserProfile Serialiser: Create UserProfile."""
+
+    with raises(UserProfileError):
+        UserProfileSerialiser().get_user_profile("account.id")
+
+
+def test_userprofileserialiser_delete(get_account, regex_account, regex_user_profile):
     """Testing UserProfile Serialiser: Delete UserProfile."""
-    user_profile = UserProfileSerialiser().create_user_profile(
-        first_name="firstname",
-        last_name="lastnaame",
-        username="username_f1",
-        date_of_birth=date(1991, 12, 31),
-        gender=Gender.FEMALE,
-    )
-    regex = regex_compile(r"^User Profile ID: (.*)$")
-    regex_match = regex.match(user_profile)
-    matches = regex_match.groups()
-    assert regex_match is not None
-    assert len(matches) == 1
-    profile_id = matches[0]
-    user_data = UserProfileSerialiser().get_user_profile(profile_id)
-    user_data = UserProfileSerialiser().delete_user_profile(user_data.get("id"))
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+        user_profile = UserProfileSerialiser().create_user_profile(
+            account.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_profile_id = get_id_by_regex(regex_user_profile, str(user_profile))
+
+        user_profile_data = UserProfileSerialiser().get_user_profile(user_profile_id)
+
+        UserProfileSerialiser().delete_user_profile(user_profile_data.get("id"))
+
+        run_test_teardown(account.id, Account, session)
+        run_test_teardown(account.user_id, User, session)
 
 
-def test_userprofileserialiser_update_valid_balance():
-    """Testing UserProfile Serialiser: Update UserProfile."""
-    user_profile = UserProfileSerialiser().create_user_profile(
-        first_name="firstname",
-        last_name="lastnaame",
-        username="username_f1",
-        date_of_birth=date(1991, 12, 31),
-        gender=Gender.FEMALE,
-    )
-    regex = regex_compile(r"^User Profile ID: (.*)$")
-    regex_match = regex.match(user_profile)
-    matches = regex_match.groups()
-    assert regex_match is not None
-    assert len(matches) == 1
-    profile_id = matches[0]
-    user_data = UserProfileSerialiser().get_user_profile(profile_id)
-    assert user_data.get("gender") == Gender.FEMALE
-    user_data = UserProfileSerialiser().update_user_profile(
-        user_data.get("id"), gender=Gender.MALE
-    )
-    user_data = UserProfileSerialiser().get_user_profile(profile_id)
-    assert user_data.get("gender") == Gender.MALE
-    user_data = UserProfileSerialiser().delete_user_profile(user_data.get("id"))
+def test_userprofileserialiser_delete_kwargs_invalid():
+    """Testing UserProfile Serialiser: Create UserProfile."""
 
-
-def test_userprofileserialiser_update_valid_name():
-    """Testing UserProfile Serialiser: Update UserProfile."""
-    user_profile = UserProfileSerialiser().create_user_profile(
-        first_name="firstname",
-        last_name="lastnaame",
-        username="username_f1",
-        date_of_birth=date(1991, 12, 31),
-        gender=Gender.FEMALE,
-    )
-    regex = regex_compile(r"^User Profile ID: (.*)$")
-    regex_match = regex.match(user_profile)
-    matches = regex_match.groups()
-    assert regex_match is not None
-    assert len(matches) == 1
-    profile_id = matches[0]
-    user_data = UserProfileSerialiser().get_user_profile(profile_id)
-    assert user_data.get("gender") == Gender.FEMALE
     with raises(UserProfileError):
-        UserProfileSerialiser().update_user_profile(
-            user_data.get("id"),
-            profile_visibility_preference=ProfileVisibility.PRIVATE,
-            communication_preference=Communication.SLACK,
-            name="name",
+        UserProfileSerialiser().delete_user_profile("account.id")
+
+
+def test_userprofileserialiser_update_valid_firstname(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
         )
 
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
 
-def test_userprofileserialiser_create_inavild_name():
-    """Testing UserProfile Serialiser: Create UserProfile Invalid [Name]."""
-    user_profile = UserProfileSerialiser().create_user_profile(
-        first_name="firstname",
-        last_name="lastnaame",
-        username="username_f1",
-        date_of_birth=date(1991, 12, 31),
-        gender=Gender.FEMALE,
-    )
-    regex = regex_compile(r"^User Profile ID: (.*)$")
-    regex_match = regex.match(user_profile)
-    matches = regex_match.groups()
-    assert regex_match is not None
-    assert len(matches) == 1
-    profile_id = matches[0]
-    user_data = UserProfileSerialiser().get_user_profile(profile_id)
-    assert user_data.get("gender") == Gender.FEMALE
-    with raises(UserProfileError):
-        UserProfileSerialiser().update_user_profile(
-            user_data.get("id"),
-            profile_visibility_preference=ProfileVisibility.ADMIN,
-            communication_preference="SLACK",
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["first_name"] = "validfirstname"
+
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_update_firstname_invalid(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
         )
 
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
 
-def test_userprofileserialiser_get_inavild_private_id():
-    """Testing UserProfile Serialiser: Create UserProfile Invalid [Card ID]."""
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["first_name"] = "12 valid"
+
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        with raises(UserProfileError):
+            UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_update_valid_lasttname(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
+
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["last_name"] = "validlastname"
+
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_update_lasttname_invalid(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
+
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["first_name"] = "12 valid"
+
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        with raises(UserProfileError):
+            UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_update_valid_username(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
+
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["username"] = "validusername_123-dave"
+
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_update_username_invalid(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
+
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["username"] = "12short"
+
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        with raises(UserProfileError):
+            UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_update_valid_date_of_birth(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
+
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["date_of_birth"] = date(1991, 12, 31)
+
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_update_date_of_birth_invalid(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
+
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["date_of_birth"] = date.today()
+
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        with raises(UserProfileError):
+            UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_update_date_of_birth_invalid_type(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
+
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["date_of_birth"] = "12short"
+
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        with raises(UserProfileError):
+            UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_update_valid_mobile(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
+
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["mobile_number"] = "+27685642078"
+
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_update_mobile_invalid(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
+
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["mobile_number"] = "0685642078"
+
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        with raises(UserProfileError):
+            UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_update_mobile_invalid_type(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
+
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["mobile_number"] = 564
+
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        with raises(UserProfileError):
+            UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_update_valid_biography(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
+
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["biography"] = (
+            "The description of what we testing being the biograpgy."
+        )
+
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_update_biograpgy_invalid(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
+
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["biography"] = "The."
+
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        with raises(UserProfileError):
+            UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_update_enums(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
+
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["country"] = Country.AFGHANISTAN
+        user_data["language"] = Language.AFRIKAANS
+        user_data["occupation"] = Occupation.ACCOUNTANT
+        user_data["status"] = Status.ACTIVE
+        user_data["gender"] = Gender.FEMALE
+
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_enum_invalid_type(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
+
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["country"] = "Country.AFGHANISTAN"
+        user_data["language"] = "Language.AFRIKAANS"
+        user_data["occupation"] = "Occupation.ACCOUNTANT"
+        user_data["status"] = "Status.DISABLED"
+        user_data["gender"] = "Gender.FEMALE"
+
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        with raises((UserProfileError, TypeError)):
+            UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_update_interests(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
+
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["interests"] = [Interest.ANIMALS]
+
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_interest_invalid_type(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
+
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["interests"] = Interest.ANIMALS
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        with raises((UserProfileError, TypeError)):
+            UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_update_socials(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
+
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["social_media_links"] = {
+            SocialMediaLink.GITHUB: "https://github.com/mailhog/MailHog"
+        }
+
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_socials_invalid_type(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
+
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["social_media_links"] = {
+            "SocialMediaLink.GITHUB": "https://github.com/mailhog/MailHog"
+        }
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        with raises((AttributeError)):
+            UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_socials_invalid_type_value(
+    get_account, regex_account, regex_user_profile
+):
+    """Testing UserProfile Serialiser: Update UserProfile."""
+
+    with Session(ENGINE) as session:
+        setup_test_commit(get_account, session)
+        account_id = get_id_by_regex(regex_account, str(get_account))
+        account_data = (
+            session.query(Account)
+            .filter(Account.account_id == account_id)
+            .one_or_none()
+        )
+
+        user = UserProfileSerialiser().create_user_profile(
+            account_data.id,
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )
+        user_id = get_id_by_regex(regex_user_profile, user)
+
+        user_data = UserProfileSerialiser().get_user_profile(user_id)
+
+        user_data["social_media_links"] = (
+            '{"SocialMediaLink.GITHUB": "https://github.com/mailhog/MailHog"}'
+        )
+        user_private_id = user_data["id"]
+        del user_data["id"]
+        del user_data["profile_id"]
+        del user_data["account_id"]
+
+        with raises((UserProfileError)):
+            UserProfileSerialiser().update_user_profile(user_private_id, **user_data)
+
+        UserProfileSerialiser().delete_user_profile(user_private_id)
+        run_test_teardown(account_data.id, Account, session)
+        run_test_teardown(account_data.user_id, User, session)
+
+
+def test_userprofileserialiser_update_kwargs_invalid():
+    """Testing UserProfile Serialiser: Create UserProfile."""
+
     with raises(UserProfileError):
-        assert UserProfileSerialiser().get_user_profile("id")
-
-
-def test_userprofileserialiser_delete_inavild_private_id():
-    """Testing UserProfile Serialiser: Create UserProfile Invalid [Card ID]."""
-    with raises(UserProfileError):
-        assert UserProfileSerialiser().delete_user_profile("id")
-
-
-def test_userprofileserialiser_update_inavild_kwargs():
-    """Testing UserProfile Serialiser: Create UserProfile Invalid [Card ID]."""
-    with raises(UserProfileError):
-        assert UserProfileSerialiser().delete_user_profile("id")
+        UserProfileSerialiser().update_user_profile(
+            "account.id",
+            first_name="firstname",
+            last_name="lastnaame",
+            username="username_f1",
+            date_of_birth=date(1991, 12, 31),
+            gender=Gender.FEMALE,
+        )

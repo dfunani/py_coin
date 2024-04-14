@@ -1,4 +1,4 @@
-"""Accounts Serialiser Module: Serialiser for Account Model."""
+"""User Serialiser Module: Serialiser for Account Model."""
 
 from typing import Union
 
@@ -64,7 +64,7 @@ class AccountSerialiser(Account):
 
             return str(self)
 
-    def update_account(self, private_id: str, status: Status) -> str:
+    def update_account(self, private_id: str, status: Union[Status, None] = None) -> str:
         """CRUD Operation: Update Account.
 
         Args:

@@ -1,4 +1,4 @@
-"""Cards Module: Warehouse of Account Cards."""
+"""Warehouse Module: Contains Card Model for Mapping Cards to Accounts."""
 
 from datetime import date, datetime
 from typing import Union
@@ -22,7 +22,7 @@ class Card(Base):
         - card_number (str): Valid Card Number.
         - cvv_number (str): Valid CVV Number.
         - card_type (CardType): Valid Card Type.
-        - card_status (Status): Valid Card Status.
+        - status (Status): Valid Card Status.
         - expiration_date (date): Card Expiration date.
         - pin (str): Card Pin.
         - created_date (date): Card Created Date.
@@ -54,10 +54,10 @@ class Card(Base):
     card_type: Union[CardType, Column[CardType]] = Column(
         "card_type", Enum(CardType), nullable=False
     )
-    card_status: Union[Status, Column[Status]] = Column(
-        "card_status", Enum(Status), nullable=False, default=Status.NEW
+    status: Union[Status, Column[Status]] = Column(
+        "status", Enum(Status), nullable=False, default=Status.NEW
     )
-    pin = Column("pin", String(256), nullable=False)
+    pin: Union[str, Column[str]] = Column("pin", String(256), nullable=False)
     expiration_date: Union[date, Column[date]] = Column(
         "expiration_date", Date, nullable=False
     )
@@ -78,6 +78,7 @@ class Card(Base):
 
     def __init__(self):
         """Card Object Constructor."""
+
         self.id = str(uuid4())
         self.salt_value = str(uuid4())
 
@@ -87,6 +88,7 @@ class Card(Base):
         Returns:
             str: Representation of a Card Object.
         """
+
         return f"Card ID: {self.card_id}"
 
     def __repr__(self) -> str:
@@ -95,6 +97,7 @@ class Card(Base):
         Returns:
             str: Representation of a Card Object.
         """
+
         return f"Application Model: {self.__class__.__name__}"
 
 

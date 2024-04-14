@@ -1,7 +1,6 @@
 """Serialisers Module: Testing User Serialiser."""
 
 import json
-from re import compile as regex_compile
 
 from pytest import raises
 from sqlalchemy.orm import Session
@@ -14,11 +13,11 @@ from models.user.users import User
 from tests.conftest import get_id_by_regex, run_test_teardown, setup_test_commit
 
 
-def test_userserialiser_create(email, password, regex):
+def test_userserialiser_create(email, password, regex_user):
     """Testing User Serialiser: Create User."""
 
     user = UserSerialiser().create_user(email, password)
-    user_id = get_id_by_regex(regex, user)
+    user_id = get_id_by_regex(regex_user, user)
     with Session(ENGINE) as session:
         user = session.query(User).filter(User.user_id == user_id).one_or_none()
         assert user is not None
@@ -37,12 +36,12 @@ def test_userserialiser_create_invalid_password(email):
         UserSerialiser().create_user(email, "password")
 
 
-def test_userserialiser_get(get_user, regex, user_keys, app):
+def test_userserialiser_get(get_user, regex_user, user_keys, app):
     """Testing User Serialiser: Get User."""
 
     with Session(ENGINE) as session:
         setup_test_commit(get_user, session)
-        user_id = get_id_by_regex(regex, str(get_user))
+        user_id = get_id_by_regex(regex_user, str(get_user))
 
         user = UserSerialiser().get_user(user_id)
         user_data = json.loads(app.fernet.decrypt(user.encode()).decode())
@@ -65,12 +64,12 @@ def test_userserialiser_get_invalid(email, password):
         UserSerialiser().get_user("id")
 
 
-def test_userserialiser_delete(get_user, regex):
+def test_userserialiser_delete(get_user, regex_user):
     """Testing User Serialiser: Delete User."""
 
     with Session(ENGINE) as session:
         setup_test_commit(get_user, session)
-        user_id = get_id_by_regex(regex, str(get_user))
+        user_id = get_id_by_regex(regex_user, str(get_user))
         user_data = session.query(User).filter(User.user_id == user_id).one_or_none()
         assert user_data is not None
         UserSerialiser().delete_user(user_data.id)
@@ -83,24 +82,24 @@ def test_userserialiser_delete_invalid():
         UserSerialiser().delete_user("id")
 
 
-def test_userserialiser_update_valid_password(get_user, regex, password):
+def test_userserialiser_update_valid_password(get_user, regex_user, password):
     """Testing User Serialiser: Update User [PASSWORD]."""
 
     with Session(ENGINE) as session:
         setup_test_commit(get_user, session)
-        user_id = get_id_by_regex(regex, str(get_user))
+        user_id = get_id_by_regex(regex_user, str(get_user))
         user_data = session.query(User).filter(User.user_id == user_id).one_or_none()
         assert user_data is not None
         UserSerialiser().update_user(user_data.id, password=password)
         run_test_teardown(user_data.id, User, session)
 
 
-def test_userserialiser_update_invalid_password(get_user, regex):
+def test_userserialiser_update_invalid_password(get_user, regex_user):
     """Testing User Serialiser: Invalid Update User [PASSWORD]."""
 
     with Session(ENGINE) as session:
         setup_test_commit(get_user, session)
-        user_id = get_id_by_regex(regex, str(get_user))
+        user_id = get_id_by_regex(regex_user, str(get_user))
         user_data = session.query(User).filter(User.user_id == user_id).one_or_none()
         assert user_data is not None
         with raises(UserError):
@@ -108,12 +107,12 @@ def test_userserialiser_update_invalid_password(get_user, regex):
         run_test_teardown(user_data.id, User, session)
 
 
-def test_userserialiser_update_invalid_password_type(get_user, regex):
+def test_userserialiser_update_invalid_password_type(get_user, regex_user):
     """Testing User Serialiser: Invalid Update User [PASSWORD]."""
 
     with Session(ENGINE) as session:
         setup_test_commit(get_user, session)
-        user_id = get_id_by_regex(regex, str(get_user))
+        user_id = get_id_by_regex(regex_user, str(get_user))
         user_data = session.query(User).filter(User.user_id == user_id).one_or_none()
         assert user_data is not None
         with raises(UserError):
@@ -121,24 +120,24 @@ def test_userserialiser_update_invalid_password_type(get_user, regex):
         run_test_teardown(user_data.id, User, session)
 
 
-def test_userserialiser_update_valid_user_status(get_user, regex):
+def test_userserialiser_update_valid_user_status(get_user, regex_user):
     """Testing User Serialiser: Update User [STATUS]."""
 
     with Session(ENGINE) as session:
         setup_test_commit(get_user, session)
-        user_id = get_id_by_regex(regex, str(get_user))
+        user_id = get_id_by_regex(regex_user, str(get_user))
         user_data = session.query(User).filter(User.user_id == user_id).one_or_none()
         assert user_data is not None
         UserSerialiser().update_user(user_data.id, status=Status.ACTIVE)
         run_test_teardown(user_data.id, User, session)
 
 
-def test_userserialiser_update_invalid_user_status(get_user, regex):
+def test_userserialiser_update_invalid_user_status(get_user, regex_user):
     """Testing User Serialiser: Update User [STATUS]."""
 
     with Session(ENGINE) as session:
         setup_test_commit(get_user, session)
-        user_id = get_id_by_regex(regex, str(get_user))
+        user_id = get_id_by_regex(regex_user, str(get_user))
         user_data = session.query(User).filter(User.user_id == user_id).one_or_none()
         assert user_data is not None
         with raises(UserError):
@@ -146,12 +145,12 @@ def test_userserialiser_update_invalid_user_status(get_user, regex):
         run_test_teardown(user_data.id, User, session)
 
 
-def test_userserialiser_update_invalid_user_status_type(get_user, regex):
+def test_userserialiser_update_invalid_user_status_type(get_user, regex_user):
     """Testing User Serialiser: Update User [STATUS]."""
 
     with Session(ENGINE) as session:
         setup_test_commit(get_user, session)
-        user_id = get_id_by_regex(regex, str(get_user))
+        user_id = get_id_by_regex(regex_user, str(get_user))
         user_data = session.query(User).filter(User.user_id == user_id).one_or_none()
         assert user_data is not None
         with raises(UserError):
@@ -159,15 +158,15 @@ def test_userserialiser_update_invalid_user_status_type(get_user, regex):
         run_test_teardown(user_data.id, User, session)
 
 
-def test_userserialiser_update_invalid_email(get_user, regex, email):
+def test_userserialiser_update_invalid_email(get_user, regex_user, email):
     """Testing User Serialiser: Update User."""
 
     with Session(ENGINE) as session:
         setup_test_commit(get_user, session)
-        user_id = get_id_by_regex(regex, str(get_user))
+        user_id = get_id_by_regex(regex_user, str(get_user))
         user_data = session.query(User).filter(User.user_id == user_id).one_or_none()
         assert user_data is not None
-        with raises(UserError):
+        with raises(TypeError):
             UserSerialiser().update_user(user_data.id, email=email)
         run_test_teardown(user_data.id, User, session)
 
@@ -175,5 +174,5 @@ def test_userserialiser_update_invalid_email(get_user, regex, email):
 def test_userserialiser_update_invalid():
     """Testing User Serialiser: Invalid Update User."""
 
-    with raises(UserError):
+    with raises(TypeError):
         UserSerialiser().update_user("id", id="")

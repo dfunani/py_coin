@@ -15,11 +15,11 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 from lib.utils.constants.users import (
-    AccountCountry,
-    AccountLanguage,
-    AccountOccupation,
+    Country,
+    Language,
+    Occupation,
     Gender,
-    ProfileInterest,
+    Interest,
     Status,
 )
 
@@ -61,12 +61,12 @@ def upgrade() -> None:
         sa.Column("profile_picture", sa.LargeBinary, nullable=True),
         sa.Column("mobile_number", sa.String(256), nullable=True),
         sa.Column(
-            "country", sa.Enum(AccountCountry, name="account_country"), nullable=True
+            "country", sa.Enum(Country, name="account_country"), nullable=True
         ),
         sa.Column(
             "language",
-            sa.Enum(AccountLanguage, name="account_language"),
-            default=AccountLanguage.ENGLISH,
+            sa.Enum(Language, name="account_language"),
+            default=Language.ENGLISH,
             nullable=True,
         ),
         sa.Column(
@@ -77,13 +77,13 @@ def upgrade() -> None:
         ),
         sa.Column(
             "occupation",
-            sa.Enum(AccountOccupation, name="account_occupation"),
-            default=AccountOccupation.OTHER,
+            sa.Enum(Occupation, name="account_occupation"),
+            default=Occupation.OTHER,
             nullable=True,
         ),
         sa.Column(
             "interests",
-            sa.ARRAY(sa.Enum(ProfileInterest, name="profile_interest")),
+            sa.ARRAY(sa.Enum(Interest, name="profile_interest")),
             default=[],
             nullable=True,
         ),

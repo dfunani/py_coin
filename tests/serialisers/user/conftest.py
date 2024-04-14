@@ -65,3 +65,26 @@ def settings_keys():
         "cookies_enabled",
         "theme_preference",
     ]
+
+
+@fixture
+def user_profile_keys():
+    return [
+        "id",
+        "profile_id",
+        "account_id",
+        "first_name",
+        "last_name",
+        "username",
+        "date_of_birth",
+        "gender",
+        "profile_picture",
+        "mobile_number",
+        "country",
+        "language",
+        "biography",
+        "occupation",
+        "interests",
+        "social_media_links",
+        "status",
+    ]

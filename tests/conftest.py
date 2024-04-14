@@ -144,6 +144,19 @@ def regex_account():
 
 @fixture
 def regex_settings():
-    """Initializes the Test Regex Account."""
+    """Initializes the Test Regex Settings."""
 
     return regex_compile(r"^Settings Profile ID: (.*)$")
+
+
+@fixture
+def regex_user_profile():
+    """Initializes the Test Regex User Profile."""
+
+    return regex_compile(r"^User Profile ID: (.*)$")
+
+@fixture
+def regex_card():
+    """Initializes the Test Regex Card."""
+
+    return regex_compile(r"^Card ID: (.*)$")
