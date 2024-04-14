@@ -11,7 +11,7 @@ from models import ENGINE
 from models.user.accounts import Account
 from models.user.profiles import UserProfile
 from models.user.users import User
-from tests.conftest import get_id_by_regex, run_test_teardown, setup_test_commit
+from tests.conftest import run_test_teardown, setup_test_commit
 
 
 def test_user_profile_invalid_no_args():
@@ -34,20 +34,15 @@ def test_user_profile_profile_invalid_args(email, password):
             session.commit()
 
 
-def test_user_profile__(get_account, regex_account):
+def test_user_profile__(get_account):
     """Testing User With Missing Attributes."""
 
     with Session(ENGINE) as session:
         setup_test_commit(get_account, session)
-        account_id = get_id_by_regex(regex_account, str(get_account))
-        user_profile = UserProfile()
-        account = (
-            session.query(Account)
-            .filter(Account.account_id == account_id)
-            .one_or_none()
-        )
 
-        user_profile.account_id = account.id
+        user_profile = UserProfile()
+
+        user_profile.account_id = get_account.id
         user_profile.first_name = "firstname"
         user_profile.last_name = "lastnaame"
         user_profile.username = "username_fl"
@@ -61,4 +56,4 @@ def test_user_profile__(get_account, regex_account):
 
         run_test_teardown(user_profile.id, UserProfile, session)
         run_test_teardown(user_profile.account_id, Account, session)
-        run_test_teardown(account.user_id, User, session)
+        run_test_teardown(get_account.user_id, User, session)

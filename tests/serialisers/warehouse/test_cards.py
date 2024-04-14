@@ -91,7 +91,7 @@ def test_cardserialiser_delete_invalid():
         CardSerialiser().delete_card('card_data.get("id")')
 
 
-def test_cardserialiser_update_pin(app, card_keys, regex_card):
+def test_cardserialiser_update_pin(app, regex_card):
     """Testing Card Serialiser: Update Card."""
 
     for key in CardType:

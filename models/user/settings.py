@@ -16,25 +16,7 @@ from models import Base
 
 
 class SettingsProfile(Base):
-    """Model representing a User's Settings Information.
-
-    Args:
-        Base (class): SQLAlchemy Base Model,
-        from which Application Models are derived.
-
-    Properties:
-        id (str): Unique Private Profile ID.
-        settings_id (str): Unique Public Profile ID.
-        email_status (Verification): Status of the User's .
-        mfa_enabled (bool): Has MFA Been Enabled.
-        mfa_last_used_date (datetime): Last login with MFA.
-        profile_visibility (ProfileVisibility): Visibility of the profile.
-        data_sharing_preferences (list[DataSharingPreferences]): Preferences for Data Sharing.
-        communication_preference (CommunicationPreferences): Preferences for Data Sharing.
-        location_tracking_enabled (bool): Has Location Tracking been Enabled.
-        cookies_enabled (bool): Have Cookies been Enabled.
-        theme_preference (Themes): User Theme Preference.
-    """
+    """Model representing a User's Settings."""
 
     __tablename__ = "settings_profiles"
     __table_args__ = ({"schema": "users"},)
@@ -107,6 +89,7 @@ class SettingsProfile(Base):
 
     def __init__(self) -> None:
         """Settings Object Constructor."""
+
         self.id = str(uuid4())
         self.settings_id = str(uuid4())
 
@@ -116,6 +99,7 @@ class SettingsProfile(Base):
         Returns:
             str: Representation of a Settings Object.
         """
+
         return f"Settings Profile ID: {self.settings_id}"
 
     def __repr__(self) -> str:
@@ -124,4 +108,5 @@ class SettingsProfile(Base):
         Returns:
             str: Representation of a Settings Object.
         """
+
         return f"Application Model: {self.__class__.__name__}"

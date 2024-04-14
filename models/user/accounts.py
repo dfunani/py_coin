@@ -13,25 +13,7 @@ from models.user.settings import SettingsProfile
 
 class Account(Base):
     """
-    Model representing a User's Account.
-
-    Args:
-        Base (class): SQLAlchemy Base Model,
-        from which Application Models are derived.
-        AbstractUser (class): Base class for User related models.
-
-    Properties:
-        - __tablename__ (str): The name of the database table for users.
-        - id (str): Private Account ID.
-        - account_id (str): Public Account ID.
-        - user_id (str): Private User ID.
-        - account_status (Status): Status of the Account.
-        - created_date (str): Account Creation Date.
-        - updated_date (str): Account Update Date.
-        - user_profiles (str): Reference to Linked User Profiles.
-        - payment_profiles (str): Reference to Linked Payment Profiles.
-        - settings_profile (str): Reference to Linked Settings Profile.
-    """
+    Model representing a User's Account."""
 
     __tablename__ = "accounts"
     __table_args__ = ({"schema": "users"},)
@@ -81,6 +63,7 @@ class Account(Base):
 
     def __init__(self) -> None:
         """Account Object Constructor."""
+
         self.id = str(uuid4())
         self.account_id = str(uuid4())
 
@@ -90,6 +73,7 @@ class Account(Base):
         Returns:
             str: Representation of a Account Object.
         """
+
         return f"Account ID: {self.account_id}"
 
     def __repr__(self) -> str:
@@ -98,4 +82,5 @@ class Account(Base):
         Returns:
             str: Representation of a Account Object.
         """
+
         return f"Application Model: {self.__class__.__name__}"

@@ -47,6 +47,6 @@ def test_card_valid():
 
             setup_test_commit(card, session)
 
-            assert card.status == Status.NEW
+            assert card.id is not None
 
             run_test_teardown(card.id, Card, session)

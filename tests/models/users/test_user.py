@@ -13,6 +13,7 @@ from tests.conftest import setup_test_commit, run_test_teardown
 
 def test_user_invalid_no_args():
     """Testing User With Missing Attributes."""
+
     with Session(ENGINE) as session:
         with raises(IntegrityError):
             user = User()
@@ -22,6 +23,7 @@ def test_user_invalid_no_args():
 
 def test_user_invalid_args():
     """Testing Constructor, for Invalid Arguments."""
+
     with Session(ENGINE) as session:
         with raises(TypeError):
             user = User("email", "password")
@@ -31,6 +33,7 @@ def test_user_invalid_args():
 
 def test_user_valid(get_user):
     """Testing a Valid User Constructor, with Required Arguments."""
+
     with Session(ENGINE) as session:
         setup_test_commit(get_user, session)
 

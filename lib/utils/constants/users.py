@@ -68,11 +68,9 @@ class Regex(Enum):
     PASSWORD: Pattern = regex_compile(
         r"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()-_+=]).{8,}$"
     )
-    FIRST_NAME = regex_compile(r"^[a-zA-Z]{1,30}$")
-    LAST_NAME = regex_compile(r"^[a-zA-Z]{1,30}$")
+    NAME = regex_compile(r"^[a-zA-Z]{1,30}$")
     USERNAME = regex_compile(r"^[a-zA-Z][a-zA-Z0-9\s\-,._]{8,30}$")
     MOBILE_NUMBER = regex_compile(r"^\+\d{1,3}\d{3,14}$")
-    TITLE = regex_compile(r"^[a-zA-Z][a-zA-Z0-9\s\-,._]{8,30}$")
     DESCRIPTION = regex_compile(r"^[a-zA-Z][a-zA-Z0-9\s\-,._]{8,125}$")
     BIOGRAPHY = regex_compile(r"^(?!\s+$).{8,250}$")
     PIN = regex_compile(r"^\d{6}$")

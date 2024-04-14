@@ -9,27 +9,7 @@ from models import Base
 
 
 class Card(Base):
-    """
-    Model representing an Account Card.
-
-    Args:
-        Base (class): SQLAlchemy Base Model,
-        from which Application Models are derived.
-
-    Properties:
-        - __tablename__ (str): The name of the database table for users.
-        - Card_id (str): Card's Public ID.
-        - card_number (str): Valid Card Number.
-        - cvv_number (str): Valid CVV Number.
-        - card_type (CardType): Valid Card Type.
-        - status (Status): Valid Card Status.
-        - expiration_date (date): Card Expiration date.
-        - pin (str): Card Pin.
-        - created_date (date): Card Created Date.
-        - updated_date (date): Card Updated Date.
-        - salt_value (str): Card's Hash Salt Value.
-
-    """
+    """Model representing an Account Card."""
 
     __tablename__ = "cards"
     __table_args__ = ({"schema": "warehouse"},)

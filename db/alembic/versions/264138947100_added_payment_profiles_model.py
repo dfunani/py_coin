@@ -40,19 +40,19 @@ def upgrade() -> None:
             nullable=False,
             default="New Payment Account Created for Block Chain Transactions.",
         ),
-        sa.Column("created_date", sa.DateTime, default=sa.text("CURRENT_TIMESTAMP")),
+        sa.Column("balance", sa.Float, default=0.0, nullable=False),
+        sa.Column("created_date", sa.DateTime, default=sa.text("CURRENT_TIMESTAMP"), nullable=False),
         sa.Column(
             "updated_date",
             sa.DateTime,
             default=sa.text("CURRENT_TIMESTAMP"),
-            onupdate=sa.text("CURRENT_TIMESTAMP"),
+            onupdate=sa.text("CURRENT_TIMESTAMP"), nullable=False
         ),
         sa.Column(
             "status",
             sa.Enum(Status, name="payment_status"),
-            default=Status.NEW,
+            default=Status.NEW, nullable=False
         ),
-        sa.Column("balance", sa.Float, default=0.0, nullable=False),
         schema="users",
     )
     # ### end Alembic commands ###

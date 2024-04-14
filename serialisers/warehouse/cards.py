@@ -1,4 +1,4 @@
-"""Cards Serialiser Module: Serialiser for Card Model."""
+"""Warehouse Serialiser Module: Serialiser for Card Model."""
 
 from datetime import date, timedelta
 from json import dumps
@@ -6,24 +6,26 @@ from random import randint
 from typing import Union
 from sqlalchemy import Column, Date, Enum, String, cast, select
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from config import AppConfig
 from lib.interfaces.exceptions import CardValidationError
 from lib.utils.constants.users import Status, CardType, DateFormat, Regex
 from lib.utils.encryption.cryptography import decrypt_data, encrypt_data
 from lib.utils.encryption.encoders import get_hash_value
-from lib.validators.users import validate_status
+from lib.validators.users import (
+    validate_card_number,
+    validate_card_type,
+    validate_cvv_number,
+    validate_pin,
+    validate_status,
+)
 from models import ENGINE
 from models.warehouse.cards import Card
 
 
 class CardSerialiser(Card):
-    """
-    Serialiser for the Card Model.
-
-    Args:
-        Card (class): Access Point to the Card Model.
-    """
+    """Serialiser for the Card Model."""
 
     __MAX_RETRIES__ = 3
     __CARD_VALID_YEARS__ = 365 * 5
@@ -37,12 +39,13 @@ class CardSerialiser(Card):
         Returns:
             str: Card Object.
         """
+
         with Session(ENGINE) as session:
             query = select(Card).filter(cast(Card.card_id, String) == card_id)
             card = session.execute(query).scalar_one_or_none()
 
             if not card:
-                raise CardValidationError("No Card Found.")
+                raise CardValidationError("Card not Found.")
 
             return self.__get_encrypted_card_data__(card)
 
@@ -52,28 +55,35 @@ class CardSerialiser(Card):
         """CRUD Operation: Add Card.
 
         Args:
-            card_type (str): Card Type.
+            card_type (CardType): Card Type.
+            pin (str): Card Pin.
 
         Returns:
             str: Card Object.
         """
-        self.__validate_card_type__(card_type)
-        self.card_type = card_type
-        self.cvv_number = str(self.__get_cvv_number__())
-        self.expiration_date = (
-            date.today() + timedelta(days=self.__CARD_VALID_YEARS__)
-        ).replace(day=1)
-        self.card_number = str(self.__get_card_number__())
-        self.pin = str(self.__get_pin__(pin))
-        self.card_id = str(self.get_card_id(
-            str(decrypt_data(str(self.cvv_number))),
-            str(decrypt_data(str(self.card_number))),
-            self.expiration_date,
-        ))
 
         with Session(ENGINE) as session:
-            session.add(self)
-            session.commit()
+            validate_card_type(card_type)
+            self.card_type = card_type
+            self.cvv_number = str(self.__get_cvv_number__())
+            self.expiration_date = (
+                date.today() + timedelta(days=self.__CARD_VALID_YEARS__)
+            ).replace(day=1)
+            self.card_number = str(self.__get_card_number__())
+            self.pin = str(self.__get_pin__(pin))
+            self.card_id = str(
+                self.get_card_id(
+                    str(decrypt_data(str(self.cvv_number))),
+                    str(decrypt_data(str(self.card_number))),
+                    self.expiration_date,
+                )
+            )
+            try:
+                session.add(self)
+                session.commit()
+            except IntegrityError as exc:
+                raise CardValidationError("Card not Created.") from exc
+
             return str(self)
 
     def update_card(self, private_id: str, **kwargs) -> Union[str, CardValidationError]:
@@ -85,6 +95,7 @@ class CardSerialiser(Card):
         Returns:
             str: Card Object.
         """
+
         with Session(ENGINE) as session:
             card = session.get(Card, private_id)
 
@@ -102,8 +113,11 @@ class CardSerialiser(Card):
                     value = validate_status(value)
                     setattr(card, key, value)
 
-            session.add(card)
-            session.commit()
+            try:
+                session.add(card)
+                session.commit()
+            except IntegrityError as exc:
+                raise CardValidationError("Card not Created.") from exc
 
             return str(card)
 
@@ -117,14 +131,18 @@ class CardSerialiser(Card):
         Returns:
             str: Card Object.
         """
+
         with Session(ENGINE) as session:
             card = session.get(Card, private_id)
 
             if card is None:
                 raise CardValidationError("Card Not Found.")
 
-            session.delete(card)
-            session.commit()
+            try:
+                session.delete(card)
+                session.commit()
+            except IntegrityError as exc:
+                raise CardValidationError("Card not Deleted.") from exc
 
             return f"Deleted: {private_id}"
 
@@ -133,10 +151,8 @@ class CardSerialiser(Card):
 
         Returns:
             str: Valid Card Number.
-
-        Raises:
-            CardValidationError: Invalid Card Number.
         """
+
         for retries in range(self.__MAX_RETRIES__):
             try:
                 card_number = self.generate_card(
@@ -147,71 +163,45 @@ class CardSerialiser(Card):
                 if retries == self.__MAX_RETRIES__ - 1:
                     raise
 
-        self.__validate_card_number__(str(card_number))
+        validate_card_number(str(card_number))
         return encrypt_data(str(card_number).encode())
 
     def __get_pin__(self, pin: str) -> Union[str, CardValidationError]:
         """Sets Valid Card Pin.
 
-        Raises:
-            CardValidationError: Invalid Card Pin.
+        Args:
+            pin (str): Card Pin.
+
+        Return:
+            str: Valid Card Pin.
         """
-        self.__validate_pin__(pin)
+
+        validate_pin(pin)
         return str(get_hash_value(pin, self.salt_value))
 
-    @staticmethod
-    def get_card_id(
-        cvv_number: str,
-        card_number: str,
-        expiration_date: Union[date, Column[date]],
-    ) -> Union[str, CardValidationError]:
-        """Sets Valid Card ID.
-
-        args:
-            - cvv_number (str): CVV Number.
-            - card_number (str):: Card Number.
-            - expiration_date (date): Expiration Date.
-
-        Raises:
-            CardValidationError: Invalid Card ID.
-        """
-        salt_value = AppConfig().salt_value
-        if not isinstance(salt_value, str):
-            raise CardValidationError("Invalid Salt Value.")
-        return str(
-            get_hash_value(
-                card_number
-                + cvv_number
-                + expiration_date.strftime(DateFormat.SHORT.value),
-                salt_value,
-            )
-        )
-
-    @classmethod
-    def __get_cvv_number__(cls) -> Union[str, CardValidationError]:
+    def __get_cvv_number__(self) -> Union[str, CardValidationError]:
         """Sets the Private Attribute.
 
-        Args:
-            value (str): Valid CVV Number.
-
-        Raises:
-            CardValidationError: Invalid CVV Number.
+        Returns:
+            str: Valid CVV Number.
         """
+
         cvv_length = AppConfig().cvv_length
         if not isinstance(cvv_length, int):
             raise CardValidationError("Invalid CVV Number Length")
         cvv_number = "".join([str(randint(0, 9)) for _ in range(cvv_length)])
-        CardSerialiser.__validate_cvv_number__(cvv_number)
+        validate_cvv_number(cvv_number)
         return encrypt_data(cvv_number.encode())
 
-    @classmethod
-    def __get_encrypted_card_data__(cls, card: Card) -> Union[str, CardValidationError]:
+    def __get_encrypted_card_data__(
+        self, card: Card
+    ) -> Union[str, CardValidationError]:
         """Get Card Information.
 
         Returns:
             str: Encrypted Card Data.
         """
-        cls.__vallidate_card__(card)
+
         data = {
             "id": card.id,
             "card_id": card.card_id,
@@ -228,85 +218,6 @@ class CardSerialiser(Card):
         return encrypt_data(dumps(data).encode())
 
     @staticmethod
-    def __validate_card_type__(card_type: CardType) -> CardValidationError:
-        """Validates the Private Attribute.
-
-        Args:
-            card_type (str): Valid Card Type.
-
-        Raises:
-            CardValidationError: Invalid Card Type.
-        """
-        if not isinstance(card_type, CardType):
-            raise CardValidationError("Invalid Type for this Attribute.")
-
-    @staticmethod
-    def __validate_card_number__(card_number: str) -> CardValidationError:
-        """Validates the Private Attribute.
-
-        Args:
-            value (str): Valid Card Number.
-
-        Raises:
-            CardValidationError: Invalid Card Number.
-        """
-        if not isinstance(card_number, str):
-            raise CardValidationError("Invalid Type for this Attribute.")
-        if len(card_number) != AppConfig().card_length:
-            raise CardValidationError("Invalid Card Number.")
-
-    @staticmethod
-    def __validate_cvv_number__(value: str) -> CardValidationError:
-        """Validates the Private Attribute.
-
-        Args:
-            value (str): Valid CVV.
-
-        Raises:
-            CardValidationError: Invalid CVV.
-        """
-        if not isinstance(value, str):
-            raise CardValidationError("Invalid Type for this Attribute.")
-        if len(value) != AppConfig().cvv_length:
-            raise CardValidationError("Invalid CVV Number.")
-
-    @staticmethod
-    def __validate_pin__(pin: str) -> CardValidationError:
-        """Validates Card Pin.
-
-        Raises:
-            CardValidationError: Invalid Card Pin.
-        """
-        if not isinstance(pin, str):
-            raise CardValidationError("Invalid Type for this Attribute.")
-        if not Regex.PIN.value.match(pin):
-            raise CardValidationError("Invalid Pin.")
-
-    @staticmethod
-    def __vallidate_card__(card: Card) -> CardValidationError:
-        """Validates the Private Attribute.
-
-        Args:
-            value (str): Valid Card Data.
-
-        Raises:
-            CardEmailError: Invalid Card Data.
-        """
-        for key in [
-            card.id,
-            card.updated_date,
-            card.created_date,
-            card.card_number,
-            card.cvv_number,
-            card.status,
-            card.card_type,
-            card.pin,
-            card.expiration_date,
-        ]:
-            if not key:
-                raise CardValidationError("Invalid Card Data.")
-
-    @staticmethod
     def generate_card(
         card_type: Union[CardType, Column[CardType]],
         cvv_number: Union[str, Column[str]],
@@ -321,10 +232,8 @@ class CardSerialiser(Card):
 
         Returns:
             str: Valid Card Number.
-
-        Raises:
-            CardValidationError: Invalid Card Number.
         """
+
         card_length = AppConfig().card_length
         if not isinstance(card_length, int):
             raise CardValidationError("Invalid Card Number Length.")
@@ -348,3 +257,29 @@ class CardSerialiser(Card):
             if cards_count != 0:
                 raise CardValidationError("Card Number Already Exists.")
             return card_number
+
+    @staticmethod
+    def get_card_id(
+        cvv_number: str,
+        card_number: str,
+        expiration_date: Union[date, Column[date]],
+    ) -> Union[str, CardValidationError]:
+        """Sets Valid Card ID.
+
+        args:
+            cvv_number (str): CVV Number.
+            card_number (str):: Card Number.
+            expiration_date (date): Expiration Date.
+        """
+
+        salt_value = AppConfig().salt_value
+        if not isinstance(salt_value, str):
+            raise CardValidationError("Invalid Card Information.")
+        return str(
+            get_hash_value(
+                card_number
+                + cvv_number
+                + expiration_date.strftime(DateFormat.SHORT.value),
+                salt_value,
+            )
+        )

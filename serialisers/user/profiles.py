@@ -1,4 +1,4 @@
-"""User Serialiser Module: Serialiser for User Profile Model."""
+"""Users Serialiser Module: Serialiser for User Profile Model."""
 
 from datetime import date
 from typing import Union
@@ -23,6 +23,7 @@ from lib.validators.users import (
     validate_interests,
     validate_last_name,
     validate_mobile_number,
+    validate_name,
     validate_social_media_links,
     validate_status,
     validate_username,
@@ -32,33 +33,28 @@ from models.user.profiles import UserProfile
 
 
 class UserProfileSerialiser(UserProfile):
-    """
-    Serialiser for the User Profile Model.
-
-    Args:
-        UserProfile (class): Access Point to the UserProfile Model.
-    """
+    """Serialiser for the User Profile Model."""
 
     __MUTABLE_ATTRIBUTES__ = {
-        "first_name": (str, False, validate_first_name),
-        "last_name": (str, False, validate_last_name),
-        "username": (str, False, validate_username),
-        "date_of_birth": (date, False, validate_date_of_birth),
-        "gender": (Gender, False, None),
+        "first_name": (str, True, validate_name),
+        "last_name": (str, True, validate_name),
+        "username": (str, True, validate_username),
+        "date_of_birth": (date, True, validate_date_of_birth),
+        "gender": (Gender, True, None),
         "profile_picture": (LargeBinary, True, None),
         "mobile_number": (str, True, validate_mobile_number),
         "country": (Country, True, None),
-        "language": (Language, False, None),
-        "biography": (str, False, validate_biography),
-        "occupation": (Occupation, False, None),
-        "interests": (list, False, validate_interests),
-        "social_media_links": (dict, False, validate_social_media_links),
+        "language": (Language, True, None),
+        "biography": (str, True, validate_biography),
+        "occupation": (Occupation, True, None),
+        "interests": (list, True, validate_interests),
+        "social_media_links": (dict, True, validate_social_media_links),
         "status": (Status, False, validate_status),
     }
 
     def get_user_profile(
         self, profile_id: str
-    ) -> Union[dict, UserProfileError, FernetError]:
+    ) -> Union[dict, UserProfileError]:
         """CRUD Operation: Get User Profile.
 
         Args:
@@ -67,6 +63,7 @@ class UserProfileSerialiser(UserProfile):
         Returns:
             str: User Profile Object.
         """
+
         with Session(ENGINE) as session:
             query = select(UserProfile).filter(
                 cast(UserProfile.profile_id, String) == profile_id
@@ -74,13 +71,11 @@ class UserProfileSerialiser(UserProfile):
             user_profile = session.execute(query).scalar_one_or_none()
 
             if not user_profile:
-                raise UserProfileError("No User Profile Found.")
+                raise UserProfileError("User Profile not Found.")
 
             return self.__get_user_profile_data__(user_profile)
 
-    def create_user_profile(
-        self, account_id: str, **kwargs
-    ) -> Union[str, UserProfileError]:
+    def create_user_profile(self, account_id: str) -> Union[str, UserProfileError]:
         """CRUD Operation: Add User Profile.
 
         Args:
@@ -89,26 +84,9 @@ class UserProfileSerialiser(UserProfile):
         Returns:
             str: User Profile Object.
         """
+
         with Session(ENGINE) as session:
             self.account_id = account_id
-
-            for key, value in kwargs.items():
-                if key not in UserProfileSerialiser.__MUTABLE_ATTRIBUTES__:
-                    raise UserProfileError("Invalid User Profile.")
-
-                data_type, nullable, validator = (
-                    UserProfileSerialiser.__MUTABLE_ATTRIBUTES__[key]
-                )
-                if not nullable and value is None:
-                    raise UserProfileError("Invalid Type for this Attribute.")
-
-                if not isinstance(value, data_type) and value is not None:
-                    raise UserProfileError("Invalid Type for this Attribute.")
-
-                if validator and value is not None and hasattr(validator, "__call__"):
-                    value = validator(value)
-
-                setattr(self, key, value)
 
             try:
                 session.add(self)
@@ -129,6 +107,7 @@ class UserProfileSerialiser(UserProfile):
         Returns:
             str: User Profile Object.
         """
+
         with Session(ENGINE) as session:
             user_profile: Union[UserProfile, UserProfileError, None] = session.get(
                 UserProfile, private_id
@@ -172,18 +151,31 @@ class UserProfileSerialiser(UserProfile):
         Returns:
             str: User Profile Object.
         """
+
         with Session(ENGINE) as session:
             user_profile = session.get(UserProfile, private_id)
 
             if not user_profile:
                 raise UserProfileError("User Profile Not Found")
 
-            session.delete(user_profile)
-            session.commit()
+            try:
+                session.delete(user_profile)
+                session.commit()
+            except IntegrityError as exc:
+                raise UserProfileError("User Profile not Deleted")
 
             return f"Deleted: {private_id}"
 
-    def __get_user_profile_data__(self, user_profile: UserProfile):
+    def __get_user_profile_data__(self, user_profile: UserProfile) -> dict:
+        """ "Gets the User Profile Data.
+
+        Args:
+            user_profile (UserProfile): User Profile Object.
+
+        Returns:
+            dict: Representation of the User Profile Object.
+        """
+
         return {
             "id": user_profile.id,
             "profile_id": user_profile.profile_id,

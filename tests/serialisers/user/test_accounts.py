@@ -18,10 +18,8 @@ def test_accountprofileserialiser_create(get_user, regex_user, regex_account):
 
     with Session(ENGINE) as session:
         setup_test_commit(get_user, session)
-        user_id = get_id_by_regex(regex_user, str(get_user))
-        user = session.query(User).filter(User.user_id == user_id).one_or_none()
 
-        account = AccountSerialiser().create_account(user.id)
+        account = AccountSerialiser().create_account(get_user.id)
         account_id = get_id_by_regex(regex_account, str(account))
         account_data = (
             session.query(Account)
@@ -44,10 +42,8 @@ def test_accountprofileserialiser_get(get_user, regex_user, regex_account, accou
 
     with Session(ENGINE) as session:
         setup_test_commit(get_user, session)
-        user_id = get_id_by_regex(regex_user, str(get_user))
-        user = session.query(User).filter(User.user_id == user_id).one_or_none()
 
-        account = AccountSerialiser().create_account(user.id)
+        account = AccountSerialiser().create_account(get_user.id)
         account_id = get_id_by_regex(regex_account, str(account))
         account_data = AccountSerialiser().get_account(account_id)
 
@@ -75,10 +71,8 @@ def test_accountprofileserialiser_delete(get_user, regex_user, regex_account):
 
     with Session(ENGINE) as session:
         setup_test_commit(get_user, session)
-        user_id = get_id_by_regex(regex_user, str(get_user))
-        user = session.query(User).filter(User.user_id == user_id).one_or_none()
 
-        account = AccountSerialiser().create_account(user.id)
+        account = AccountSerialiser().create_account(get_user.id)
         account_id = get_id_by_regex(regex_account, str(account))
 
         account_data = (
@@ -103,10 +97,8 @@ def test_accountprofileserialiser_update_valid_status(get_user, regex_user, rege
 
     with Session(ENGINE) as session:
         setup_test_commit(get_user, session)
-        user_id = get_id_by_regex(regex_user, str(get_user))
-        user = session.query(User).filter(User.user_id == user_id).one_or_none()
 
-        account = AccountSerialiser().create_account(user.id)
+        account = AccountSerialiser().create_account(get_user.id)
         account_id = get_id_by_regex(regex_account, str(account))
 
         account_data = (
@@ -127,10 +119,8 @@ def test_accountprofileserialiser_update_invalid_status(
 
     with Session(ENGINE) as session:
         setup_test_commit(get_user, session)
-        user_id = get_id_by_regex(regex_user, str(get_user))
-        user = session.query(User).filter(User.user_id == user_id).one_or_none()
 
-        account = AccountSerialiser().create_account(user.id)
+        account = AccountSerialiser().create_account(get_user.id)
         account_id = get_id_by_regex(regex_account, str(account))
 
         account_data = (
@@ -153,10 +143,8 @@ def test_accountprofileserialiser_update_invalid_status_type(
 
     with Session(ENGINE) as session:
         setup_test_commit(get_user, session)
-        user_id = get_id_by_regex(regex_user, str(get_user))
-        user = session.query(User).filter(User.user_id == user_id).one_or_none()
 
-        account = AccountSerialiser().create_account(user.id)
+        account = AccountSerialiser().create_account(get_user.id)
         account_id = get_id_by_regex(regex_account, str(account))
 
         account_data = (

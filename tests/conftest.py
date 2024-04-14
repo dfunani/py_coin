@@ -1,16 +1,19 @@
 """App Module: Testing Configuration."""
 
+from datetime import datetime
 from re import Pattern, compile as regex_compile
 from typing import Any
 from pytest import fixture
 from sqlalchemy.orm import Session
 from config import AppConfig
+from lib.utils.constants.users import CardType, DateFormat
 from lib.utils.encryption.cryptography import encrypt_data
 from lib.utils.encryption.encoders import get_hash_value
 from lib.validators.users import validate_email, validate_password
 from models import ENGINE
 from models.user.accounts import Account
 from models.user.users import User
+from models.warehouse.cards import Card
 
 
 EMAIL = "testing123@test.com"
@@ -75,6 +78,22 @@ def get_account() -> Account:
         assert private_id is not None
         account.user_id = str(private_id.id)
     return account
+
+
+@fixture
+def get_card() -> Card:
+    """Initializes the Test Card."""
+
+    card = Card()
+
+    card.card_number = "1991123456789"
+    card.card_type = CardType.CHEQUE
+    card.cvv_number = "123"
+    card.expiration_date = datetime.now()
+    card.pin = "123456"
+    card.card_id = str(get_hash_value("123" + "1991123456789" + datetime.now().strftime(DateFormat.LONG.value)))
+
+    return card
 
 
 def get_id_by_regex(regex: Pattern, model: str):
@@ -155,8 +174,15 @@ def regex_user_profile():
 
     return regex_compile(r"^User Profile ID: (.*)$")
 
+
 @fixture
 def regex_card():
     """Initializes the Test Regex Card."""
 
     return regex_compile(r"^Card ID: (.*)$")
+
+@fixture
+def regex_payment():
+    """Initializes the Test Regex Payment Profile."""
+
+    return regex_compile(r"^Payment Profile ID: (.*)$")

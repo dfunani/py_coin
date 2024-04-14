@@ -1,4 +1,4 @@
-"""User Serialiser Module: Serialiser for User Model."""
+"""Users Serialiser Module: Serialiser for User Model."""
 
 from json import dumps
 from typing import Union
@@ -21,12 +21,7 @@ from models.user.users import User
 
 
 class UserSerialiser(User):
-    """
-    Singleton Serialiser for the User Model.
-
-    Args:
-        User (class): Access Point to the User Model.
-    """
+    """Serialiser for the User Model."""
 
     def get_user(self, user_id: str) -> Union[str, UserError, FernetError]:
         """CRUD Operation: Read User.
@@ -36,10 +31,8 @@ class UserSerialiser(User):
 
         Returns:
             str: User Object.
-
-        Raises:
-            UserError: No User Found.
         """
+
         with Session(ENGINE) as session:
             query = select(User).filter(cast(User.user_id, String) == user_id)
             user = session.execute(query).scalar_one_or_none()
@@ -58,10 +51,8 @@ class UserSerialiser(User):
 
         Returns:
             str: User Object.
-
-        Raises:
-            UserError: No User Created.
         """
+
         with Session(ENGINE) as session:
             self.email = str(self.__get_valid_email__(email))
             self.password = str(self.__get_valid_password__(password))
@@ -84,14 +75,14 @@ class UserSerialiser(User):
         """CRUD Operation: Update User.
 
         Args:
-            id (str): Private User ID.
+            private_id (str): Private User ID.
+            status (Status): User Status.
+            password (str): Valid Password.
 
         Returns:
             str: User Object.
-
-        Raises:
-            UserError: No User Found.
         """
+
         with Session(ENGINE) as session:
             user = session.get(User, private_id)
 
@@ -122,14 +113,12 @@ class UserSerialiser(User):
         """CRUD Operation: Delete User.
 
         Args:
-            id (str): Private User ID.
+            private_id (str): Private User ID.
 
         Returns:
             str: User Object.
-
-        Raises:
-            UserError: No User Found.
         """
+
         with Session(ENGINE) as session:
             user = session.get(User, private_id)
 
@@ -152,10 +141,8 @@ class UserSerialiser(User):
 
         Returns:
             str: Encrypted Email.
-
-        Raises:
-            UserError: Invalid Email.
         """
+
         validate_email(email)
         return encrypt_data(email.encode())
 
@@ -167,10 +154,8 @@ class UserSerialiser(User):
 
         Returns:
             str: Encrypted Password.
-
-        Raises:
-            UserError: Invalid Password.
         """
+
         validate_password(password)
         return str(get_hash_value(password, self.salt_value))
 
@@ -184,11 +169,8 @@ class UserSerialiser(User):
 
         Returns:
             str: Encrypted User Data.
-
-        Raises:
-            UserError: Invalid User Data.
-            FernetError: Invalid Encryption.
         """
+
         data = {
             "id": user.id,
             "user_id": user.user_id,
@@ -213,11 +195,8 @@ class UserSerialiser(User):
 
         Returns:
             str: Valid User Object.
-
-        Raises:
-            ValueError: Invalid User.
-            UserError: Invalid User Data.
         """
+
         validate_email(str(email))
         validate_password(password)
         return get_hash_value(str(email) + password, str(AppConfig().salt_value))

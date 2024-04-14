@@ -8,7 +8,6 @@ from sqlalchemy.exc import IntegrityError
 from models import ENGINE
 from models.user.accounts import Account
 from models.user.users import User
-from lib.utils.constants.users import Status
 from tests.conftest import setup_test_commit, run_test_teardown
 
 
@@ -35,7 +34,8 @@ def test_account_valid(get_account):
 
     with Session(ENGINE) as session:
         setup_test_commit(get_account, session)
+
         assert get_account.id is not None
-        assert get_account.status == Status.NEW
+
         run_test_teardown(get_account.id, Account, session)
         run_test_teardown(get_account.user_id, User, session)

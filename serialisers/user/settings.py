@@ -1,4 +1,4 @@
-"""User Serialiser Module: Serialiser for SettingsProfile Model."""
+"""Users Serialiser Module: Serialiser for SettingsProfile Model."""
 
 from datetime import datetime
 from typing import Union
@@ -7,7 +7,6 @@ from sqlalchemy import String, cast, select
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from lib.interfaces.exceptions import (
-    FernetError,
     SettingsProfileError,
 )
 from lib.utils.constants.users import (
@@ -25,12 +24,7 @@ from models.user.settings import SettingsProfile
 
 
 class SettingsProfileSerialiser(SettingsProfile):
-    """
-    Serialiser for the Settings Model.
-
-    Args:
-        SettingsProfile (class): Access Point to the SettingsProfile Model.
-    """
+    """Serialiser for the Settings Model."""
 
     __MUTABLE_ATTRIBUTES__ = {
         "mfa_enabled": (bool, False, None),
@@ -55,15 +49,16 @@ class SettingsProfileSerialiser(SettingsProfile):
 
     def get_settings_profile(
         self, settings_id: str
-    ) -> Union[dict, SettingsProfileError, FernetError]:
+    ) -> Union[dict, SettingsProfileError]:
         """CRUD Operation: Get Settings.
 
         Args:
             settings_id (str): Public Settings ID.
 
         Returns:
-            str: Settings Object.
+            dict: Settings Object.
         """
+
         with Session(ENGINE) as session:
             query = select(SettingsProfile).filter(
                 cast(SettingsProfile.settings_id, String) == settings_id
@@ -75,17 +70,16 @@ class SettingsProfileSerialiser(SettingsProfile):
 
             return self.__get_settings_data__(settings_profile)
 
-    def create_settings_profile(self, account_id) -> str:
+    def create_settings_profile(self, account_id) -> Union[str, SettingsProfileError]:
         """CRUD Operation: Add Settings.
 
         Args:
-            name (str): Settings Name.
-            description (str): Settings Description.
-            card_id (str): Settings's Card ID.
+            account_id (str): Private Account ID.
 
         Returns:
-            dict: Settings Object.
+            str: Settings Object.
         """
+
         with Session(ENGINE) as session:
             self.account_id = account_id
 
@@ -97,11 +91,13 @@ class SettingsProfileSerialiser(SettingsProfile):
 
             return str(self)
 
-    def update_settings_profile(self, private_id: str, **kwargs) -> str:
+    def update_settings_profile(
+        self, private_id: str, **kwargs
+    ) -> Union[str, SettingsProfileError]:
         """CRUD Operation: Update Settings.
 
         Args:
-            id (str): Private Settings ID.
+            private_id (str): Private Settings ID.
 
         Returns:
             str: Settings Object.
@@ -130,8 +126,11 @@ class SettingsProfileSerialiser(SettingsProfile):
 
                 setattr(settings_profile, key, value)
 
-            session.add(settings_profile)
-            session.commit()
+            try:
+                session.add(settings_profile)
+                session.commit()
+            except IntegrityError as exc:
+                raise SettingsProfileError("Settings not Updated.") from exc
 
             return str(settings_profile)
 
@@ -150,12 +149,23 @@ class SettingsProfileSerialiser(SettingsProfile):
             if not settings_profile:
                 raise SettingsProfileError("Settings Not Found")
 
-            session.delete(settings_profile)
-            session.commit()
+            try:
+                session.delete(settings_profile)
+                session.commit()
+            except IntegrityError as exc:
+                raise SettingsProfileError("Settings not Deleted.") from exc
 
             return f"Deleted: {private_id}"
 
-    def __get_settings_data__(self, settings_profile: SettingsProfile):
+    def __get_settings_data__(self, settings_profile: SettingsProfile) -> dict:
+        """Gets the Settings Data.
+
+        Args:
+            settings_profile (SettingsProfile): Settings Object.
+
+        Returns:
+            dict: Representation of the Settings Object.
+        """
         data = {
             "id": settings_profile.id,
             "settings_id": settings_profile.settings_id,

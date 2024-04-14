@@ -2,8 +2,16 @@
 
 from datetime import date, datetime, timedelta
 from typing import Any, Union
-from lib.interfaces.exceptions import SettingsProfileError, UserError, UserProfileError
+from config import AppConfig
+from lib.interfaces.exceptions import (
+    CardValidationError,
+    PaymentProfileError,
+    SettingsProfileError,
+    UserError,
+    UserProfileError,
+)
 from lib.utils.constants.users import (
+    CardType,
     DataSharingPreference,
     Interest,
     ProfileVisibility,
@@ -58,7 +66,7 @@ def validate_status(status: Union[Status, None]):
     if not isinstance(status, Status):
         raise UserError("Invalid Type for this Attribute.")
     if status not in [Status.NEW, Status.ACTIVE, Status.DELETED]:
-        raise UserError("Invalid User Status.")
+        raise UserError("Invalid Status.")
     return status
 
 
@@ -112,7 +120,7 @@ def validate_first_name(first_name: str) -> Union[str, UserProfileError]:
     """
     if not isinstance(first_name, str):
         raise UserProfileError("Invalid Type for this Attribute.")
-    if not Regex.FIRST_NAME.value.match(first_name):
+    if not Regex.NAME.value.match(first_name):
         raise UserProfileError("Invalid First Name.")
     return first_name
 
@@ -128,7 +136,7 @@ def validate_last_name(last_name: str) -> Union[str, UserProfileError]:
     """
     if not isinstance(last_name, str):
         raise UserProfileError("Invalid Type for this Attribute.")
-    if not Regex.LAST_NAME.value.match(last_name):
+    if not Regex.NAME.value.match(last_name):
         raise UserProfileError("Invalid Last Name.")
     return last_name
 
@@ -143,9 +151,9 @@ def validate_username(username: str) -> Union[str, UserProfileError]:
         UserProfileError: String Value of No less than 8 characters. (Max: 30)
     """
     if not isinstance(username, str):
-        raise UserProfileError("Invalid Type for this Attribute.")
+        raise UserError("Invalid Type for this Attribute.")
     if not Regex.USERNAME.value.match(username):
-        raise UserProfileError("Invalid Username.")
+        raise UserError("Invalid User Information.")
     return username
 
 
@@ -236,3 +244,93 @@ def validate_social_media_links(
         ):
             response[key.name] = value
     return response
+
+
+def validate_name(name: str) -> Union[str, PaymentProfileError]:
+    """Validates Card Name.
+
+    Raises:
+        PaymentProfileError: Invalid Card Name.
+    """
+    
+    if not isinstance(name, str):
+        raise UserError("Invalid Type for this Attribute.")
+    if not Regex.NAME.value.match(name):
+        raise UserError("Invalid User Information.")
+    return name
+
+
+def validate_description(description: str) -> Union[str, PaymentProfileError]:
+    """Validates Card Description.
+
+    Raises:
+        PaymentProfileError: Invalid Card Description.
+    """
+    if not isinstance(description, str):
+        raise UserError("Invalid Type for this Attribute.")
+    if not Regex.DESCRIPTION.value.match(description):
+        raise UserError("Invalid User Information.")
+    return description
+
+
+def validate_balance(amount: float) -> Union[float, PaymentProfileError]:
+    """Validates Card Balance.
+
+    Raises:
+        PaymentProfileError: Invalid Card Balance.
+    """
+    if not isinstance(amount, float):
+        raise PaymentProfileError("Invalid Type for this Attribute.")
+    if amount <= 0.0:
+        raise PaymentProfileError("Invalid Payment Information.")
+    return amount
+
+
+def validate_card_type(card_type: CardType) -> CardValidationError:
+    """Validates the Private Attribute.
+
+    Args:
+        card_type (str): Valid Card Type.
+    """
+
+    if not isinstance(card_type, CardType):
+        raise CardValidationError("Invalid Type for this Attribute.")
+
+
+def validate_card_number(card_number: str) -> CardValidationError:
+    """Validates the Private Attribute.
+
+    Args:
+        value (str): Valid Card Number.
+    """
+
+    if not isinstance(card_number, str):
+        raise CardValidationError("Invalid Type for this Attribute.")
+    if len(card_number) != AppConfig().card_length:
+        raise CardValidationError("Invalid Card Number.")
+
+
+def validate_cvv_number(value: str) -> CardValidationError:
+    """Validates the Private Attribute.
+
+    Args:
+        value (str): Valid CVV.
+    """
+
+    if not isinstance(value, str):
+        raise CardValidationError("Invalid Type for this Attribute.")
+    if len(value) != AppConfig().cvv_length:
+        raise CardValidationError("Invalid CVV Number.")
+
+
+def validate_pin(pin: str) -> CardValidationError:
+    """Validates Card Pin.
+
+    Args:
+        pin (str): Card Pin.
+    """
+
+    if not isinstance(pin, str):
+        raise CardValidationError("Invalid Type for this Attribute.")
+    if not Regex.PIN.value.match(pin):
+        raise CardValidationError("Invalid Pin.")

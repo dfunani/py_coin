@@ -11,23 +11,7 @@ from models import Base
 
 
 class User(Base):
-    """
-    Model representing a User.
-
-    Args:
-        Base (class): SQLAlchemy Base Model,
-        from which Application Models are derived.
-
-    Properties:
-        - __tablename__ (str): The name of the database table for users.
-        - id (str): Private User ID.
-        - user_id (str): Public User ID.
-        - created_date (datetime): User Created Date.
-        - updated_date (datetime): User Updated Date.
-        - email (str): User's Email.
-        - password (str): User's Password.
-        - salt_value (str): User's Hash Salt Value.
-    """
+    """Model representing a User."""
 
     __tablename__ = "users"
     __table_args__ = ({"schema": "users"},)
@@ -76,6 +60,7 @@ class User(Base):
         Returns:
             str: Representation of a User Object.
         """
+
         return f"User ID: {self.user_id}"
 
     def __repr__(self) -> str:
@@ -84,4 +69,5 @@ class User(Base):
         Returns:
             str: Representation of a User Object.
         """
+
         return f"Application Model: {self.__class__.__name__}"
