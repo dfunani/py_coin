@@ -1,10 +1,9 @@
 """Testing Application constants"""
 
 import sys
-from lib.utils.constants.users import Regex
+from lib.utils.constants.users import Regex, Role
 from lib.utils.constants.users import (
     Gender,
-    AccountRole,
     AccountStatus,
     Verification,
     UserDevicePermission,
@@ -70,7 +69,7 @@ def test_account_role_enum(roles: list[str]):
     Args:
         roles (list): list of roles that should always be present.
     """
-    for role in AccountRole:
+    for role in Role:
         assert role.value in roles
 
 

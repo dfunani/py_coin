@@ -14,7 +14,23 @@ def user_keys():
         "email",
         "password",
         "salt_value",
-        "user_status",
+        "status",
+        "role",
+    ]
+
+
+@fixture
+def account_keys():
+    return [
+        "id",
+        "account_id",
+        "user_id",
+        "status",
+        "created_date",
+        "updated_date",
+        "user_profiles",
+        "payment_profiles",
+        "settings_profile",
     ]
 
 
@@ -29,4 +45,23 @@ def payment_keys():
         "name",
         "description",
         "payment_status",
+    ]
+
+
+@fixture
+def settings_keys():
+    return [
+        "id",
+        "settings_id",
+        "account_id",
+        "email_status",
+        "communication_status",
+        "mfa_enabled",
+        "mfa_last_used_date",
+        "profile_visibility_preference",
+        "data_sharing_preferences",
+        "communication_preference",
+        "location_tracking_enabled",
+        "cookies_enabled",
+        "theme_preference",
     ]

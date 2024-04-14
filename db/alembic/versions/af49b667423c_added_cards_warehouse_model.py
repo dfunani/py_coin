@@ -1,7 +1,7 @@
 """added cards warehouse model
 
-Revision ID: af49b667423c
-Revises: 72d05c0b25bc
+Revision ID: 86a881d7f966
+Revises: 14e2bd506750
 Create Date: 2024-04-02 02:32:46.429097
 
 """
@@ -16,13 +16,14 @@ from sqlalchemy.dialects import postgresql
 from lib.utils.constants.users import Status, CardType
 
 # revision identifiers, used by Alembic.
-revision: str = "af49b667423c"
-down_revision: Union[str, None] = "72d05c0b25bc"
+revision: str = "86a881d7f966"
+down_revision: Union[str, None] = "14e2bd506750"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    op.execute("CREATE SCHEMA IF NOT EXISTS warehouse")
     op.create_table(
         "cards",
         sa.Column(
@@ -43,8 +44,8 @@ def upgrade() -> None:
         sa.Column("cvv_number", sa.String(256), nullable=False),
         sa.Column("card_type", sa.Enum(CardType, name=f"card_type"), nullable=False),
         sa.Column(
-            "card_status",
-            sa.Enum(Status, name=f"card_status"),
+            "status",
+            sa.Enum(Status, name="card_status"),
             nullable=False,
             default=Status.NEW,
         ),
@@ -58,10 +59,12 @@ def upgrade() -> None:
             onupdate=sa.text("CURRENT_TIMESTAMP"),
         ),
         sa.Column("salt_value", sa.String(256), nullable=False),
+        schema="warehouse",
     )
 
 
 def downgrade() -> None:
-    op.drop_table("cards")
+    op.drop_table("cards", schema="warehouse")
     op.execute("DROP TYPE IF EXISTS card_type CASCADE")
     op.execute("DROP TYPE IF EXISTS card_status CASCADE")
+    op.execute("DROP SCHEMA IF EXISTS warehouse")

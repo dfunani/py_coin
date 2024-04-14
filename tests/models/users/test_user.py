@@ -1,16 +1,13 @@
-"""Users Module: Testing the User Abstract Class."""
+"""Users Module: Testing the User Model."""
 
 from pytest import raises
 
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
-from config import AppConfig
-
 from models import ENGINE
 from models.user.users import User
-from lib.utils.constants.users import Status
-from lib.utils.helpers.users import get_hash_value
+from lib.utils.constants.users import Role, Status
 from tests.conftest import setup_test_commit, run_test_teardown
 
 
@@ -23,30 +20,22 @@ def test_user_invalid_no_args():
             session.commit()
 
 
-def test_user_invalid_args(email, password):
+def test_user_invalid_args():
     """Testing Constructor, for Invalid Arguments."""
     with Session(ENGINE) as session:
         with raises(TypeError):
-            user = User(email, password)
+            user = User("email", "password")
             session.add(user)
             session.commit()
 
 
-def test_user_valid(email, password):
+def test_user_valid(get_user):
     """Testing a Valid User Constructor, with Required Arguments."""
     with Session(ENGINE) as session:
-        user = User()
-        email = str(get_hash_value(email, str(AppConfig().salt_value)))
-        user.email = email
+        setup_test_commit(get_user, session)
 
-        password = str(get_hash_value(password, user.salt_value))
-        user.password = password
+        assert get_user.id is not None
+        assert get_user.status == Status.NEW
+        assert get_user.role == Role.USER
 
-        user_id = str(get_hash_value(email + password, str(AppConfig().salt_value)))
-        user.user_id = user_id
-
-        setup_test_commit(user, session)
-
-        assert user.user_status == Status.NEW
-
-        run_test_teardown(user.id, User, session)
+        run_test_teardown(get_user.id, User, session)

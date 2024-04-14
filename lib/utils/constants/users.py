@@ -30,6 +30,26 @@ from re import Pattern, compile as regex_compile
 # VALUE: Accessible using value attribute
 
 
+class Status(Enum):
+    """Enumeration of User Related Statuses."""
+
+    NEW = "Newly Created."
+    ACTIVE = "Actively is in Use."
+    INACTIVE = "Not Actively in Use."
+    DISABLED = "Can't be used."
+    DELETED = "Has been Deleted."
+
+
+class Role(Enum):
+    """Enumeration of User Related Roles."""
+
+    SUPER = "Super Administrator"
+    SYS_ADMIN = "System Administrator"
+    TESTER = "Application Tester"
+    USER = "Application User"
+    DEVELOPER = "Application developer"
+
+
 class DateFormat(Enum):
     """Applications Permitted Date Formats."""
 
@@ -40,7 +60,7 @@ class DateFormat(Enum):
 
 
 class Regex(Enum):
-    """Holds Regex COnstants That are Applicable to the Application."""
+    """Holds Regex Constants That are Applicable to the Application."""
 
     EMAIL: Pattern = regex_compile(
         r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-_]+\.[a-zA-Z]+\.?[a-zA-Z]*$"
@@ -76,16 +96,6 @@ class AccountStatus(Enum):
     DELETED = "deleted"
     DISABLED = "disabled"
     SUSPENDED = "suspended"
-
-
-class AccountRole(Enum):
-    """Enumeration of Roles."""
-
-    SUPER = "Super Administrator"
-    SYS_ADMIN = "System Administrator"
-    TESTER = "Application Tester"
-    USER = "Application User"
-    DEVELOPER = "Application developer"
 
 
 class AccountCountry(Enum):
@@ -566,16 +576,6 @@ class CardType(Enum):
     CHEQUE = "cheque", "1991"
     SAVINGS = "savings", "1992"
     CREDIT = "credit", "1993"
-
-
-class Status(Enum):
-    """Enumeration of Statuses."""
-
-    NEW = "Newly Created."
-    ACTIVE = "Actively is in Use."
-    INACTIVE = "Not Actively in Use."
-    DISABLED = "Can't be used."
-    DELETED = "Has been Deleted."
 
 
 class DataSharingPreference(Enum):

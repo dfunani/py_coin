@@ -5,77 +5,82 @@ from typing import Union
 
 from sqlalchemy import Column, String, cast, select
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from config import AppConfig
 from lib.interfaces.exceptions import (
     FernetError,
-    UserEmailError,
     UserError,
-    UserPasswordError,
 )
-from lib.utils.constants.users import DateFormat, Regex, Status
-from lib.utils.helpers.cards import decrypt_data, encrypt_data
-from lib.utils.helpers.users import get_hash_value
+from lib.utils.constants.users import DateFormat, Role, Status
+from lib.utils.encryption.cryptography import decrypt_data, encrypt_data
+from lib.utils.encryption.encoders import get_hash_value
+from lib.validators.users import validate_email, validate_password, validate_status
 from models import ENGINE
 from models.user.users import User
 
 
 class UserSerialiser(User):
     """
-    Serialiser for the User Model.
+    Singleton Serialiser for the User Model.
 
     Args:
         User (class): Access Point to the User Model.
     """
 
-    @classmethod
-    def get_user(cls, user_id: str) -> Union[str, UserError, FernetError]:
-        """CRUD Operation: Get User.
+    def get_user(self, user_id: str) -> Union[str, UserError, FernetError]:
+        """CRUD Operation: Read User.
 
         Args:
             user_id (str): Public User ID.
 
         Returns:
             str: User Object.
+
+        Raises:
+            UserError: No User Found.
         """
         with Session(ENGINE) as session:
             query = select(User).filter(cast(User.user_id, String) == user_id)
             user = session.execute(query).scalar_one_or_none()
 
             if not user:
-                raise UserError("No User Found.")
+                raise UserError("User Not Found.")
 
-            return cls.__get_encrypted_user_data__(user)
+            return self.__get_encrypted_user_data__(user)
 
-    @classmethod
-    def create_user(cls, email: str, password: str) -> str:
-        """CRUD Operation: Add User.
+    def create_user(self, email: str, password: str) -> Union[str, UserError]:
+        """CRUD Operation: Create User.
 
         Args:
             email (str): User Email.
-            password (str): Email Password.
+            password (str): User Password.
 
         Returns:
             str: User Object.
+
+        Raises:
+            UserError: No User Created.
         """
         with Session(ENGINE) as session:
-            user = cls()
+            self.email = str(self.__get_valid_email__(email))
+            self.password = str(self.__get_valid_password__(password))
+            self.user_id = str(self.__get_valid_user_id__(str(email), password))
 
-            user.email = user.__get_valid_email__(email)
-            user.password = user.__get_valid_password__(password)
-            user.user_id = user.get_validated_user_id(email, password)
+            try:
+                session.add(self)
+                session.commit()
+            except IntegrityError as exc:
+                raise UserError("User Not created.") from exc
 
-            if not user:
-                raise UserError("User not created.")
+            return str(self)
 
-            user_id = str(user)
-            session.add(user)
-            session.commit()
-
-            return user_id
-
-    @classmethod
-    def update_user(cls, private_id: str, **kwargs) -> str:
+    def update_user(
+        self,
+        private_id: str,
+        status: Union[Status, None] = None,
+        password: Union[str, None] = None,
+    ) -> Union[str, UserError]:
         """CRUD Operation: Update User.
 
         Args:
@@ -83,36 +88,37 @@ class UserSerialiser(User):
 
         Returns:
             str: User Object.
+
+        Raises:
+            UserError: No User Found.
         """
         with Session(ENGINE) as session:
-            user = session.get(cls, private_id)
+            user = session.get(User, private_id)
 
             if user is None:
                 raise UserError("User Not Found.")
 
-            for key, value in kwargs.items():
-                if key not in ["password", "user_status"]:
-                    raise UserError("Invalid attribute to Update.")
+            if password:
+                valid_password = self.__get_valid_password__(password)
+                valid_user_id = self.__get_valid_user_id__(
+                    str(decrypt_data(str(user.email))), password
+                )
+                setattr(user, "password", valid_password)
+                setattr(user, "user_id", valid_user_id)
 
-                if key == "password":
-                    valid_password = user.__get_valid_password__(value)
-                    valid_user_id = user.get_validated_user_id(
-                        str(decrypt_data(str(user.email))), value
-                    )
-                    setattr(user, key, valid_password)
-                    setattr(user, "user_id", valid_user_id)
-                if key == "user_status":
-                    user.__validate_user_status__(value)
-                    setattr(user, key, value)
+            if status:
+                validate_status(status)
+                setattr(user, "status", status)
 
-            user_id = str(user)
-            session.add(user)
-            session.commit()
+            try:
+                session.add(user)
+                session.commit()
+            except IntegrityError as exc:
+                raise UserError("User not Updated.") from exc
 
-            return user_id
+            return str(user)
 
-    @classmethod
-    def delete_user(cls, private_id: str) -> str:
+    def delete_user(self, private_id: str) -> Union[str, UserError]:
         """CRUD Operation: Delete User.
 
         Args:
@@ -120,6 +126,9 @@ class UserSerialiser(User):
 
         Returns:
             str: User Object.
+
+        Raises:
+            UserError: No User Found.
         """
         with Session(ENGINE) as session:
             user = session.get(User, private_id)
@@ -127,49 +136,59 @@ class UserSerialiser(User):
             if not user:
                 raise UserError("User Not Found")
 
-            session.delete(user)
-            session.commit()
+            try:
+                session.delete(user)
+                session.commit()
+            except IntegrityError as exc:
+                raise UserError("User not Deleted.") from exc
 
             return f"Deleted: {private_id}"
 
-    def __get_valid_email__(
-        self, email: str
-    ) -> Union[str, ValueError, UserPasswordError, UserError]:
-        """Sets the Private Attribute.
+    def __get_valid_email__(self, email: str) -> Union[str, UserError]:
+        """Get Valid Email.
 
         Args:
             email (str): Valid Email.
 
+        Returns:
+            str: Encrypted Email.
+
         Raises:
-            UserPasswordError: Invalid User Email.
+            UserError: Invalid Email.
         """
-        UserSerialiser.__validate_email__(email)
+        validate_email(email)
         return encrypt_data(email.encode())
 
-    def __get_valid_password__(
-        self, password: str
-    ) -> Union[str, ValueError, UserPasswordError]:
-        """Sets the Private Attribute.
+    def __get_valid_password__(self, password: str) -> Union[str, UserError]:
+        """Get Valid Password.
 
         Args:
             password (str): Valid Password.
 
+        Returns:
+            str: Encrypted Password.
+
         Raises:
-            UserPasswordError: Invalid User Password.
+            UserError: Invalid Password.
         """
-        UserSerialiser.__validate_password__(password)
+        validate_password(password)
         return str(get_hash_value(password, self.salt_value))
 
-    @classmethod
     def __get_encrypted_user_data__(
-        cls, user: User
+        self, user: User
     ) -> Union[str, UserError, FernetError]:
-        """Get User Information.
+        """Get User Data.
+
+        Args:
+            user (User): Unencrypted User.
 
         Returns:
             str: Encrypted User Data.
+
+        Raises:
+            UserError: Invalid User Data.
+            FernetError: Invalid Encryption.
         """
-        cls.__vallidate_user__(user)
         data = {
             "id": user.id,
             "user_id": user.user_id,
@@ -178,82 +197,27 @@ class UserSerialiser(User):
             "email": user.email,
             "password": user.password,
             "salt_value": user.salt_value,
-            "user_status": user.user_status.value,
+            "status": user.status.value,
+            "role": Role.USER.value,
         }
         return encrypt_data(dumps(data).encode())
 
-    @staticmethod
-    def __validate_email__(email: str) -> UserEmailError:
-        """Validates the Private Attribute.
-
-        Args:
-            email (str): Valid Email.
-
-        Raises:
-            UserEmailError: Invalid User Email.
-        """
-        if not isinstance(email, str):
-            raise UserEmailError("Invalid Type for this Attribute.")
-        if not Regex.EMAIL.value.match(email):
-            raise UserEmailError("Invalid Email.")
-
-    @staticmethod
-    def __validate_password__(password: str) -> UserPasswordError:
-        """Validates the Private Attribute.
-
-        Args:
-            value (str): Valid Password.
-
-        Raises:
-            UserPasswordError: Invalid User Password.
-        """
-        if not isinstance(password, str):
-            raise UserPasswordError("No Password Provided")
-        if not Regex.PASSWORD.value.match(password):
-            raise UserPasswordError("Invalid User Password.")
-
-    @staticmethod
-    def __vallidate_user__(user: User) -> UserError:
-        """Validates the Private Attribute.
-
-        Args:
-            value (str): Valid User Data.
-
-        Raises:
-            UserEmailError: Invalid User Data.
-        """
-        for key in [
-            user.id,
-            user.created_date,
-            user.updated_date,
-            user.email,
-            user.password,
-            user.salt_value,
-            user.user_status,
-        ]:
-            if not key:
-                raise UserError("Invalid User Data.")
-
-    @staticmethod
-    def __validate_user_status__(value: Status):
-        if not isinstance(value, Status):
-            raise UserError("Invalid Type for this Attribute.")
-        if value not in [Status.ACTIVE, Status.DELETED]:
-            raise UserError("Invalid User Status.")
-
-    @staticmethod
-    def get_validated_user_id(
-        email: Union[str, Column[str]], password: str
-    ) -> Union[str, ValueError, UserEmailError]:
-        """Sets the Private Attribute.
+    def __get_valid_user_id__(
+        self, email: Union[str, Column[str]], password: str
+    ) -> Union[str, ValueError, UserError]:
+        """Get Valid User ID.
 
         Args:
             email (str): Valid Email.
             password (str): Valid Password.
 
+        Returns:
+            str: Valid User Object.
+
         Raises:
-            UserEmailError: Invalid User.
+            ValueError: Invalid User.
+            UserError: Invalid User Data.
         """
-        UserSerialiser.__validate_email__(email)
-        UserSerialiser.__validate_password__(password)
-        return str(get_hash_value(str(email) + password, str(AppConfig().salt_value)))
+        validate_email(str(email))
+        validate_password(password)
+        return get_hash_value(str(email) + password, str(AppConfig().salt_value))

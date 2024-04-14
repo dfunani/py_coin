@@ -1,22 +1,16 @@
 """Serialisers Module: Testing User Profile Serialiser."""
 
 from datetime import date
-import json
 from re import compile as regex_compile
 
 from pytest import raises
 from sqlalchemy.orm import Session
 
 from lib.interfaces.exceptions import UserProfileError
-from lib.utils.constants.users import CardType, Communication, Gender, ProfileVisibility
-from lib.utils.helpers.cards import decrypt_data
+from lib.utils.constants.users import Communication, Gender, ProfileVisibility
 from models.user.profiles import UserProfile
-from models.warehouse.cards import Card
 from serialisers.user.profiles import UserProfileSerialiser
 from models import ENGINE
-from models.user.users import User
-from serialisers.warehouse.cards import CardSerialiser
-from tests.conftest import run_test_teardown
 
 
 def test_userprofileserialiser_create():

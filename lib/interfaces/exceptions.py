@@ -14,7 +14,7 @@ Example:
 
 
 class ApplicationError(Exception):
-    """Custom Error For Application Errors."""
+    """Custom Error For Application Operations."""
 
     def __init__(self, message: str) -> None:
         super().__init__(message)
@@ -22,14 +22,14 @@ class ApplicationError(Exception):
 
 
 class UserError(Exception):
-    """Custom Error For Invalid Users."""
+    """Custom Error For Invalid User Operations."""
 
     def __init__(self, message: str) -> None:
         super().__init__(message)
         self.message = message
 
 
-class UserAccountError(Exception):
+class AccountError(Exception):
     """Custom Error For User Account (Users) Model."""
 
     def __init__(self, message: str) -> None:
@@ -39,22 +39,6 @@ class UserAccountError(Exception):
 
 class UserProfileError(Exception):
     """Custom Error For User Profile Model."""
-
-    def __init__(self, message: str) -> None:
-        super().__init__(message)
-        self.message = message
-
-
-class UserEmailError(Exception):
-    """Custom Error For User Email (Users) Model."""
-
-    def __init__(self, message: str) -> None:
-        super().__init__(message)
-        self.message = message
-
-
-class UserPasswordError(Exception):
-    """Custom Error For User Password (Users) Model."""
 
     def __init__(self, message: str) -> None:
         super().__init__(message)

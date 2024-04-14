@@ -1,4 +1,4 @@
-"""Helpers Module: Contains Helpers for the Card Model."""
+"""Security Module: Contains Library the Encryption of Data."""
 
 from typing import Union
 from cryptography.fernet import Fernet
@@ -17,6 +17,7 @@ def encrypt_data(data: bytes) -> str:
 
 def decrypt_data(data: str) -> Union[str, UserError]:
     """Returns Decryoted Data."""
+
     fernet = AppConfig().fernet
     if not isinstance(fernet, Fernet):
         raise UserError("Invalid User Data")

@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from models import ENGINE
 from models.user.payments import PaymentProfile
 from models.warehouse.cards import Card
-from lib.utils.helpers.cards import decrypt_data
+from lib.utils.encryption.cryptography import decrypt_data
 from lib.utils.constants.users import CardType, Status
 from serialisers.warehouse.cards import CardSerialiser
 from tests.conftest import setup_test_commit, run_test_teardown

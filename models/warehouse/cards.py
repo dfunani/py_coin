@@ -32,6 +32,7 @@ class Card(Base):
     """
 
     __tablename__ = "cards"
+    __table_args__ = ({"schema": "warehouse"},)
 
     id: Union[str, Column[str]] = Column(
         "id",

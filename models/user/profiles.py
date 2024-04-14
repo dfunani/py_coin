@@ -1,4 +1,4 @@
-"""Profile Module: Contains an User's Account"""
+"""Users Module: Contains User Profile Model for Mapping User's Profiles."""
 
 from datetime import date, datetime
 from typing import Union
@@ -9,6 +9,7 @@ from sqlalchemy import (
     Column,
     Date,
     DateTime,
+    ForeignKey,
     LargeBinary,
     String,
     text,
@@ -54,24 +55,26 @@ class UserProfile(Base):
     """
 
     __tablename__ = "user_profiles"
+    __table_args__ = ({"schema": "users"},)
 
     id = Column(
         "id",
         String(256),
         default=text(f"'{str(uuid4())}'"),
         primary_key=True,
+        nullable=False,
     )
     profile_id: Column[str] = Column(
-        "profile_id", String(256), default=text(f"'{str(uuid4())}'")
+        "profile_id", String(256), default=text(f"'{str(uuid4())}'"), nullable=False
     )
-    # account_id: Column[str] = Column(
-    #     "account_id", ForeignKey("accounts.account_id"), nullable=False
-    # )
+    account_id: Column[str] = Column(
+        "account_id", String(256), ForeignKey("users.accounts.id"), nullable=False
+    )
     first_name = Column("first_name", String(256), nullable=False)
     last_name = Column("last_name", String(256), nullable=False)
     username = Column("username", String(256), nullable=False)
     date_of_birth: Union[date, Column[date]] = Column(
-        "date_of_birth", Date, nullable=True
+        "date_of_birth", Date, nullable=False
     )
     gender: Column[str] = Column("gender", Enum(Gender, name="gender"), nullable=True)
     profile_picture = Column("profile_picture", LargeBinary, nullable=True)
@@ -98,20 +101,27 @@ class UserProfile(Base):
         nullable=True,
     )
     interests: Union[list[ProfileInterest], Column[list[ProfileInterest]]] = Column(
-        "interests", ARRAY(Enum(ProfileInterest, name="profile_interest")), default=[]
+        "interests",
+        ARRAY(Enum(ProfileInterest, name="profile_interest")),
+        default=[],
+        nullable=True,
     )
     social_media_links = Column("social_media_links", JSON, default={}, nullable=True)
-    profile_status: Union[Status, Column[Status]] = Column(
-        "profile_status", Enum(Status, name="profile_status"), default=Status.NEW
+    status: Union[Status, Column[Status]] = Column(
+        "status",
+        Enum(Status, name="profile_status"),
+        default=Status.NEW,
+        nullable=False,
     )
     created_date: Union[datetime, Column[datetime]] = Column(
-        "created_date", DateTime, default=text("CURRENT_TIMESTAMP")
+        "created_date", DateTime, default=text("CURRENT_TIMESTAMP"), nullable=False
     )
     updated_date: Union[datetime, Column[datetime]] = Column(
         "updated_date",
         DateTime,
         default=text("CURRENT_TIMESTAMP"),
         onupdate=text("CURRENT_TIMESTAMP"),
+        nullable=False,
     )
 
     def __init__(self):

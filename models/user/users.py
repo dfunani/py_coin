@@ -6,7 +6,7 @@ from uuid import uuid4
 
 from sqlalchemy import Column, DateTime, Enum, String, text
 
-from lib.utils.constants.users import Status
+from lib.utils.constants.users import Role, Status
 from models import Base
 
 
@@ -20,8 +20,8 @@ class User(Base):
 
     Properties:
         - __tablename__ (str): The name of the database table for users.
-        - id (str): User's Private ID.
-        - user_id (str): User's Public ID.
+        - id (str): Private User ID.
+        - user_id (str): Public User ID.
         - created_date (datetime): User Created Date.
         - updated_date (datetime): User Updated Date.
         - email (str): User's Email.
@@ -30,35 +30,43 @@ class User(Base):
     """
 
     __tablename__ = "users"
+    __table_args__ = ({"schema": "users"},)
 
-    id: Union[str, Column[str]] = Column("id", String(256), primary_key=True)
-    user_id: Union[str, Column[str]] = Column("user_id", String(256), nullable=False)
+    id: Union[str, Column[str]] = Column(
+        "id", String(256), primary_key=True, nullable=False
+    )
+    user_id: Union[str, Column[str]] = Column(
+        "user_id", String(256), nullable=False, unique=True
+    )
     email: Union[str, Column[str]] = Column(
         "email", String(256), unique=True, nullable=False
     )
-    user_status: Union[Status, Column[Status]] = Column(
-        "user_status", Enum(Status), nullable=False, default=Status.NEW
-    )
     password: Union[str, Column[str]] = Column("password", String(256), nullable=False)
-    salt_value: Union[str, Column[str]] = Column(
-        "salt_value", String(256), nullable=False
-    )
     created_date: Union[datetime, Column[datetime]] = Column(
-        "created_date",
-        DateTime,
-        default=text("CURRENT_TIMESTAMP"),
+        "created_date", DateTime, default=text("CURRENT_TIMESTAMP"), nullable=False
     )
     updated_date: Union[datetime, Column[datetime]] = Column(
         "updated_date",
         DateTime,
         default=text("CURRENT_TIMESTAMP"),
         onupdate=text("CURRENT_TIMESTAMP"),
+        nullable=False,
+    )
+    status: Union[Status, Column[Status]] = Column(
+        "status", Enum(Status, name="user_status"), nullable=False, default=Status.NEW
+    )
+    salt_value: Union[str, Column[str]] = Column(
+        "salt_value", String(256), nullable=False
+    )
+    role: Union[Role, Column[Role]] = Column(
+        "role", Enum(Role), nullable=False, default=Role.USER
     )
     # login_history = Column(UserLoginHistory, unique=True, nullable=False)
     # registered_user_devices = Column(UserDevice)
 
     def __init__(self) -> None:
         """User Object Constructor."""
+
         self.id = str(uuid4())
         self.salt_value = str(uuid4())
 

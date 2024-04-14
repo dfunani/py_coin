@@ -1,17 +1,7 @@
 """Testing Application Helpers"""
 
-import sys
-
-from lib.utils.helpers.users import check_account_status, get_hash_value
+from lib.utils.encryption.encoders import get_hash_value
 from lib.utils.constants.users import AccountStatus
-
-
-print(sys.path)
-
-
-def test_check_account_status():
-    """Testing the validity of the new status being provided."""
-    assert check_account_status(AccountStatus.NEW, AccountStatus.VERIFIED)
 
 
 def test_get_hash_value():
