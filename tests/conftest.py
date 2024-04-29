@@ -91,7 +91,9 @@ def get_card() -> Card:
     card.cvv_number = "123"
     card.expiration_date = datetime.now()
     card.pin = "123456"
-    card.card_id = str(get_hash_value("123" + "1991123456789" + datetime.now().strftime(DateFormat.LONG.value)))
+    card.card_id = str(
+        get_hash_value("1991123456789" + datetime.now().strftime(DateFormat.LONG.value))
+    )
 
     return card
 
@@ -181,8 +183,16 @@ def regex_card():
 
     return regex_compile(r"^Card ID: (.*)$")
 
+
 @fixture
 def regex_payment():
     """Initializes the Test Regex Payment Profile."""
 
     return regex_compile(r"^Payment Profile ID: (.*)$")
+
+
+@fixture
+def regex_login_history():
+    """Initializes the Test Regex Login History."""
+
+    return regex_compile(r"^Login History ID: (.*)$")

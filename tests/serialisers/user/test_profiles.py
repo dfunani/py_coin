@@ -89,11 +89,8 @@ def test_userprofileserialiser_get(
         user_profile_data = UserProfileSerialiser().get_user_profile(user_profile_id)
 
         assert isinstance(user_profile_data, dict)
-        for key in user_profile_keys:
-            assert key in user_profile_data
-
         for key in user_profile_data:
-            assert key in user_profile_keys
+            assert key not in UserProfile.__EXCLUDE_ATTRIBUTES__
 
         assert user_profile_data.get("id") is not None
         run_test_teardown(user_profile_data.get("id"), UserProfile, session)

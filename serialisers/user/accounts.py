@@ -1,34 +1,25 @@
 """Users Serialiser Module: Serialiser for Account Model."""
 
-from typing import Union
-
 from sqlalchemy import String, cast, select
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
-from lib.interfaces.exceptions import (
-    FernetError,
-    AccountError,
-    UserError,
-)
+from lib.interfaces.exceptions import AccountError
 from lib.utils.constants.users import Status
 from lib.validators.users import validate_status
 from models import ENGINE
 from models.user.accounts import Account
+from serialisers.serialiser import BaseSerialiser
 
 
-class AccountSerialiser(Account):
+class AccountSerialiser(Account, BaseSerialiser):
     """Serialiser for the Account Model."""
 
-    def get_account(self, account_id: str) -> Union[dict, AccountError, FernetError]:
-        """CRUD Operation: Read Account.
+    __SERIALISER_EXCEPTION__ = AccountError
+    __MUTABLE_KWARGS__: list[str] = []
 
-        Args:
-            account_id (str): Public Account ID.
-
-        Returns:
-            str: Account Object.
-        """
+    def get_account(self, account_id: str) -> dict:
+        """CRUD Operation: Read Account."""
 
         with Session(ENGINE) as session:
             query = select(Account).filter(
@@ -41,15 +32,8 @@ class AccountSerialiser(Account):
 
             return self.__get_encrypted_account_data__(account)
 
-    def create_account(self, user_id) -> Union[str, AccountError]:
-        """CRUD Operation: Create Account.
-
-        Args:
-            user_id (str): Unique User ID.
-
-        Returns:
-            str: Account Object.
-        """
+    def create_account(self, user_id) -> str:
+        """CRUD Operation: Create Account."""
 
         with Session(ENGINE) as session:
             self.user_id = user_id
@@ -62,18 +46,8 @@ class AccountSerialiser(Account):
 
             return str(self)
 
-    def update_account(
-        self, private_id: str, status: Union[Status, None] = None
-    ) -> Union[str, AccountError, UserError]:
-        """CRUD Operation: Update Account.
-
-        Args:
-            private_id (str): Private Account ID.
-            status (Status, None): Defaults to None.
-
-        Returns:
-            str: Account Object.
-        """
+    def update_account(self, private_id: str, status: Status | None = None) -> str:
+        """CRUD Operation: Update Account."""
 
         with Session(ENGINE) as session:
             account = session.get(Account, private_id)
@@ -81,8 +55,9 @@ class AccountSerialiser(Account):
             if account is None:
                 raise AccountError("Account Not Found.")
 
-            validate_status(status)
-            setattr(account, "status", status)
+            if status is not None:
+                status = validate_status(status)
+                setattr(account, "status", status)
 
             try:
                 session.add(account)
@@ -93,14 +68,7 @@ class AccountSerialiser(Account):
             return str(account)
 
     def delete_account(self, private_id: str) -> str:
-        """CRUD Operation: Delete Account.
-
-        Args:
-            private_id (str): Private Account ID.
-
-        Returns:
-            str: Account Object.
-        """
+        """CRUD Operation: Delete Account."""
 
         with Session(ENGINE) as session:
             account = session.get(Account, private_id)
@@ -116,24 +84,8 @@ class AccountSerialiser(Account):
 
             return f"Deleted: {private_id}"
 
-    def __get_encrypted_account_data__(
-        self, account: Account
-    ) -> dict:
-        """Get Account Information.
+    def __get_encrypted_account_data__(self, account: Account) -> dict:
+        """Get Account Information."""
 
-        Returns:
-            dict: Encrypted Account Data.
-        """
-
-        data = {
-            "id": account.id,
-            "account_id": account.account_id,
-            "user_id": account.user_id,
-            "status": account.status,
-            "created_date": account.created_date,
-            "updated_date": account.updated_date,
-            "user_profiles": account.user_profiles,
-            "payment_profiles": account.payment_profiles,
-            "settings_profile": account.settings_profile,
-        }
+        data = account.to_dict()
         return data

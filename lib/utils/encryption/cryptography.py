@@ -1,6 +1,5 @@
-"""Security Module: Contains Library the Encryption of Data."""
+"""Encryption Module: Contains Data Encrypters."""
 
-from typing import Union
 from cryptography.fernet import Fernet
 from config import AppConfig
 from lib.interfaces.exceptions import UserError
@@ -15,7 +14,7 @@ def encrypt_data(data: bytes) -> str:
     return fernet.encrypt(data).decode()
 
 
-def decrypt_data(data: str) -> Union[str, UserError]:
+def decrypt_data(data: str) -> str:
     """Returns Decryoted Data."""
 
     fernet = AppConfig().fernet

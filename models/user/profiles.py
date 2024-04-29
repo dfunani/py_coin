@@ -24,13 +24,15 @@ from lib.utils.constants.users import (
     Status,
 )
 from models import Base
+from models.model import BaseModel
 
 
-class UserProfile(Base):
+class UserProfile(Base, BaseModel):
     """Model representing a User's Profile."""
 
     __tablename__ = "user_profiles"
     __table_args__ = ({"schema": "users"},)
+    __EXCLUDE_ATTRIBUTES__: list[str] = []
 
     id = Column(
         "id",
@@ -39,10 +41,10 @@ class UserProfile(Base):
         primary_key=True,
         nullable=False,
     )
-    profile_id: Union[str, Column[str]] = Column(
+    profile_id: str | Column[str] = Column(
         "profile_id", String(256), default=text(f"'{str(uuid4())}'"), nullable=False
     )
-    account_id: Union[str, Column[str]] = Column(
+    account_id: str | Column[str] = Column(
         "account_id", String(256), ForeignKey("users.accounts.id"), nullable=False
     )
     first_name = Column("first_name", String(256), nullable=True)
@@ -51,7 +53,7 @@ class UserProfile(Base):
     date_of_birth: Union[date, Column[date]] = Column(
         "date_of_birth", Date, nullable=True
     )
-    gender: Union[str, Column[str]] = Column(
+    gender: str | Column[str] = Column(
         "gender", Enum(Gender, name="gender"), nullable=True
     )
     profile_picture = Column("profile_picture", LargeBinary, nullable=True)
@@ -108,19 +110,11 @@ class UserProfile(Base):
         self.profile_id = str(uuid4())
 
     def __str__(self) -> str:
-        """String Representation of the User Profile Object.
-
-        Returns:
-            str: Representation of a User Profile Object.
-        """
+        """String Representation of the User Profile Object."""
 
         return f"User Profile ID: {self.profile_id}"
 
     def __repr__(self) -> str:
-        """String Representation of the User Profile Object.
-
-        Returns:
-            str: Representation of a User Profile Object.
-        """
+        """String Representation of the User Profile Object."""
 
         return f"Application Model: {self.__class__.__name__}"

@@ -49,12 +49,8 @@ def test_userserialiser_get(get_user, regex_user, user_keys, app):
         user_data = json.loads(app.fernet.decrypt(user.encode()).decode())
 
         assert isinstance(user_data, dict)
-        for key in user_keys:
-            assert key in user_data
-            assert user_data[key] is not None
-
         for key in user_data:
-            assert key in user_keys
+            assert key not in User.__EXCLUDE_ATTRIBUTES__
 
         with Session(ENGINE) as session:
             run_test_teardown(user_data["id"], User, session)

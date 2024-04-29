@@ -1,25 +1,11 @@
-"""Helpers Module: Containing utility functions
-for the User Models in the application"""
+"""Encryption Module: Contains Encoders (SHA256)."""
 
 from hashlib import sha256
-from typing import Union
-
-from sqlalchemy import Column
 
 
-def get_hash_value(
-    value: Union[str, Column[str]], salt_value: Union[str, Column[str]] = ""
-) -> Union[str, ValueError]:
-    """Generates a new Hash Value.
+def get_hash_value(value: str, salt_value: str = "") -> str:
+    """Generates a new Hash Value."""
 
-    Args:
-        value (str): Value to Hash.
-
-    Returns:
-        str: Hash value as a UTF-8 decoded string.
-    Raises:
-        ValueError: Invalid Hashing Values.
-    """
     if not isinstance(value, str):
         raise ValueError("Value must be a String")
 

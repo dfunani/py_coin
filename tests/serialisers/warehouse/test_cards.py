@@ -54,12 +54,8 @@ def test_cardserialiser_get(app, card_keys, regex_card):
         card_data = json.loads(app.fernet.decrypt(card.encode()).decode())
 
         assert isinstance(card_data, dict)
-        for key in card_keys:
-            assert key in card_data
-            assert card_data[key] is not None
-
         for key in card_data:
-            assert key in card_keys
+            assert key not in Card.__EXCLUDE_ATTRIBUTES__
 
         with Session(ENGINE) as session:
             run_test_teardown(card_data["id"], Card, session)

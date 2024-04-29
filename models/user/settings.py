@@ -13,21 +13,19 @@ from lib.utils.constants.users import (
     Theme,
 )
 from models import Base
+from models.model import BaseModel
 
 
-class SettingsProfile(Base):
+class SettingsProfile(Base, BaseModel):
     """Model representing a User's Settings."""
 
     __tablename__ = "settings_profiles"
     __table_args__ = ({"schema": "users"},)
+    __EXCLUDE_ATTRIBUTES__: list[str] = []
 
-    id: Union[str, Column[str]] = Column(
-        "id", String(256), primary_key=True, nullable=False
-    )
-    settings_id: Union[str, Column[str]] = Column(
-        "settings_id", String(256), nullable=False
-    )
-    account_id: Column[str] = Column(
+    id: str | Column[str] = Column("id", String(256), primary_key=True, nullable=False)
+    settings_id: str | Column[str] = Column("settings_id", String(256), nullable=False)
+    account_id: str | Column[str] = Column(
         "account_id", ForeignKey("users.accounts.id"), nullable=False
     )
     email_status: Union[Verification, Column[Verification]] = Column(
@@ -94,19 +92,11 @@ class SettingsProfile(Base):
         self.settings_id = str(uuid4())
 
     def __str__(self) -> str:
-        """String Representation of the Settings Object.
-
-        Returns:
-            str: Representation of a Settings Object.
-        """
+        """String Representation of the Settings Object."""
 
         return f"Settings Profile ID: {self.settings_id}"
 
     def __repr__(self) -> str:
-        """String Representation of the Settings Object.
-
-        Returns:
-            str: Representation of a Settings Object.
-        """
+        """String Representation of the Settings Object."""
 
         return f"Application Model: {self.__class__.__name__}"

@@ -2,7 +2,7 @@
 # from models import Base
 
 
-# class Transaction(Base):
+# class Transaction(Base, BaseModel):
 #     __tablename__ = "transactions"
 
 #     id = Column(

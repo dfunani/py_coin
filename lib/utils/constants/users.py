@@ -1,26 +1,4 @@
-"""
-Module containing Constants, Enumerations and Other Static data
-for User Models in the Application.
-
-This module defines various functionailities that are used
-throughout the application to ensure consistency in data representation.
-
-Enums:
-    - Gender: Enumeration of gender types.
-    - AccountStatus: Enumeration of Account Statuses for a User.
-    - AccountRole: Enumeration of Account Roles for a User.
-    - AccountEmailVerification: Enumeration of Account or User Email Preferences
-    - UserDevicePermission: Enumeration of Account or User Device Preferences
-    - AccountLoginMethod: Enumeration of Account or User Login Preferences
-    - AccountCommunication: Enumeration of Account or User Communication Preferences
-    - Country: Enumeration of Account or User Country Preferences
-    - Language: Enumeration of Account or User Language Preferences
-    - Occupation: Enumeration of Account or User Occupation Preferences
-
-Example:
-    >>> from enums import Gender
-    >>> user_gender = Gender.MALE
-"""
+"""Constants Module: Contains Constants, Enumerations and Other Static data."""
 
 from enum import Enum
 from re import Pattern, compile as regex_compile
@@ -82,18 +60,6 @@ class Gender(Enum):
     MALE = "male", "m"
     FEMALE = "female", "f"
     OTHER = "other", "o"
-
-
-class AccountStatus(Enum):
-    """Enumeration of Accounts."""
-
-    NEW = "new"
-    UNVERIFIED = "unverified"
-    VERIFIED = "verified"
-    ACTIVE = "active"
-    DELETED = "deleted"
-    DISABLED = "disabled"
-    SUSPENDED = "suspended"
 
 
 class Country(Enum):
@@ -614,7 +580,7 @@ class Verification(Enum):
     EXPIRED = "Verification Request Expired"
 
 
-class UserDevicePermission(Enum):
+class DevicePermission(Enum):
     """Enumeration of Email Verification Statuses."""
 
     CAMERA = "camera"
@@ -622,7 +588,7 @@ class UserDevicePermission(Enum):
     CONTACTS = "contacts"
 
 
-class AccountLoginMethod(Enum):
+class LoginMethod(Enum):
     """Enumeration of Email Verification Statuses."""
 
     EMAIL = "User Email and Password"

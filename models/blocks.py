@@ -2,7 +2,7 @@
 # from models import Base
 
 
-# class Block(Base):
+# class Block(Base, BaseModel):
 #     __tablename__ = "blocks"
 
 #     id = Column(

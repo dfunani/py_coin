@@ -2,7 +2,7 @@
 # from models import Base
 
 
-# class Contract(Base):
+# class Contract(Base, BaseModel):
 #     __tablename__ = "contracts"
 
 #     id = Column(

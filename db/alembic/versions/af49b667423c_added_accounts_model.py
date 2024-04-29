@@ -11,9 +11,8 @@ from uuid import uuid4
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 
-from lib.utils.constants.users import AccountStatus, Status
+from lib.utils.constants.users import Status
 
 # revision identifiers, used by Alembic.
 revision: str = "af49b667423c"

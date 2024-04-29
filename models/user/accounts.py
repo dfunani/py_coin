@@ -6,19 +6,20 @@ from sqlalchemy import Column, DateTime, String, text, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from lib.utils.constants.users import Status
 from models import Base
+from models.model import BaseModel
 from models.user.payments import PaymentProfile
 from models.user.profiles import UserProfile
 from models.user.settings import SettingsProfile
 
 
-class Account(Base):
-    """
-    Model representing a User's Account."""
+class Account(Base, BaseModel):
+    """Model representing a User's Account."""
 
     __tablename__ = "accounts"
     __table_args__ = ({"schema": "users"},)
+    __EXCLUDE_ATTRIBUTES__: list[str] = []
 
-    id: Union[str, Column[str]] = Column(
+    id: str | Column[str] = Column(
         "id",
         String(256),
         default=text(f"'{str(uuid4())}'"),
@@ -26,13 +27,13 @@ class Account(Base):
         nullable=False,
         primary_key=True,
     )
-    account_id: Union[str, Column[str]] = Column(
+    account_id: str | Column[str] = Column(
         "account_id",
         String(256),
         default=text(f"'{str(uuid4())}'"),
         unique=True,
     )
-    user_id: Union[str, Column[str]] = Column(
+    user_id: str | Column[str] = Column(
         "user_id", String(256), ForeignKey("users.users.id"), nullable=False
     )
     status: Union[Status, Column[Status]] = Column(
@@ -68,19 +69,11 @@ class Account(Base):
         self.account_id = str(uuid4())
 
     def __str__(self) -> str:
-        """String Representation of the Account Object.
-
-        Returns:
-            str: Representation of a Account Object.
-        """
+        """String Representation of the Account Object."""
 
         return f"Account ID: {self.account_id}"
 
     def __repr__(self) -> str:
-        """String Representation of the Account Object.
-
-        Returns:
-            str: Representation of a Account Object.
-        """
+        """String Representation of the Account Object."""
 
         return f"Application Model: {self.__class__.__name__}"

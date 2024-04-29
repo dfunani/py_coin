@@ -1,50 +1,47 @@
 """Users Module: Contains User Payment Profile."""
 
 from datetime import datetime
-from typing import Union
 from uuid import uuid4
-from sqlalchemy.orm import relationship
 from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, String, text
 from lib.utils.constants.users import Status
 from models import Base
-from models.warehouse.cards import Card
+from models.model import BaseModel
 
 
-class PaymentProfile(Base):
+class PaymentProfile(Base, BaseModel):
     """Model representing a User's Payment Information."""
 
     __tablename__ = "payment_profiles"
     __table_args__ = ({"schema": "users"},)
+    __EXCLUDE_ATTRIBUTES__: list[str] = []
 
-    id: Union[str, Column[str]] = Column("id", String(256), primary_key=True)
-    payment_id: Union[str, Column[str]] = Column(
-        "payment_id", String(256), nullable=False
-    )
-    account_id: Column[str] = Column(
+    id: str | Column[str] = Column("id", String(256), primary_key=True)
+    payment_id: str | Column[str] = Column("payment_id", String(256), nullable=False)
+    account_id: str | Column[str] = Column(
         "account_id", ForeignKey("users.accounts.id"), nullable=False
     )
-    card_id: Union[str, Column[str]] = Column(
+    card_id: str | Column[str] = Column(
         "card_id", String(256), ForeignKey("warehouse.cards.id"), nullable=False
     )
-    name: Union[str, Column[str]] = Column(
+    name: str | Column[str] = Column(
         "name", String(256), nullable=False, default="New Payment Account."
     )
-    description: Union[str, Column[str]] = Column(
+    description: str | Column[str] = Column(
         "description",
         String(256),
         nullable=False,
         default="New Payment Account Created for Block Chain Transactions.",
     )
-    status: Union[Status, Column[Status]] = Column(
+    status: Status | Column[Status] = Column(
         "status", Enum(Status, name="card_status"), default=Status.NEW, nullable=False
     )
-    balance: Union[float, Column[float]] = Column(
+    balance: float | Column[float] = Column(
         "balance", Float, default=0.0, nullable=False
     )
-    created_date: Union[datetime, Column[datetime]] = Column(
+    created_date: datetime | Column[datetime] = Column(
         "created_date", DateTime, default=text("CURRENT_TIMESTAMP"), nullable=False
     )
-    updated_date: Union[datetime, Column[datetime]] = Column(
+    updated_date: datetime | Column[datetime] = Column(
         "updated_date",
         DateTime,
         default=text("CURRENT_TIMESTAMP"),
@@ -59,19 +56,11 @@ class PaymentProfile(Base):
         self.payment_id = str(uuid4())
 
     def __str__(self) -> str:
-        """String Representation of the Payment Profile Object.
-
-        Returns:
-            str: Representation of a Payment Profile Object.
-        """
+        """String Representation of the Payment Profile Object."""
 
         return f"Payment Profile ID: {self.payment_id}"
 
     def __repr__(self) -> str:
-        """String Representation of the Payment Profile Object.
-
-        Returns:
-            str: Representation of a Payment Profile Object.
-        """
+        """String Representation of the Payment Profile Object."""
 
         return f"Application Model: {self.__class__.__name__}"

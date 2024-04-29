@@ -5,27 +5,31 @@ from typing import Union
 from uuid import uuid4
 
 from sqlalchemy import Column, DateTime, Enum, String, text
+from sqlalchemy.orm import relationship
 
 from lib.utils.constants.users import Role, Status
 from models import Base
+from models.model import BaseModel
+from models.warehouse.logins import LoginHistory
 
 
-class User(Base):
+class User(Base, BaseModel):
     """Model representing a User."""
 
     __tablename__ = "users"
     __table_args__ = ({"schema": "users"},)
+    __EXCLUDE_ATTRIBUTES__: list[str] = []
 
-    id: Union[str, Column[str]] = Column(
+    id: str | Column[str] = Column(
         "id", String(256), primary_key=True, nullable=False
     )
-    user_id: Union[str, Column[str]] = Column(
+    user_id: str | Column[str] = Column(
         "user_id", String(256), nullable=False, unique=True
     )
-    email: Union[str, Column[str]] = Column(
+    email: str | Column[str] = Column(
         "email", String(256), unique=True, nullable=False
     )
-    password: Union[str, Column[str]] = Column("password", String(256), nullable=False)
+    password: str | Column[str] = Column("password", String(256), nullable=False)
     created_date: Union[datetime, Column[datetime]] = Column(
         "created_date", DateTime, default=text("CURRENT_TIMESTAMP"), nullable=False
     )
@@ -39,14 +43,15 @@ class User(Base):
     status: Union[Status, Column[Status]] = Column(
         "status", Enum(Status, name="user_status"), nullable=False, default=Status.NEW
     )
-    salt_value: Union[str, Column[str]] = Column(
+    salt_value: str | Column[str] = Column(
         "salt_value", String(256), nullable=False
     )
     role: Union[Role, Column[Role]] = Column(
         "role", Enum(Role), nullable=False, default=Role.USER
     )
-    # login_history = Column(UserLoginHistory, unique=True, nullable=False)
-    # registered_user_devices = Column(UserDevice)
+    login_history = relationship(
+        LoginHistory, backref="User", cascade="all, delete-orphan"
+    )
 
     def __init__(self) -> None:
         """User Object Constructor."""
@@ -55,19 +60,11 @@ class User(Base):
         self.salt_value = str(uuid4())
 
     def __str__(self) -> str:
-        """String Representation of the User Object.
-
-        Returns:
-            str: Representation of a User Object.
-        """
+        """String Representation of the User Object."""
 
         return f"User ID: {self.user_id}"
 
     def __repr__(self) -> str:
-        """String Representation of the User Object.
-
-        Returns:
-            str: Representation of a User Object.
-        """
+        """String Representation of the User Object."""
 
         return f"Application Model: {self.__class__.__name__}"

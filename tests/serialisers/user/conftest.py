@@ -102,10 +102,14 @@ def clear_settings_ids(settings_data: dict) -> dict:
     del settings_data["id"]
     del settings_data["settings_id"]
     del settings_data["account_id"]
+    del settings_data["created_date"]
+    del settings_data["updated_date"]
     return settings_data
 
 def clear_profile_ids(profile_data: dict) -> dict:
     del profile_data["id"]
     del profile_data["profile_id"]
     del profile_data["account_id"]
+    del profile_data["created_date"]
+    del profile_data["updated_date"]
     return profile_data

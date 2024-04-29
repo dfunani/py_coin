@@ -64,7 +64,6 @@ def test_paymentprofileserialiser_get(get_card, get_account, regex_payment):
         payment_profile = PaymentProfileSerialiser().create_payment_profile(
             get_account.id, get_card.id
         )
-        print(payment_profile)
         payment_id = get_id_by_regex(regex_payment, payment_profile)
         payment = PaymentProfileSerialiser().get_payment_profile(payment_id)
 

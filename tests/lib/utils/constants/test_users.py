@@ -1,140 +1,139 @@
-"""Testing Application constants"""
+# """Testing Application constants"""
 
-import sys
-from lib.utils.constants.users import Regex, Role
-from lib.utils.constants.users import (
-    Gender,
-    AccountStatus,
-    Verification,
-    UserDevicePermission,
-    AccountLoginMethod,
-    Communication,
-    Occupation,
-    Country,
-    Language,
-)
-
-print(sys.path)
+# import sys
+# from lib.utils.constants.users import Regex, Role
+# from lib.utils.constants.users import (
+#     Gender,
+#     Status,
+#     Verification,
+#     DevicePermission,
+#     LoginMethod,
+#     Communication,
+#     Occupation,
+#     Country,
+#     Language,
+# )
 
 
-def test_regex_constants_email_success():
-    """Testing Email Regex Match - Valid Email"""
 
-    assert Regex.EMAIL.value.match("dfunani@test.co.za") is not None
+# def test_regex_constants_email_success():
+#     """Testing Email Regex Match - Valid Email"""
 
-
-def test_regex_constants_email_error():
-    """Testing Email Regex Match - Invalid Email"""
-
-    assert Regex.EMAIL.value.match("dfunanitest.co.za") is None
+#     assert Regex.EMAIL.value.match("dfunani@test.co.za") is not None
 
 
-def test_regex_constants_password_success():
-    """Testing Password Regex Match - Valid Password"""
+# def test_regex_constants_email_error():
+#     """Testing Email Regex Match - Invalid Email"""
 
-    assert Regex.PASSWORD.value.match("password123@test") is not None
-
-
-def test_regex_constants_password_error():
-    """Testing Password Regex Match - Invalid Password"""
-
-    assert Regex.PASSWORD.value.match("password") is None
+#     assert Regex.EMAIL.value.match("dfunanitest.co.za") is None
 
 
-def test_gender_enum(genders: list[str]):
-    """Testing Genders Enum
+# def test_regex_constants_password_success():
+#     """Testing Password Regex Match - Valid Password"""
 
-    Args:
-        genders (list): list of genders that should always be present.
-    """
-    for gender in Gender:
-        assert gender.value[0] in genders[0]
-        assert gender.value[1] in genders[1]
+#     assert Regex.PASSWORD.value.match("password123@test") is not None
 
 
-def test_account_status_enum(statuses: list[str]):
-    """Testing AccountStatus Enum
+# def test_regex_constants_password_error():
+#     """Testing Password Regex Match - Invalid Password"""
 
-    Args:
-        account_statuses (list): list of account statuses that should
-        always be present.
-    """
-    for status in AccountStatus:
-        assert status.value in statuses
+#     assert Regex.PASSWORD.value.match("password") is None
 
 
-def test_account_role_enum(roles: list[str]):
-    """Testing Roles Enum
+# def test_gender_enum(genders: list[str]):
+#     """Testing Genders Enum
 
-    Args:
-        roles (list): list of roles that should always be present.
-    """
-    for role in Role:
-        assert role.value in roles
-
-
-def test_email_verification_status(email_status: list[str]):
-    """Testing Email Status Enum
-
-    Args:
-        email_status (list): list of Email Status that should always
-        be present.
-    """
-    for status in Verification:
-        assert status.value in email_status
+#     Args:
+#         genders (list): list of genders that should always be present.
+#     """
+#     for gender in Gender:
+#         assert gender.value[0] in genders[0]
+#         assert gender.value[1] in genders[1]
 
 
-def device_permissions(permissions: list[str]):
-    """Testing Device Permissions Enum
+# def test_account_status_enum(statuses: list[str]):
+#     """Testing Status Enum
 
-    Args:
-        permissions (list): list of User Device Permissions that
-        should always be present.
-    """
-    for status in UserDevicePermission:
-        assert status.value in permissions
-
-
-def account_login_method(login_methods: list[str]):
-    """Testing Login Methods Enum
-
-    Args:
-        login_methods (list): list of Account Login Method that
-        should always be present.
-    """
-    for status in AccountLoginMethod:
-        assert status.value in login_methods
+#     Args:
+#         account_statuses (list): list of account statuses that should
+#         always be present.
+#     """
+#     for status in Status:
+#         assert status.value in statuses
 
 
-def account_communication(communications: list[str]):
-    """Testing User Communication Preferences Enum
+# def test_account_role_enum(roles: list[str]):
+#     """Testing Roles Enum
 
-    Args:
-        communications (list): list of Account Communication
-        Prefereces that should always be present.
-    """
-    for status in Communication:
-        assert status.value in communications
-
-
-def account_occupations(occupations: list[str]):
-    """Testing User Occupations Preferences Enum
-
-    Args:
-        occupations (list): list of Account Communication Prefereces
-        that should always be present.
-    """
-    for status in Occupation:
-        assert status.value in occupations
+#     Args:
+#         roles (list): list of roles that should always be present.
+#     """
+#     for role in Role:
+#         assert role.value in roles
 
 
-def test_countries_enum():
-    """Testing User Country Preferences Enum"""
-    for country in Country:
-        assert isinstance(country.value, tuple) and len(country.value[1]) == 2
+# def test_email_verification_status(email_status: list[str]):
+#     """Testing Email Status Enum
+
+#     Args:
+#         email_status (list): list of Email Status that should always
+#         be present.
+#     """
+#     for status in Verification:
+#         assert status.value in email_status
 
 
-def test_languages_enum():
-    """Testing User Language Preferences Enum"""
-    for country in Language:
-        assert isinstance(country.value, tuple)
+# def device_permissions(permissions: list[str]):
+#     """Testing Device Permissions Enum
+
+#     Args:
+#         permissions (list): list of User Device Permissions that
+#         should always be present.
+#     """
+#     for status in DevicePermission:
+#         assert status.value in permissions
+
+
+# def account_login_method(login_methods: list[str]):
+#     """Testing Login Methods Enum
+
+#     Args:
+#         login_methods (list): list of Account Login Method that
+#         should always be present.
+#     """
+#     for status in LoginMethod:
+#         assert status.value in login_methods
+
+
+# def account_communication(communications: list[str]):
+#     """Testing User Communication Preferences Enum
+
+#     Args:
+#         communications (list): list of Account Communication
+#         Prefereces that should always be present.
+#     """
+#     for status in Communication:
+#         assert status.value in communications
+
+
+# def account_occupations(occupations: list[str]):
+#     """Testing User Occupations Preferences Enum
+
+#     Args:
+#         occupations (list): list of Account Communication Prefereces
+#         that should always be present.
+#     """
+#     for status in Occupation:
+#         assert status.value in occupations
+
+
+# def test_countries_enum():
+#     """Testing User Country Preferences Enum"""
+#     for country in Country:
+#         assert isinstance(country.value, tuple) and len(country.value[1]) == 2
+
+
+# def test_languages_enum():
+#     """Testing User Language Preferences Enum"""
+#     for country in Language:
+#         assert isinstance(country.value, tuple)

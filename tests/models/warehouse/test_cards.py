@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 
-from lib.utils.constants.users import Status, CardType
+from lib.utils.constants.users import CardType
 from models import ENGINE
 from models.warehouse.cards import Card
 from tests.conftest import setup_test_commit, run_test_teardown

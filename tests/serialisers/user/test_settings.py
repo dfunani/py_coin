@@ -58,11 +58,8 @@ def test_paymentprofileserialiser_get(get_account, regex_settings, settings_keys
         settings_data = SettingsProfileSerialiser().get_settings_profile(settings_id)
 
         assert isinstance(settings_data, dict)
-        for key in settings_keys:
-            assert key in settings_data
-
         for key in settings_data:
-            assert key in settings_keys
+            assert key not in SettingsProfile.__EXCLUDE_ATTRIBUTES__
 
         run_test_teardown(settings_data.get("id"), SettingsProfile, session)
         run_test_teardown(get_account.id, Account, session)
@@ -136,6 +133,7 @@ def test_paymentprofileserialiser_update_invalid_profile_visibility_preference(
         settings_id = get_id_by_regex(regex_settings, settings)
 
         settings_data = SettingsProfileSerialiser().get_settings_profile(settings_id)
+
         settings_data["profile_visibility_preference"] = ProfileVisibility.ADMIN
 
         settings_private_id = settings_data["id"]

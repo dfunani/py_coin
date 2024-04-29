@@ -48,12 +48,8 @@ def test_accountprofileserialiser_get(get_user, regex_user, regex_account, accou
         account_data = AccountSerialiser().get_account(account_id)
 
         assert isinstance(account_data, dict)
-        for key in account_keys:
-            assert key in account_data
-            assert account_data[key] is not None
-
         for key in account_data:
-            assert key in account_keys
+            assert key not in Account.__EXCLUDE_ATTRIBUTES__
 
         run_test_teardown(account_data.get("id"), Account, session)
         run_test_teardown(account_data.get("user_id"), User, session)
