@@ -47,7 +47,7 @@ class Regex(Enum):
         r"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()-_+=]).{8,}$"
     )
     NAME = regex_compile(r"^[a-zA-Z]{1,30}$")
-    USERNAME = regex_compile(r"^[a-zA-Z][a-zA-Z0-9\s\-,._]{8,30}$")
+    USERNAME = regex_compile(r"^[a-zA-Z][a-zA-Z0-9\s\-_@#]{8,30}$")
     MOBILE_NUMBER = regex_compile(r"^\+\d{1,3}\d{3,14}$")
     DESCRIPTION = regex_compile(r"^[a-zA-Z][a-zA-Z0-9\s\-,._]{8,125}$")
     BIOGRAPHY = regex_compile(r"^(?!\s+$).{8,250}$")

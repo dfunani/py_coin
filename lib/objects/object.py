@@ -1,1 +1,0 @@
-# class Object(object)

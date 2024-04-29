@@ -160,8 +160,8 @@ def validate_social_media_links(
         raise UserProfileError("Invalid Social Media.")
     response: dict[str, str] = {}
     for key, value in social_media_links.items():
-        if not isinstance(key, SocialMediaLink) and key.value.match(
-            social_media_links[key]
+        if isinstance(key, SocialMediaLink) and key.value.match(
+            value
         ):
             response[key.name] = value
     return response

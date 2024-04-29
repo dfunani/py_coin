@@ -11,7 +11,7 @@ from models.warehouse.logins import LoginHistory
 from serialisers.warehouse.logins import LoginHistorySerialiser
 from models import ENGINE
 from models.user.users import User
-from tests.conftest import get_id_by_regex, run_test_teardown, setup_test_commit
+from tests.conftest import run_test_teardown, setup_test_commit
 
 
 def test_loginhistoryserialiser_create(get_user, regex_login_history):

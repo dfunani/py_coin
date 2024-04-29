@@ -21,7 +21,7 @@ from lib.interfaces.exceptions import (
 )
 from models import ENGINE
 from serialisers.warehouse.cards import CardSerialiser
-from tests.conftest import get_id_by_regex, run_test_teardown, setup_test_commit
+from tests.conftest import run_test_teardown, setup_test_commit
 
 
 def test_paymentprofileserialiser_create(get_card, get_account, regex_payment):

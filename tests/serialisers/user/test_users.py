@@ -10,7 +10,7 @@ from lib.utils.constants.users import Status
 from serialisers.user.users import UserSerialiser
 from models import ENGINE
 from models.user.users import User
-from tests.conftest import get_id_by_regex, run_test_teardown, setup_test_commit
+from tests.conftest import run_test_teardown, setup_test_commit
 
 
 def test_userserialiser_create(email, password, regex_user):

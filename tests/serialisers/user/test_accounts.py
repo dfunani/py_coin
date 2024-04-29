@@ -10,7 +10,7 @@ from models.user.users import User
 from models.warehouse.cards import Card
 from serialisers.user.accounts import AccountSerialiser
 from models import ENGINE
-from tests.conftest import get_id_by_regex, run_test_teardown, setup_test_commit
+from tests.conftest import run_test_teardown, setup_test_commit
 
 
 def test_accountprofileserialiser_create(get_user, regex_user, regex_account):

@@ -12,7 +12,7 @@ from lib.interfaces.exceptions import CardValidationError, UserError
 from lib.utils.constants.users import Status, CardType
 from models import ENGINE
 from models.warehouse.cards import Card
-from tests.conftest import get_id_by_regex, run_test_teardown
+from tests.conftest import run_test_teardown
 
 
 def test_cardserialiser_create(regex_card):
