@@ -1,26 +1,13 @@
-"""_summary_"""
-
-from string import ascii_lowercase, ascii_uppercase
-
-alphabet = [
-    *ascii_uppercase,
-    *ascii_lowercase,
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-]
+"""Application Ingress Point."""
 
 
 def main():
-    """_summary_"""
-    return 1
+    """Main Application."""
+
+    pass
 
 
 if __name__ == "__main__":
-    print(main())
+    """Execution Time Ingress Point."""
+
+    main()
