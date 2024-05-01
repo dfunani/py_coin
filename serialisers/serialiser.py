@@ -1,7 +1,7 @@
 """Warehouse Serialiser Module: Serialiser for Card Model."""
 
 from enum import EnumMeta
-from typing import Any, Tuple
+from typing import Any, Tuple, Union
 from lib.interfaces.exceptions import ApplicationError
 from lib.validators.users import (
     validate_balance,
@@ -74,10 +74,12 @@ class BaseSerialiser:
 
         return value
 
-    def __get_column_data__(self, key: str) -> Tuple[EnumMeta, bool, "function" | None]:
+    def __get_column_data__(
+        self, key: str
+    ) -> Tuple[EnumMeta, bool, Union["function", None]]:
         """Extract a Columns Meta-Data."""
 
-        if not self.__table__:
+        if self.__table__ is None:
             raise self.__SERIALISER_EXCEPTION__("Invalid Table Meta Data")
 
         column = dict(self.__table__.columns).get(key)

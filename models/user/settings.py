@@ -28,37 +28,37 @@ class SettingsProfile(Base, BaseModel):
     account_id: str | Column[str] = Column(
         "account_id", ForeignKey("users.accounts.id"), nullable=False
     )
-    email_status: Union[Verification, Column[Verification]] = Column(
+    email_status: Verification | Column[Verification] = Column(
         "email_status",
         Enum(Verification, name="email_verification"),
         default=Verification.UNVERIFIED,
         nullable=False,
     )
-    communication_status: Union[Verification, Column[Verification]] = Column(
+    communication_status: Verification | Column[Verification] = Column(
         "communication_status",
         Enum(Verification, name="communication_verification"),
         default=Verification.UNVERIFIED,
         nullable=False,
     )
-    mfa_enabled = Column("mfa_enabled", Boolean, default=False)
+    mfa_enabled = Column("mfa_enabled", Boolean, default=False, nullable=False)
     mfa_last_used_date = Column("mfa_last_used_date", DateTime, nullable=True)
-    profile_visibility_preference: Union[
-        ProfileVisibility, Column[ProfileVisibility]
-    ] = Column(
-        "profile_visibility_preference",
-        Enum(ProfileVisibility, name="profilevisibility"),
-        default=ProfileVisibility.PUBLIC,
-        nullable=False,
+    profile_visibility_preference: ProfileVisibility | Column[ProfileVisibility] = (
+        Column(
+            "profile_visibility_preference",
+            Enum(ProfileVisibility, name="profilevisibility"),
+            default=ProfileVisibility.PUBLIC,
+            nullable=False,
+        )
     )
-    data_sharing_preferences: Union[
-        list[DataSharingPreference], Column[list[DataSharingPreference]]
-    ] = Column(
+    data_sharing_preferences: (
+        list[DataSharingPreference] | Column[list[DataSharingPreference]]
+    ) = Column(
         "data_sharing_preferences",
         ARRAY(Enum(DataSharingPreference, name="data_sharing_preference")),
         default=[DataSharingPreference.ACCOUNT],
         nullable=False,
     )
-    communication_preference: Union[Communication, Column[Communication]] = Column(
+    communication_preference: Communication | Column[Communication] = Column(
         "communication_preference",
         Enum(Communication, name="communication"),
         default=Communication.EMAIL,
@@ -68,16 +68,16 @@ class SettingsProfile(Base, BaseModel):
         "location_tracking_enabled", Boolean, default=False, nullable=False
     )
     cookies_enabled = Column("cookies_enabled", Boolean, default=False, nullable=False)
-    theme_preference: Union[Theme, Column[Theme]] = Column(
+    theme_preference: Theme | Column[Theme] = Column(
         "theme_preference",
         Enum(Theme, name="theme"),
         nullable=False,
         default=Theme.LIGHT,
     )
-    created_date: Union[datetime, Column[datetime]] = Column(
+    created_date: datetime | Column[datetime] = Column(
         "created_date", DateTime, default=text("CURRENT_TIMESTAMP"), nullable=False
     )
-    updated_date: Union[datetime, Column[datetime]] = Column(
+    updated_date: datetime | Column[datetime] = Column(
         "updated_date",
         DateTime,
         default=text("CURRENT_TIMESTAMP"),

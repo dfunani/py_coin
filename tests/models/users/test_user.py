@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from models import ENGINE
 from models.user.users import User
 from lib.utils.constants.users import Role, Status
-from tests.conftest import setup_test_commit, run_test_teardown
+from tests.conftest import run_test_teardown
 
 
 def test_user_invalid_no_args():
@@ -31,14 +31,21 @@ def test_user_invalid_args():
             session.commit()
 
 
-def test_user_valid(get_user):
+def test_user_valid():
     """Testing a Valid User Constructor, with Required Arguments."""
 
     with Session(ENGINE) as session:
-        setup_test_commit(get_user, session)
+        user = User()
+        user.email = "test@test.com"
+        user.password = "password123@"
+        user.user_id = "test_user_id"
 
-        assert get_user.id is not None
-        assert get_user.status == Status.NEW
-        assert get_user.role == Role.USER
+        session.add(user)
+        session.commit()
 
-        run_test_teardown(get_user.id, User, session)
+        assert user.id is not None
+        assert user.status == Status.NEW
+        assert user.role == Role.USER
+        assert isinstance(user.to_dict(), dict)
+
+        run_test_teardown(user.id, User, session)

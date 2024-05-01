@@ -5,10 +5,11 @@ from pytest import raises
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
+from lib.utils.constants.users import Status
 from models import ENGINE
 from models.user.accounts import Account
 from models.user.users import User
-from tests.conftest import setup_test_commit, run_test_teardown
+from tests.conftest import run_test_teardown
 
 
 def test_account_invalid_no_args():
@@ -17,25 +18,39 @@ def test_account_invalid_no_args():
     with Session(ENGINE) as session:
         with raises(IntegrityError):
             account = Account()
-            setup_test_commit(account, session)
+            session.add(account)
+            session.commit()
 
 
-def test_account_invalid_args(email, password):
+def test_account_invalid_args():
     """Testing Constructor, for Invalid Arguments."""
 
     with Session(ENGINE) as session:
         with raises(TypeError):
-            account = Account(email, password)
-            setup_test_commit(account, session)
+            account = Account("email", "password")
+            session.add(account)
+            session.commit()
 
 
-def test_account_valid(get_account):
+def test_account_valid():
     """Testing a Valid Account Constructor, with Required Arguments."""
 
     with Session(ENGINE) as session:
-        setup_test_commit(get_account, session)
+        user = User()
+        user.email = "email@test.com"
+        user.password = "password@123455"
+        user.user_id = "test_user_id"
+        session.add(user)
+        session.commit()
 
-        assert get_account.id is not None
+        account = Account()
+        account.user_id = user.id
+        session.add(account)
+        session.commit()
 
-        run_test_teardown(get_account.id, Account, session)
-        run_test_teardown(get_account.user_id, User, session)
+        assert account.id is not None
+        assert account.status == Status.NEW
+        assert isinstance(account.to_dict(), dict)
+
+        run_test_teardown(account.id, Account, session)
+        run_test_teardown(user.id, User, session)

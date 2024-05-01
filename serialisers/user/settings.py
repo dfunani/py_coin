@@ -28,9 +28,7 @@ class SettingsProfileSerialiser(SettingsProfile, BaseSerialiser):
         "communication_status",
     ]
 
-    def get_settings_profile(
-        self, settings_id: str
-    ) -> dict:
+    def get_settings_profile(self, settings_id: str) -> dict:
         """CRUD Operation: Get Settings."""
 
         with Session(ENGINE) as session:
@@ -58,9 +56,7 @@ class SettingsProfileSerialiser(SettingsProfile, BaseSerialiser):
 
             return str(self)
 
-    def update_settings_profile(
-        self, private_id: str, **kwargs
-    ) -> str:
+    def update_settings_profile(self, private_id: str, **kwargs) -> str:
         """CRUD Operation: Update Settings."""
 
         with Session(ENGINE) as session:
@@ -75,6 +71,7 @@ class SettingsProfileSerialiser(SettingsProfile, BaseSerialiser):
 
                 value = self.validate_serialiser_kwargs(key, value)
                 setattr(settings_profile, key, value)
+
             try:
                 session.add(settings_profile)
                 session.commit()

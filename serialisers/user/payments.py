@@ -64,6 +64,7 @@ class PaymentProfileSerialiser(PaymentProfile, BaseSerialiser):
 
                 value = self.validate_serialiser_kwargs(key, value)
                 setattr(payment_profile, key, value)
+
             try:
                 session.add(payment_profile)
                 session.commit()

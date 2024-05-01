@@ -1,100 +1,208 @@
 """Controllers Module: User Serialiser Testing Configuration."""
 
+from datetime import date
 from pytest import fixture
+from sqlalchemy.orm import Session
+
+from config import AppConfig
+from lib.utils.constants.users import CardType
+from lib.utils.encryption.cryptography import encrypt_data
+from lib.utils.encryption.encoders import get_hash_value
+from models import ENGINE
+from models.user.accounts import Account
+from models.user.payments import PaymentProfile
+from models.user.profiles import UserProfile
+from models.user.settings import SettingsProfile
+from models.user.users import User
+from models.warehouse.cards import Card
 
 
 @fixture
-def user_keys():
-    """Testing Users Serialiser: Create User."""
-    return [
-        "id",
-        "user_id",
-        "created_date",
-        "updated_date",
-        "email",
-        "password",
-        "salt_value",
-        "status",
-        "role",
-    ]
+def user():
+    """Creates a test User."""
+
+    with Session(ENGINE) as session:
+        user = User()
+        user.email = encrypt_data("test@test.com".encode())
+        user.password = get_hash_value("password123@", str(user.salt_value))
+        user.user_id = get_hash_value(
+            str("test@test.com") + "password123@", str(AppConfig().salt_value)
+        )
+        session.add(user)
+        session.commit()
+
+        yield user
+
+        session.delete(user)
+        session.commit()
 
 
 @fixture
-def account_keys():
-    """Testing Accounts Serialiser: Create Account."""
+def account():
+    """Creates a Test Account."""
 
-    return [
-        "id",
-        "account_id",
-        "user_id",
-        "status",
-        "created_date",
-        "updated_date",
-        "user_profiles",
-        "payment_profiles",
-        "settings_profile",
-    ]
+    with Session(ENGINE) as session:
+        user = User()
+        user.email = encrypt_data("test@test.com".encode())
+        user.password = get_hash_value("password123@", str(user.salt_value))
+        user.user_id = get_hash_value(
+            str("test@test.com") + "password123@", str(AppConfig().salt_value)
+        )
+        session.add(user)
+        session.commit()
 
+        account = Account()
+        account.user_id = user.id
+        session.add(account)
+        session.commit()
 
-@fixture
-def payment_keys():
-    """Testing Payments Serialiser: Create Payment Profile."""
+        yield account
 
-    return [
-        "id",
-        "payment_id",
-        # "account_id"
-        "card_id",
-        "name",
-        "description",
-        "payment_status",
-    ]
+        session.delete(account)
+        session.delete(user)
+        session.commit()
 
 
 @fixture
-def settings_keys():
-    """Testing Settings Serialiser: Create Settings Profile."""
+def settings():
+    """Creates a Test Setting."""
 
-    return [
-        "id",
-        "settings_id",
-        "account_id",
-        "email_status",
-        "communication_status",
-        "mfa_enabled",
-        "mfa_last_used_date",
-        "profile_visibility_preference",
-        "data_sharing_preferences",
-        "communication_preference",
-        "location_tracking_enabled",
-        "cookies_enabled",
-        "theme_preference",
-    ]
+    with Session(ENGINE) as session:
+        user = User()
+        user.email = encrypt_data("test@test.com".encode())
+        user.password = get_hash_value("password123@", str(user.salt_value))
+        user.user_id = get_hash_value(
+            str("test@test.com") + "password123@", str(AppConfig().salt_value)
+        )
+        session.add(user)
+        session.commit()
+
+        account = Account()
+        account.user_id = user.id
+        session.add(account)
+        session.commit()
+
+        settings = SettingsProfile()
+        settings.account_id = account.id
+        session.add(settings)
+        session.commit()
+
+        yield settings
+
+        session.delete(settings)
+        session.delete(account)
+        session.delete(user)
+        session.commit()
 
 
 @fixture
-def user_profile_keys():
-    """Testing User Profile Serialiser: Create User Profile."""
+def card():
+    """Creates a Test Card"""
 
-    return [
-        "id",
-        "profile_id",
-        "account_id",
-        "first_name",
-        "last_name",
-        "username",
-        "date_of_birth",
-        "gender",
-        "profile_picture",
-        "mobile_number",
-        "country",
-        "language",
-        "biography",
-        "occupation",
-        "interests",
-        "social_media_links",
-        "status",
-    ]
+    with Session(ENGINE) as session:
+        card = Card()
+        card.card_number = "1991123456789"
+        card.card_type = CardType.CHEQUE
+        card.cvv_number = "123"
+        card.expiration_date = date.today()
+        card.pin = "123456"
+
+        session.add(card)
+        session.commit()
+
+        yield card
+
+        session.delete(card)
+        session.commit()
+
+@fixture
+def payment():
+    """Creates a Test Account."""
+
+    with Session(ENGINE) as session:
+        user = User()
+        user.email = encrypt_data("test@test.com".encode())
+        user.password = get_hash_value("password123@", str(user.salt_value))
+        user.user_id = get_hash_value(
+            str("test@test.com") + "password123@", str(AppConfig().salt_value)
+        )
+        session.add(user)
+        session.commit()
+
+        account = Account()
+        account.user_id = user.id
+        session.add(account)
+        session.commit()
+
+        card = Card()
+        card.card_number = "1991123456789"
+        card.card_type = CardType.CHEQUE
+        card.cvv_number = "123"
+        card.expiration_date = date.today()
+        card.pin = "123456"
+
+        session.add(card)
+        session.commit()
+
+        payment = PaymentProfile()
+        payment.account_id = account.id
+        payment.card_id = card.id
+
+        session.add(payment)
+        session.commit()
+
+        yield payment
+
+        session.delete(payment)
+        session.delete(account)
+        session.delete(user)
+        session.delete(card)
+        session.commit()
+
+@fixture
+def profile():
+    """Creates a Test Account."""
+
+    with Session(ENGINE) as session:
+        user = User()
+        user.email = encrypt_data("test@test.com".encode())
+        user.password = get_hash_value("password123@", str(user.salt_value))
+        user.user_id = get_hash_value(
+            str("test@test.com") + "password123@", str(AppConfig().salt_value)
+        )
+        session.add(user)
+        session.commit()
+
+        account = Account()
+        account.user_id = user.id
+        session.add(account)
+        session.commit()
+
+        profile = UserProfile()
+        profile.account_id = account.id
+        session.add(profile)
+        session.commit()
+
+        yield profile
+
+        session.delete(profile)
+        session.delete(account)
+        session.delete(user)
+        session.commit()
+
+@fixture
+def email():
+    """Test Email for User."""
+
+    return "testing123@test.com"
+
+
+@fixture
+def password():
+    """Test Password for User."""
+
+    return "testing@123"
+
 
 def clear_settings_ids(settings_data: dict) -> dict:
     """Testing Settings Serialiser: Create Settings."""
@@ -105,6 +213,7 @@ def clear_settings_ids(settings_data: dict) -> dict:
     del settings_data["created_date"]
     del settings_data["updated_date"]
     return settings_data
+
 
 def clear_profile_ids(profile_data: dict) -> dict:
     del profile_data["id"]

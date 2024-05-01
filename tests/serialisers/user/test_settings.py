@@ -1,10 +1,12 @@
 """Serialisers Module: Testing Accounts Serialiser."""
 
+from datetime import datetime
 from pytest import raises
 from sqlalchemy.orm import Session
 
 from lib.interfaces.exceptions import AccountError, SettingsProfileError, UserError
 from lib.utils.constants.users import (
+    Communication,
     DataSharingPreference,
     ProfileVisibility,
     Status,
@@ -17,27 +19,24 @@ from models.user.users import User
 from models.warehouse.cards import Card
 from serialisers.user.settings import SettingsProfileSerialiser
 from models import ENGINE
-from tests.conftest import run_test_teardown, setup_test_commit
+from tests.conftest import get_id_by_regex, run_test_teardown, setup_test_commit
 from tests.serialisers.user.conftest import clear_settings_ids
 
 
-def test_paymentprofileserialiser_create(get_account, regex_account, regex_settings):
+def test_paymentprofileserialiser_create(account):
     """Testing Account Serialiser: Create Account."""
 
     with Session(ENGINE) as session:
-        setup_test_commit(get_account, session)
-
-        settings = SettingsProfileSerialiser().create_settings_profile(get_account.id)
-        settings_id = get_id_by_regex(regex_settings, str(settings))
+        settings = SettingsProfileSerialiser().create_settings_profile(account.id)
+        settings_id = get_id_by_regex(settings)
         settings = (
             session.query(SettingsProfile)
             .filter(SettingsProfile.settings_id == settings_id)
             .one_or_none()
         )
+        assert settings.id is not None
 
         run_test_teardown(settings.id, SettingsProfile, session)
-        run_test_teardown(get_account.id, Account, session)
-        run_test_teardown(get_account.user_id, User, session)
 
 
 def test_paymentprofileserialiser_create_invalid():
@@ -47,23 +46,16 @@ def test_paymentprofileserialiser_create_invalid():
         SettingsProfileSerialiser().create_settings_profile("user.id")
 
 
-def test_paymentprofileserialiser_get(get_account, regex_settings, settings_keys):
+def test_paymentprofileserialiser_get(settings):
     """Testing Account Serialiser: Get Account."""
 
-    with Session(ENGINE) as session:
-        setup_test_commit(get_account, session)
+    settings_data = SettingsProfileSerialiser().get_settings_profile(
+        settings.settings_id
+    )
 
-        settings = SettingsProfileSerialiser().create_settings_profile(get_account.id)
-        settings_id = get_id_by_regex(regex_settings, settings)
-        settings_data = SettingsProfileSerialiser().get_settings_profile(settings_id)
-
-        assert isinstance(settings_data, dict)
-        for key in settings_data:
-            assert key not in SettingsProfile.__EXCLUDE_ATTRIBUTES__
-
-        run_test_teardown(settings_data.get("id"), SettingsProfile, session)
-        run_test_teardown(get_account.id, Account, session)
-        run_test_teardown(get_account.user_id, User, session)
+    assert isinstance(settings_data, dict)
+    for key in settings_data:
+        assert key not in SettingsProfile.__EXCLUDE_ATTRIBUTES__
 
 
 def test_paymentprofileserialiser_get_invalid():
@@ -73,20 +65,10 @@ def test_paymentprofileserialiser_get_invalid():
         SettingsProfileSerialiser().get_settings_profile("account_id")
 
 
-def test_paymentprofileserialiser_delete(get_account, regex_settings):
+def test_paymentprofileserialiser_delete(settings):
     """Testing Account Serialiser: Delete Account."""
 
-    with Session(ENGINE) as session:
-        setup_test_commit(get_account, session)
-
-        settings = SettingsProfileSerialiser().create_settings_profile(get_account.id)
-        settings_id = get_id_by_regex(regex_settings, settings)
-
-        settings_data = SettingsProfileSerialiser().get_settings_profile(settings_id)
-
-        SettingsProfileSerialiser().delete_settings_profile(settings_data.get("id"))
-        run_test_teardown(get_account.id, Account, session)
-        run_test_teardown(get_account.user_id, User, session)
+    SettingsProfileSerialiser().delete_settings_profile(settings.id)
 
 
 def test_paymentprofileserialiser_delete_invalid():
@@ -96,372 +78,57 @@ def test_paymentprofileserialiser_delete_invalid():
         SettingsProfileSerialiser().delete_settings_profile("account_data.id")
 
 
-def test_paymentprofileserialiser_update_valid_profile_visibility_preference(
-    get_account, regex_account, regex_settings
-):
+def test_paymentprofileserialiser_update_valid(settings):
     """Testing Account Serialiser: Update Account."""
 
     with Session(ENGINE) as session:
-        setup_test_commit(get_account, session)
-
-        settings = SettingsProfileSerialiser().create_settings_profile(get_account.id)
-        settings_id = get_id_by_regex(regex_settings, settings)
-        settings_data = SettingsProfileSerialiser().get_settings_profile(settings_id)
-
-        settings_data["profile_visibility_preference"] = ProfileVisibility.PRIVATE
-
-        settings_private_id = settings_data["id"]
-        settings_data = clear_settings_ids(settings_data)
+        test_now = datetime.now()
         SettingsProfileSerialiser().update_settings_profile(
-            settings_private_id, **settings_data
+            settings.id,
+            mfa_enabled=True,
+            location_tracking_enabled=True,
+            cookies_enabled=True,
+            email_status=Verification.VERIFIED,
+            data_sharing_preferences=[DataSharingPreference.PROFILE],
+            communication_preference=Communication.SLACK,
+            theme_preference=Theme.BLUE,
+            profile_visibility_preference=ProfileVisibility.PRIVATE,
+            mfa_last_used_date=test_now,
+            communication_status=Verification.FAILED,
         )
+        settings = session.get(SettingsProfile, settings.id)
+        assert settings.id is not None
+        assert settings.mfa_enabled == True
+        assert settings.location_tracking_enabled == True
+        assert settings.cookies_enabled == True
+        assert settings.email_status == Verification.VERIFIED
+        assert settings.data_sharing_preferences == [DataSharingPreference.PROFILE]
+        assert settings.communication_preference == Communication.SLACK
+        assert settings.theme_preference == Theme.BLUE
+        assert settings.profile_visibility_preference == ProfileVisibility.PRIVATE
+        assert settings.mfa_last_used_date == test_now
+        assert settings.communication_status == Verification.FAILED
 
-        SettingsProfileSerialiser().delete_settings_profile(settings_private_id)
-        run_test_teardown(get_account.id, Account, session)
-        run_test_teardown(get_account.user_id, User, session)
 
-
-def test_paymentprofileserialiser_update_invalid_profile_visibility_preference(
-    get_account, regex_account, regex_settings
-):
+def test_paymentprofileserialiser_update_invalid(settings):
     """Testing Account Serialiser: Update Account."""
 
-    with Session(ENGINE) as session:
-        setup_test_commit(get_account, session)
-
-        settings = SettingsProfileSerialiser().create_settings_profile(get_account.id)
-        settings_id = get_id_by_regex(regex_settings, settings)
-
-        settings_data = SettingsProfileSerialiser().get_settings_profile(settings_id)
-
-        settings_data["profile_visibility_preference"] = ProfileVisibility.ADMIN
-
-        settings_private_id = settings_data["id"]
-        settings_data = clear_settings_ids(settings_data)
-        with raises(SettingsProfileError):
-            SettingsProfileSerialiser().update_settings_profile(
-                settings_private_id, **settings_data
-            )
-
-        SettingsProfileSerialiser().delete_settings_profile(settings_private_id)
-        run_test_teardown(get_account.id, Account, session)
-        run_test_teardown(get_account.user_id, User, session)
-
-
-def test_paymentprofileserialiser_update_invalid_profile_visibility_preference_type(
-    get_account, regex_account, regex_settings
-):
-    """Testing Account Serialiser: Update Account."""
-
-    with Session(ENGINE) as session:
-        setup_test_commit(get_account, session)
-
-        settings = SettingsProfileSerialiser().create_settings_profile(get_account.id)
-        settings_id = get_id_by_regex(regex_settings, settings)
-        settings_data = SettingsProfileSerialiser().get_settings_profile(settings_id)
-
-        settings_data["profile_visibility_preference"] = "ProfileVisibility.ADMIN"
-
-        settings_private_id = settings_data["id"]
-        settings_data = clear_settings_ids(settings_data)
-        with raises(SettingsProfileError):
-            SettingsProfileSerialiser().update_settings_profile(
-                settings_private_id, **settings_data
-            )
-
-        SettingsProfileSerialiser().delete_settings_profile(settings_private_id)
-        run_test_teardown(get_account.id, Account, session)
-        run_test_teardown(get_account.user_id, User, session)
-
-
-def test_paymentprofileserialiser_update_valid_communication_status(
-    get_account, regex_account, regex_settings
-):
-    """Testing Account Serialiser: Update Account."""
-
-    with Session(ENGINE) as session:
-        setup_test_commit(get_account, session)
-
-        settings = SettingsProfileSerialiser().create_settings_profile(get_account.id)
-        settings_id = get_id_by_regex(regex_settings, settings)
-
-        settings_data = SettingsProfileSerialiser().get_settings_profile(settings_id)
-
-        settings_data["communication_status"] = Verification.FAILED
-
-        settings_private_id = settings_data["id"]
-        settings_data = clear_settings_ids(settings_data)
+    with raises(SettingsProfileError):
         SettingsProfileSerialiser().update_settings_profile(
-            settings_private_id, **settings_data
+            "settings.id",
+            mfa_enabled="",
+            location_tracking_enabled="",
+            cookies_enabled="",
+            email_status="",
+            data_sharing_preferences="",
+            communication_preference="",
+            theme_preference="",
+            profile_visibility_preference="",
+            mfa_last_used_date="",
+            communication_status="",
         )
-
-        SettingsProfileSerialiser().delete_settings_profile(settings_private_id)
-        run_test_teardown(get_account.id, Account, session)
-        run_test_teardown(get_account.user_id, User, session)
-
-
-def test_paymentprofileserialiser_update_invalid_communication_status(
-    get_account, regex_account, regex_settings
-):
-    """Testing Account Serialiser: Update Account."""
-
-    with Session(ENGINE) as session:
-        setup_test_commit(get_account, session)
-
-        settings = SettingsProfileSerialiser().create_settings_profile(get_account.id)
-        settings_id = get_id_by_regex(regex_settings, settings)
-
-        settings_data = SettingsProfileSerialiser().get_settings_profile(settings_id)
-        settings_data["communication_status"] = "ProfileVisibility.ADMIN"
-
-        settings_private_id = settings_data["id"]
-        settings_data = clear_settings_ids(settings_data)
-        with raises(SettingsProfileError):
-            SettingsProfileSerialiser().update_settings_profile(
-                settings_private_id, **settings_data
-            )
-
-        SettingsProfileSerialiser().delete_settings_profile(settings_private_id)
-        run_test_teardown(get_account.id, Account, session)
-        run_test_teardown(get_account.user_id, User, session)
-
-
-def test_paymentprofileserialiser_update_valid_email_status(
-    get_account, regex_account, regex_settings
-):
-    """Testing Account Serialiser: Update Account."""
-
-    with Session(ENGINE) as session:
-        setup_test_commit(get_account, session)
-
-        settings = SettingsProfileSerialiser().create_settings_profile(get_account.id)
-        settings_id = get_id_by_regex(regex_settings, settings)
-
-        settings_data = SettingsProfileSerialiser().get_settings_profile(settings_id)
-
-        settings_data["email_status"] = Verification.VERIFIED
-
-        settings_private_id = settings_data["id"]
-        settings_data = clear_settings_ids(settings_data)
         SettingsProfileSerialiser().update_settings_profile(
-            settings_private_id, **settings_data
+            settings.id,
+            data_sharing_preferences=["DataSharingPreference.PROFILE"],
+            profile_visibility_preference=ProfileVisibility.ADMIN,
         )
-
-        SettingsProfileSerialiser().delete_settings_profile(settings_private_id)
-        run_test_teardown(get_account.id, Account, session)
-        run_test_teardown(get_account.user_id, User, session)
-
-
-def test_paymentprofileserialiser_update_invalid_email_status(
-    get_account, regex_account, regex_settings
-):
-    """Testing Account Serialiser: Update Account."""
-
-    with Session(ENGINE) as session:
-        setup_test_commit(get_account, session)
-
-        settings = SettingsProfileSerialiser().create_settings_profile(get_account.id)
-        settings_id = get_id_by_regex(regex_settings, settings)
-
-        settings_data = SettingsProfileSerialiser().get_settings_profile(settings_id)
-        settings_data["email_status"] = "ProfileVisibility.ADMIN"
-
-        settings_private_id = settings_data["id"]
-        settings_data = clear_settings_ids(settings_data)
-        with raises(SettingsProfileError):
-            SettingsProfileSerialiser().update_settings_profile(
-                settings_private_id, **settings_data
-            )
-
-        SettingsProfileSerialiser().delete_settings_profile(settings_private_id)
-        run_test_teardown(get_account.id, Account, session)
-        run_test_teardown(get_account.user_id, User, session)
-
-
-def test_paymentprofileserialiser_update_valid_mfa_enabled(
-    get_account, regex_account, regex_settings
-):
-    """Testing Account Serialiser: Update Account."""
-
-    with Session(ENGINE) as session:
-        setup_test_commit(get_account, session)
-
-        settings = SettingsProfileSerialiser().create_settings_profile(get_account.id)
-        settings_id = get_id_by_regex(regex_settings, settings)
-
-        settings_data = SettingsProfileSerialiser().get_settings_profile(settings_id)
-
-        settings_data["mfa_enabled"] = True
-
-        settings_private_id = settings_data["id"]
-        settings_data = clear_settings_ids(settings_data)
-        SettingsProfileSerialiser().update_settings_profile(
-            settings_private_id, **settings_data
-        )
-
-        SettingsProfileSerialiser().delete_settings_profile(settings_private_id)
-        run_test_teardown(get_account.id, Account, session)
-        run_test_teardown(get_account.user_id, User, session)
-
-
-def test_paymentprofileserialiser_update_invalid_mfa_enabled(
-    get_account, regex_account, regex_settings
-):
-    """Testing Account Serialiser: Update Account."""
-
-    with Session(ENGINE) as session:
-        setup_test_commit(get_account, session)
-
-        settings = SettingsProfileSerialiser().create_settings_profile(get_account.id)
-        settings_id = get_id_by_regex(regex_settings, settings)
-
-        settings_data = SettingsProfileSerialiser().get_settings_profile(settings_id)
-        settings_data["mfa_enabled"] = "ProfileVisibility.ADMIN"
-
-        settings_private_id = settings_data["id"]
-        settings_data = clear_settings_ids(settings_data)
-        with raises(SettingsProfileError):
-            SettingsProfileSerialiser().update_settings_profile(
-                settings_private_id, **settings_data
-            )
-
-        SettingsProfileSerialiser().delete_settings_profile(settings_private_id)
-        run_test_teardown(get_account.id, Account, session)
-        run_test_teardown(get_account.user_id, User, session)
-
-
-def test_paymentprofileserialiser_update_valid_data_sharing_preferences(
-    get_account, regex_account, regex_settings
-):
-    """Testing Account Serialiser: Update Account."""
-
-    with Session(ENGINE) as session:
-        setup_test_commit(get_account, session)
-
-        settings = SettingsProfileSerialiser().create_settings_profile(get_account.id)
-        settings_id = get_id_by_regex(regex_settings, settings)
-
-        settings_data = SettingsProfileSerialiser().get_settings_profile(settings_id)
-
-        settings_data["data_sharing_preferences"] = [
-            DataSharingPreference.PROFILE,
-            DataSharingPreference.SETTINGS,
-        ]
-
-        settings_private_id = settings_data["id"]
-        settings_data = clear_settings_ids(settings_data)
-        SettingsProfileSerialiser().update_settings_profile(
-            settings_private_id, **settings_data
-        )
-
-        SettingsProfileSerialiser().delete_settings_profile(settings_private_id)
-        run_test_teardown(get_account.id, Account, session)
-        run_test_teardown(get_account.user_id, User, session)
-
-
-def test_paymentprofileserialiser_update_invalid_data_sharing_preferences(
-    get_account, regex_account, regex_settings
-):
-    """Testing Account Serialiser: Update Account."""
-
-    with Session(ENGINE) as session:
-        setup_test_commit(get_account, session)
-
-        settings = SettingsProfileSerialiser().create_settings_profile(get_account.id)
-        settings_id = get_id_by_regex(regex_settings, settings)
-
-        settings_data = SettingsProfileSerialiser().get_settings_profile(settings_id)
-        settings_data["data_sharing_preferences"] = "ProfileVisibility.ADMIN"
-
-        settings_private_id = settings_data["id"]
-        settings_data = clear_settings_ids(settings_data)
-        with raises(SettingsProfileError):
-            SettingsProfileSerialiser().update_settings_profile(
-                settings_private_id, **settings_data
-            )
-
-        SettingsProfileSerialiser().delete_settings_profile(settings_private_id)
-        run_test_teardown(get_account.id, Account, session)
-        run_test_teardown(get_account.user_id, User, session)
-
-
-def test_paymentprofileserialiser_update_invalid_data_sharing_preferences_list(
-    get_account, regex_account, regex_settings
-):
-    """Testing Account Serialiser: Update Account."""
-
-    with Session(ENGINE) as session:
-        setup_test_commit(get_account, session)
-
-        settings = SettingsProfileSerialiser().create_settings_profile(get_account.id)
-        settings_id = get_id_by_regex(regex_settings, settings)
-
-        settings_data = SettingsProfileSerialiser().get_settings_profile(settings_id)
-        settings_data["data_sharing_preferences"] = ["ProfileVisibility.ADMIN"]
-
-        settings_private_id = settings_data["id"]
-        settings_data = clear_settings_ids(settings_data)
-        with raises(SettingsProfileError):
-            SettingsProfileSerialiser().update_settings_profile(
-                settings_private_id, **settings_data
-            )
-
-        SettingsProfileSerialiser().delete_settings_profile(settings_private_id)
-        run_test_teardown(get_account.id, Account, session)
-        run_test_teardown(get_account.user_id, User, session)
-
-
-def test_paymentprofileserialiser_update_valid_bool(
-    get_account, regex_account, regex_settings
-):
-    """Testing Account Serialiser: Update Account."""
-
-    with Session(ENGINE) as session:
-        setup_test_commit(get_account, session)
-
-        settings = SettingsProfileSerialiser().create_settings_profile(get_account.id)
-        settings_id = get_id_by_regex(regex_settings, settings)
-
-        settings_data = SettingsProfileSerialiser().get_settings_profile(settings_id)
-
-        settings_data["location_tracking_enabled"] = True
-        settings_data["cookies_enabled"] = True
-        settings_data["theme_preference"] = Theme.GREEN
-
-        settings_private_id = settings_data["id"]
-        settings_data = clear_settings_ids(settings_data)
-        SettingsProfileSerialiser().update_settings_profile(
-            settings_private_id, **settings_data
-        )
-
-        SettingsProfileSerialiser().delete_settings_profile(settings_private_id)
-        run_test_teardown(get_account.id, Account, session)
-        run_test_teardown(get_account.user_id, User, session)
-
-
-def test_paymentprofileserialiser_update_invalid_bool(
-    get_account, regex_account, regex_settings
-):
-    """Testing Account Serialiser: Update Account."""
-
-    with Session(ENGINE) as session:
-        setup_test_commit(get_account, session)
-
-        settings = SettingsProfileSerialiser().create_settings_profile(get_account.id)
-        settings_id = get_id_by_regex(regex_settings, settings)
-
-        settings_data = SettingsProfileSerialiser().get_settings_profile(settings_id)
-        settings_data["location_tracking_enabled"] = "True"
-        settings_data["cookies_enabled"] = "True"
-        settings_data["theme_preference"] = "True"
-
-        settings_private_id = settings_data["id"]
-        settings_data = clear_settings_ids(settings_data)
-        with raises(SettingsProfileError):
-            SettingsProfileSerialiser().update_settings_profile(
-                settings_private_id, **settings_data
-            )
-
-        SettingsProfileSerialiser().delete_settings_profile(settings_private_id)
-        run_test_teardown(get_account.id, Account, session)
-        run_test_teardown(get_account.user_id, User, session)

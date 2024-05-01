@@ -41,7 +41,7 @@ class UserSerialiser(User, BaseSerialiser):
 
         with Session(ENGINE) as session:
             self.email = str(self.__get_valid_email__(email))
-            self.password = str(self.__get_valid_password__(password))
+            self.password = str(self.__get_valid_password__(password, self.salt_value))
             self.user_id = str(self.__get_valid_user_id__(str(email), password))
 
             try:
@@ -67,7 +67,7 @@ class UserSerialiser(User, BaseSerialiser):
                 raise UserError("User Not Found.")
 
             if password:
-                valid_password = self.__get_valid_password__(password)
+                valid_password = self.__get_valid_password__(password, str(user.salt_value))
                 valid_user_id = self.__get_valid_user_id__(
                     str(decrypt_data(str(user.email))), password
                 )
@@ -106,14 +106,14 @@ class UserSerialiser(User, BaseSerialiser):
     def __get_valid_email__(self, email: str) -> str:
         """Get Valid Email."""
 
-        validate_email(email)
+        email = validate_email(email)
         return encrypt_data(email.encode())
 
-    def __get_valid_password__(self, password: str) -> str:
+    def __get_valid_password__(self, password: str, salt_value: str) -> str:
         """Get Valid Password."""
 
-        validate_password(password)
-        return str(get_hash_value(password, str(self.salt_value)))
+        password = validate_password(password)
+        return str(get_hash_value(password, str(salt_value)))
 
     def __get_encrypted_user_data__(self, user: User) -> str:
         """Get User Data."""
@@ -121,12 +121,12 @@ class UserSerialiser(User, BaseSerialiser):
         data = user.to_dict()
         for key, value in data.items():
             if isinstance(value, Enum):
-                data[key] = key.value
+                data[key] = value.value
         return encrypt_data(dumps(data).encode())
 
-    def __get_valid_user_id__(self, email: str | Column[str], password: str) -> str:
+    def __get_valid_user_id__(self, email: str, password: str) -> str:
         """Get Valid User ID."""
 
-        validate_email(str(email))
-        validate_password(password)
+        email = validate_email(str(email))
+        password = validate_password(password)
         return get_hash_value(str(email) + password, str(AppConfig().salt_value))

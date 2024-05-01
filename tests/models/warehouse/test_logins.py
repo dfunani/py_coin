@@ -31,16 +31,24 @@ def test_login_invalid_args():
             session.commit()
 
 
-def test_login_valid(get_user):
+def test_login_valid():
     """Testing a Valid LoginHistory Constructor, with Required Arguments."""
 
     with Session(ENGINE) as session:
-        setup_test_commit(get_user, session)
+        user = User()
+        user.email = "test@test.com"
+        user.password = "password123@"
+        user.user_id = "test_user_id"
+        session.add(user)
+        session.commit()
 
         login_history = LoginHistory()
-        login_history.user_id = get_user.id
+        login_history.user_id = user.id
+        session.add(login_history)
+        session.commit()
 
-        setup_test_commit(login_history, session)
+        assert login_history.id is not None
+        assert login_history.logged_in == False
 
         run_test_teardown(login_history.id, LoginHistory, session)
-        run_test_teardown(get_user.id, User, session)
+        run_test_teardown(user.id, User, session)

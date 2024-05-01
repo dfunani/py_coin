@@ -156,7 +156,7 @@ class CardSerialiser(Card, BaseSerialiser):
         data = card.to_dict()
         for key, value in data.items():
             if isinstance(value, Enum):
-                data[key] = key.value
+                data[key] = value.value
         return encrypt_data(dumps(data).encode())
 
     @staticmethod

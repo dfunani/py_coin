@@ -44,9 +44,11 @@ def test_card_valid():
             card.card_type = key
             card.pin = "123456"
             card.expiration_date = date.today().replace(day=1)
-
-            setup_test_commit(card, session)
+            session.add(card)
+            session.commit()
 
             assert card.id is not None
+            assert card.salt_value is not None
+            assert isinstance(card.to_dict(), dict)
 
             run_test_teardown(card.id, Card, session)

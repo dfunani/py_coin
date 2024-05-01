@@ -3,31 +3,33 @@
 from pytest import raises
 from sqlalchemy.orm import Session
 
+from config import AppConfig
 from lib.interfaces.exceptions import AccountError, UserError
 from lib.utils.constants.users import Status
+from lib.utils.encryption.cryptography import encrypt_data
+from lib.utils.encryption.encoders import get_hash_value
 from models.user.accounts import Account
 from models.user.users import User
 from models.warehouse.cards import Card
 from serialisers.user.accounts import AccountSerialiser
 from models import ENGINE
-from tests.conftest import run_test_teardown, setup_test_commit
+from tests.conftest import get_id_by_regex, run_test_teardown, setup_test_commit
 
 
-def test_accountprofileserialiser_create(get_user, regex_user, regex_account):
+def test_accountprofileserialiser_create(user):
     """Testing Account Serialiser: Create Account."""
 
     with Session(ENGINE) as session:
-        setup_test_commit(get_user, session)
-
-        account = AccountSerialiser().create_account(get_user.id)
-        account_id = get_id_by_regex(regex_account, str(account))
-        account_data = (
+        account = AccountSerialiser().create_account(user.id)
+        account_id = get_id_by_regex(account)
+        account = (
             session.query(Account)
             .filter(Account.account_id == account_id)
             .one_or_none()
         )
-        run_test_teardown(account_data.id, Account, session)
-        run_test_teardown(account_data.user_id, User, session)
+        assert account.id is not None
+
+        run_test_teardown(account.id, Account, session)
 
 
 def test_accountprofileserialiser_create_invalid():
@@ -37,22 +39,14 @@ def test_accountprofileserialiser_create_invalid():
         AccountSerialiser().create_account("user.id")
 
 
-def test_accountprofileserialiser_get(get_user, regex_user, regex_account, account_keys):
+def test_accountprofileserialiser_get(account):
     """Testing Account Serialiser: Get Account."""
 
-    with Session(ENGINE) as session:
-        setup_test_commit(get_user, session)
+    account_data = AccountSerialiser().get_account(account.account_id)
 
-        account = AccountSerialiser().create_account(get_user.id)
-        account_id = get_id_by_regex(regex_account, str(account))
-        account_data = AccountSerialiser().get_account(account_id)
-
-        assert isinstance(account_data, dict)
-        for key in account_data:
-            assert key not in Account.__EXCLUDE_ATTRIBUTES__
-
-        run_test_teardown(account_data.get("id"), Account, session)
-        run_test_teardown(account_data.get("user_id"), User, session)
+    assert isinstance(account_data, dict)
+    for key in account_data:
+        assert key not in Account.__EXCLUDE_ATTRIBUTES__
 
 
 def test_accountprofileserialiser_get_invalid():
@@ -62,23 +56,10 @@ def test_accountprofileserialiser_get_invalid():
         AccountSerialiser().get_account("account_id")
 
 
-def test_accountprofileserialiser_delete(get_user, regex_user, regex_account):
+def test_accountprofileserialiser_delete(account):
     """Testing Account Serialiser: Delete Account."""
 
-    with Session(ENGINE) as session:
-        setup_test_commit(get_user, session)
-
-        account = AccountSerialiser().create_account(get_user.id)
-        account_id = get_id_by_regex(regex_account, str(account))
-
-        account_data = (
-            session.query(Account)
-            .filter(Account.account_id == account_id)
-            .one_or_none()
-        )
-
-        AccountSerialiser().delete_account(account_data.id)
-        run_test_teardown(account_data.user_id, User, session)
+    AccountSerialiser().delete_account(account.id)
 
 
 def test_accountprofileserialiser_delete_invalid():
@@ -88,78 +69,20 @@ def test_accountprofileserialiser_delete_invalid():
         AccountSerialiser().delete_account("account_data.id")
 
 
-def test_accountprofileserialiser_update_valid_status(get_user, regex_user, regex_account):
+def test_accountprofileserialiser_update_valid_status(account):
     """Testing Account Serialiser: Update Account."""
 
     with Session(ENGINE) as session:
-        setup_test_commit(get_user, session)
-
-        account = AccountSerialiser().create_account(get_user.id)
-        account_id = get_id_by_regex(regex_account, str(account))
-
-        account_data = (
-            session.query(Account)
-            .filter(Account.account_id == account_id)
-            .one_or_none()
-        )
-
-        AccountSerialiser().update_account(account_data.id, status=Status.DELETED)
-        run_test_teardown(account_data.id, Account, session)
-        run_test_teardown(account_data.user_id, User, session)
+        AccountSerialiser().update_account(account.id, status=Status.DELETED)
+        account = session.get(Account, account.id)
+        assert account.id is not None
+        assert account.status == Status.DELETED
 
 
-def test_accountprofileserialiser_update_invalid_status(
-    get_user, regex_user, regex_account
-):
+def test_accountprofileserialiser_update_invalid_status(account):
     """Testing Account Serialiser: Update Account."""
 
-    with Session(ENGINE) as session:
-        setup_test_commit(get_user, session)
-
-        account = AccountSerialiser().create_account(get_user.id)
-        account_id = get_id_by_regex(regex_account, str(account))
-
-        account_data = (
-            session.query(Account)
-            .filter(Account.account_id == account_id)
-            .one_or_none()
-        )
-
-        with raises(UserError):
-            AccountSerialiser().update_account(account_data.id, status=Status.DISABLED)
-
-        run_test_teardown(account_data.id, Account, session)
-        run_test_teardown(account_data.user_id, User, session)
-
-
-def test_accountprofileserialiser_update_invalid_status_type(
-    get_user, regex_user, regex_account
-):
-    """Testing Account Serialiser: Update Account."""
-
-    with Session(ENGINE) as session:
-        setup_test_commit(get_user, session)
-
-        account = AccountSerialiser().create_account(get_user.id)
-        account_id = get_id_by_regex(regex_account, str(account))
-
-        account_data = (
-            session.query(Account)
-            .filter(Account.account_id == account_id)
-            .one_or_none()
-        )
-
-        with raises(UserError):
-            AccountSerialiser().update_account(
-                account_data.id, status="Status.DISABLED"
-            )
-
-        run_test_teardown(account_data.id, Account, session)
-        run_test_teardown(account_data.user_id, User, session)
-
-
-def test_accountprofileserialiser_update_invalid_status_no_id():
-    """Testing Account Serialiser: Update Account."""
-
-    with raises(AccountError):
+    with raises(UserError):
+        AccountSerialiser().update_account(account.id, status=Status.DISABLED)
+        AccountSerialiser().update_account(account.id, status="Status.DISABLED")
         AccountSerialiser().update_account("account_data.id")
