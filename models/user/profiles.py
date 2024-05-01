@@ -1,7 +1,6 @@
 """Users Module: Contains User Profile Model for Mapping User's Profiles."""
 
 from datetime import date, datetime
-from typing import Union
 from uuid import uuid4
 from sqlalchemy import (
     ARRAY,
@@ -50,7 +49,7 @@ class UserProfile(Base, BaseModel):
     first_name = Column("first_name", String(256), nullable=True)
     last_name = Column("last_name", String(256), nullable=True)
     username = Column("username", String(256), nullable=True)
-    date_of_birth: Union[date, Column[date]] = Column(
+    date_of_birth: date | Column[date] = Column(
         "date_of_birth", Date, nullable=True
     )
     gender: str | Column[str] = Column(
@@ -58,10 +57,10 @@ class UserProfile(Base, BaseModel):
     )
     profile_picture = Column("profile_picture", LargeBinary, nullable=True)
     mobile_number = Column("mobile_number", String(256), nullable=True)
-    country: Union[Country, Column[Country]] = Column(
+    country: Country | Column[Country] = Column(
         "country", Enum(Country, name="account_country"), nullable=True
     )
-    language: Union[Language, Column[Language]] = Column(
+    language: Language | Column[Language] = Column(
         "language",
         Enum(Language, name="account_language"),
         default=Language.ENGLISH,
@@ -73,29 +72,29 @@ class UserProfile(Base, BaseModel):
         default="This user has not provided a bio yet.",
         nullable=True,
     )
-    occupation: Union[Occupation, Column[Occupation]] = Column(
+    occupation: Occupation | Column[Occupation] = Column(
         "occupation",
         Enum(Occupation, name="account_occupation"),
         default=Occupation.OTHER,
         nullable=True,
     )
-    interests: Union[list[Interest], Column[list[Interest]]] = Column(
+    interests: list[Interest] | Column[list[Interest]] = Column(
         "interests",
         ARRAY(Enum(Interest, name="profile_interest")),
         default=[],
         nullable=True,
     )
     social_media_links = Column("social_media_links", JSON, default={}, nullable=True)
-    status: Union[Status, Column[Status]] = Column(
+    status: Status | Column[Status] = Column(
         "status",
         Enum(Status, name="profile_status"),
         default=Status.NEW,
         nullable=False,
     )
-    created_date: Union[datetime, Column[datetime]] = Column(
+    created_date: datetime | Column[datetime] = Column(
         "created_date", DateTime, default=text("CURRENT_TIMESTAMP"), nullable=False
     )
-    updated_date: Union[datetime, Column[datetime]] = Column(
+    updated_date: datetime | Column[datetime] = Column(
         "updated_date",
         DateTime,
         default=text("CURRENT_TIMESTAMP"),

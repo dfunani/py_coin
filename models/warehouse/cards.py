@@ -33,25 +33,25 @@ class Card(Base, BaseModel):
     cvv_number: str | Column[str] = Column(
         "cvv_number", String(256), nullable=False
     )
-    card_type: Union[CardType, Column[CardType]] = Column(
+    card_type: CardType | Column[CardType] = Column(
         "card_type", Enum(CardType, name="card_type"), nullable=False
     )
-    status: Union[Status, Column[Status]] = Column(
+    status: Status | Column[Status] = Column(
         "status", Enum(Status, name="card_status"), nullable=False, default=Status.NEW
     )
     pin: str | Column[str] = Column("pin", String(256), nullable=False)
-    expiration_date: Union[date, Column[date]] = Column(
+    expiration_date: date | Column[date] = Column(
         "expiration_date", Date, nullable=False
     )
     salt_value: str | Column[str] = Column(
         "salt_value", String(256), nullable=False
     )
-    created_date: Union[datetime, Column[datetime]] = Column(
+    created_date: datetime | Column[datetime] = Column(
         "created_date",
         DateTime,
         default=text("CURRENT_TIMESTAMP"),
     )
-    updated_date: Union[datetime, Column[datetime]] = Column(
+    updated_date: datetime | Column[datetime] = Column(
         "updated_date",
         DateTime,
         default=text("CURRENT_TIMESTAMP"),

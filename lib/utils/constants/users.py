@@ -4,10 +4,6 @@ from enum import Enum
 from re import Pattern, compile as regex_compile
 
 
-# KEY: Accessible using name attribute
-# VALUE: Accessible using value attribute
-
-
 class Status(Enum):
     """Enumeration of User Related Statuses."""
 

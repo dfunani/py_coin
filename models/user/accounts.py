@@ -1,6 +1,5 @@
 """Users Module: Contains Account Model for Mapping User Accounts."""
 
-from typing import Union
 from uuid import uuid4
 from sqlalchemy import Column, DateTime, String, text, ForeignKey, Enum
 from sqlalchemy.orm import relationship
@@ -36,7 +35,7 @@ class Account(Base, BaseModel):
     user_id: str | Column[str] = Column(
         "user_id", String(256), ForeignKey("users.users.id"), nullable=False
     )
-    status: Union[Status, Column[Status]] = Column(
+    status: Status | Column[Status] = Column(
         "status",
         Enum(Status, name="account_status"),
         default=Status.NEW,
