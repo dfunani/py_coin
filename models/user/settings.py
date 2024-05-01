@@ -1,7 +1,6 @@
 """Users Module: Contains User Settings."""
 
 from datetime import datetime
-from typing import Union
 from uuid import uuid4
 from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, String, ARRAY, text
 

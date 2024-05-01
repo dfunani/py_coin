@@ -4,12 +4,12 @@ from pytest import raises
 
 from sqlalchemy.orm import Session
 
-from lib.utils.constants.users import Communication, Status, Verification
+from lib.utils.constants.users import Communication, Verification
 from models import ENGINE
 from models.user.accounts import Account
 from models.user.settings import SettingsProfile
 from models.user.users import User
-from tests.conftest import run_test_teardown, setup_test_commit
+from tests.conftest import run_test_teardown
 
 
 def test_settings_invalid_no_args():
@@ -34,10 +34,10 @@ def test_settings_invalid_no_args():
         session.commit()
 
         assert settings_profile.id is not None
-        assert settings_profile.mfa_enabled == False
+        assert not settings_profile.mfa_enabled
         assert settings_profile.communication_status == Verification.UNVERIFIED
         assert settings_profile.communication_preference == Communication.EMAIL
-        assert settings_profile.cookies_enabled == False
+        assert not settings_profile.cookies_enabled
 
         run_test_teardown(settings_profile.id, SettingsProfile, session)
         run_test_teardown(account.id, Account, session)

@@ -21,7 +21,7 @@ def test_application_error():
         assert str(e) == "Testing ApplicationError."
 
 
-def test_FernetError():
+def test_ferneterror():
     """Testing Custom Fernet Error."""
 
     try:
@@ -30,7 +30,7 @@ def test_FernetError():
         assert str(e) == "Testing FernetError."
 
 
-def test_UserError():
+def test_usererror():
     """Testing Custom User Error."""
 
     try:
@@ -39,7 +39,7 @@ def test_UserError():
         assert str(e) == "Testing UserError."
 
 
-def test_AccountError():
+def test_accounterror():
     """Testing Custom Account Error."""
 
     try:
@@ -48,7 +48,7 @@ def test_AccountError():
         assert str(e) == "Testing AccountError."
 
 
-def test_UserProfileError():
+def test_userprofileerror():
     """Testing Custom User Profile Error."""
 
     try:
@@ -57,7 +57,7 @@ def test_UserProfileError():
         assert str(e) == "Testing UserProfileError."
 
 
-def test_PaymentProfileError():
+def test_paymentprofileerror():
     """Testing Custom Payment Profile Error."""
 
     try:
@@ -66,7 +66,7 @@ def test_PaymentProfileError():
         assert str(e) == "Testing PaymentProfileError."
 
 
-def test_CardValidationError():
+def test_cardvalidationerror():
     """Testing Custom Card Validation Error."""
 
     try:
@@ -75,7 +75,7 @@ def test_CardValidationError():
         assert str(e) == "Testing CardValidationError."
 
 
-def test_LoginHistoryError():
+def test_loginhistoryerror():
     """Testing Custom Login History Error."""
 
     try:

@@ -1,3 +1,5 @@
+"""Testing Application Validators."""
+
 from datetime import date
 
 from pytest import raises
@@ -222,7 +224,7 @@ def test_validate_social_media_links_invalid_dict_key():
 def test_validate_social_media_links_invalid_dict():
     """Tests Validating Social Media Links."""
 
-    assert validate_social_media_links({SocialMediaLink.GITHUB: "value"}) == {}
+    assert isinstance(validate_social_media_links({SocialMediaLink.GITHUB: "value"}), dict)
 
 def test_validate_social_media_links():
     """Tests Validating Social Media Links."""

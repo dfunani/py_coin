@@ -1,9 +1,6 @@
 """Users Serialiser Module: Serialiser for User Model."""
 
-from enum import Enum
-from json import dumps
-
-from sqlalchemy import Column, String, cast, select
+from sqlalchemy import String, cast, select
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
@@ -41,7 +38,7 @@ class UserSerialiser(User, BaseSerialiser):
 
         with Session(ENGINE) as session:
             self.email = str(self.__get_valid_email__(email))
-            self.password = str(self.__get_valid_password__(password, self.salt_value))
+            self.password = str(self.__get_valid_password__(password, str(self.salt_value)))
             self.user_id = str(self.__get_valid_user_id__(str(email), password))
 
             try:

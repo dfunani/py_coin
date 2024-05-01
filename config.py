@@ -2,10 +2,8 @@
 
 from datetime import datetime
 from os import getenv
-from typing import Union
 from uuid import uuid4
 from cryptography.fernet import Fernet
-from lib.interfaces.exceptions import ApplicationError
 from lib.utils.constants.users import DateFormat
 from lib.validators.config import (
     validate_card_length,

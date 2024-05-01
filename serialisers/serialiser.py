@@ -2,7 +2,6 @@
 
 from enum import Enum, EnumMeta
 from json import dumps
-import re
 from typing import Any, Tuple, Union
 from lib.interfaces.exceptions import ApplicationError
 from lib.utils.encryption.cryptography import encrypt_data

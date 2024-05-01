@@ -8,7 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from models import ENGINE
 from models.user.users import User
 from models.warehouse.logins import LoginHistory
-from tests.conftest import setup_test_commit, run_test_teardown
+from tests.conftest import run_test_teardown
 
 
 def test_login_invalid_no_args():
@@ -48,7 +48,7 @@ def test_login_valid():
         session.commit()
 
         assert login_history.id is not None
-        assert login_history.logged_in == False
+        assert not login_history.logged_in
 
         run_test_teardown(login_history.id, LoginHistory, session)
         run_test_teardown(user.id, User, session)

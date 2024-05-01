@@ -5,6 +5,7 @@ from datetime import date
 from re import compile as regex_compile
 
 from pytest import raises
+from sqlalchemy import cast, String
 from sqlalchemy.orm import Session
 
 from lib.interfaces.exceptions import UserError, UserProfileError
@@ -27,7 +28,7 @@ from models import ENGINE
 from tests.conftest import get_id_by_regex, run_test_teardown
 
 
-def test_userprofileserialiser_create(account: Account):
+def test_userprofileserialiser_create(account):
     """Testing UserProfile Serialiser: Create UserProfile."""
 
     with Session(ENGINE) as session:
@@ -35,7 +36,7 @@ def test_userprofileserialiser_create(account: Account):
         user_profile_id = get_id_by_regex(user_profile)
         user_profile = (
             session.query(UserProfile)
-            .filter(UserProfile.profile_id == user_profile_id)
+            .filter(cast(UserProfile.profile_id, String) == user_profile_id)
             .one_or_none()
         )
         assert user_profile.id is not None
@@ -51,7 +52,7 @@ def test_userprofileserialiser_create_kwargs_invalid():
         )
 
 
-def test_userprofileserialiser_get(profile: UserProfile):
+def test_userprofileserialiser_get(profile):
     """Testing UserProfile Serialiser: Get UserProfile."""
 
     user_profile_data = UserProfileSerialiser().get_user_profile(profile.profile_id)
@@ -81,7 +82,7 @@ def test_userprofileserialiser_delete_kwargs_invalid():
         UserProfileSerialiser().delete_user_profile("account.id")
 
 
-def test_userprofileserialiser_update_valid(profile: UserProfile):
+def test_userprofileserialiser_update_valid(profile):
     """Testing UserProfile Serialiser: Update UserProfile."""
 
     with Session(ENGINE) as session:
@@ -126,7 +127,7 @@ def test_userprofileserialiser_update_valid(profile: UserProfile):
         assert profile.profile_picture is not None
 
 
-def test_userprofileserialiser_update_invalid(profile: UserProfile):
+def test_userprofileserialiser_update_invalid(profile):
     """Testing UserProfile Serialiser: Update UserProfile."""
 
     with raises((UserProfileError, UserError)):
