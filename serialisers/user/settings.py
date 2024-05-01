@@ -40,7 +40,7 @@ class SettingsProfileSerialiser(SettingsProfile, BaseSerialiser):
             if not settings_profile:
                 raise SettingsProfileError("Settings Not Found.")
 
-            return self.__get_settings_data__(settings_profile)
+            return self.__get_model_data__(settings_profile)
 
     def create_settings_profile(self, account_id: str) -> str:
         """CRUD Operation: Add Settings."""
@@ -96,9 +96,3 @@ class SettingsProfileSerialiser(SettingsProfile, BaseSerialiser):
                 raise SettingsProfileError("Settings not Deleted.") from exc
 
             return f"Deleted: {private_id}"
-
-    def __get_settings_data__(self, settings_profile: SettingsProfile) -> dict:
-        """Gets the Settings Data."""
-
-        data = settings_profile.to_dict()
-        return data

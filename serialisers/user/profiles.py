@@ -43,7 +43,7 @@ class UserProfileSerialiser(UserProfile, BaseSerialiser):
             if not user_profile:
                 raise UserProfileError("User Profile not Found.")
 
-            return self.__get_user_profile_data__(user_profile)
+            return self.__get_model_data__(user_profile)
 
     def create_user_profile(self, account_id: str) -> str:
         """CRUD Operation: Add User Profile."""
@@ -100,9 +100,3 @@ class UserProfileSerialiser(UserProfile, BaseSerialiser):
                 raise UserProfileError("User Profile not Deleted") from exc
 
             return f"Deleted: {private_id}"
-
-    def __get_user_profile_data__(self, user_profile: UserProfile) -> dict:
-        """ "Gets the User Profile Data."""
-
-        data = user_profile.to_dict()
-        return data

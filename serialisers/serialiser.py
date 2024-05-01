@@ -1,8 +1,11 @@
-"""Warehouse Serialiser Module: Serialiser for Card Model."""
+"""Warehouse Serialiser Module: Serialiser for model Model."""
 
-from enum import EnumMeta
+from enum import Enum, EnumMeta
+from json import dumps
+import re
 from typing import Any, Tuple, Union
 from lib.interfaces.exceptions import ApplicationError
+from lib.utils.encryption.cryptography import encrypt_data
 from lib.validators.users import (
     validate_balance,
     validate_biography,
@@ -20,6 +23,7 @@ from lib.validators.users import (
     validate_status,
     validate_username,
 )
+from models.model import BaseModel
 
 
 class BaseSerialiser:
@@ -38,7 +42,7 @@ class BaseSerialiser:
         "biography": validate_biography,
         "interests": validate_interests,
         "social_media_links": validate_social_media_links,
-        # User Card
+        # User model
         "name": validate_name,
         "description": validate_description,
         "balance": validate_balance,
@@ -49,12 +53,12 @@ class BaseSerialiser:
     }
 
     def __str__(self) -> str:
-        """String Representation of the Base Class."""
+        """String Representation of the Base Serialiser."""
 
         return "Abstract/Base Serialiser."
 
     def __repr__(self) -> str:
-        """String Representation of the Base Class."""
+        """String Representation of the Base Serialiser."""
 
         return f"Application Model: {self.__class__.__name__}"
 
@@ -88,3 +92,20 @@ class BaseSerialiser:
             column.nullable,
             self.__VALIDATORS__.get(column.name),
         )
+
+    @classmethod
+    def __get_encrypted_model_data__(cls, model: BaseModel) -> str:
+        """Get model Information."""
+
+        data = model.to_dict()
+        for key, value in data.items():
+            if isinstance(value, Enum):
+                data[key] = value.value
+        return encrypt_data(dumps(data).encode())
+
+    @classmethod
+    def __get_model_data__(cls, model: BaseModel) -> dict:
+        """Gets the Model Data."""
+
+        data = model.to_dict()
+        return data

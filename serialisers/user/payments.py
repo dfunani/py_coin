@@ -32,7 +32,7 @@ class PaymentProfileSerialiser(PaymentProfile, BaseSerialiser):
             if not payment_profile:
                 raise PaymentProfileError("Payment Profile not Found.")
 
-            return self.__get_payment_data__(payment_profile)
+            return self.__get_model_data__(payment_profile)
 
     def create_payment_profile(self, account_id: str, card_id: str) -> str:
         """CRUD Operation: Add Payment Profile."""
@@ -89,9 +89,3 @@ class PaymentProfileSerialiser(PaymentProfile, BaseSerialiser):
                 raise PaymentProfileError("Payment Profile not Deleted.") from exc
 
             return f"Deleted: {private_id}"
-
-    def __get_payment_data__(self, payment_data: PaymentProfile) -> dict:
-        """ "Gets the User Payment Profile Data."""
-
-        data = payment_data.to_dict()
-        return data

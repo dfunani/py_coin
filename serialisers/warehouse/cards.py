@@ -43,7 +43,7 @@ class CardSerialiser(Card, BaseSerialiser):
             if not card:
                 raise CardValidationError("Card not Found.")
 
-            return self.__get_encrypted_card_data__(card)
+            return self.__get_encrypted_model_data__(card)
 
     def create_card(self, card_type: CardType, pin: str) -> str:
         """CRUD Operation: Add Card."""
@@ -149,15 +149,6 @@ class CardSerialiser(Card, BaseSerialiser):
         cvv_number = "".join([str(randint(0, 9)) for _ in range(cvv_length)])
         cvv_number = validate_cvv_number(cvv_number)
         return encrypt_data(cvv_number.encode())
-
-    def __get_encrypted_card_data__(self, card: Card) -> str:
-        """Get Card Information."""
-
-        data = card.to_dict()
-        for key, value in data.items():
-            if isinstance(value, ENUM):
-                data[key] = value.value
-        return encrypt_data(dumps(data).encode())
 
     @staticmethod
     def generate_card(

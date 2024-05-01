@@ -34,7 +34,7 @@ class UserSerialiser(User, BaseSerialiser):
             if not user:
                 raise UserError("User Not Found.")
 
-            return self.__get_encrypted_user_data__(user)
+            return self.__get_encrypted_model_data__(user)
 
     def create_user(self, email: str, password: str) -> str:
         """CRUD Operation: Create User."""
@@ -67,7 +67,9 @@ class UserSerialiser(User, BaseSerialiser):
                 raise UserError("User Not Found.")
 
             if password:
-                valid_password = self.__get_valid_password__(password, str(user.salt_value))
+                valid_password = self.__get_valid_password__(
+                    password, str(user.salt_value)
+                )
                 valid_user_id = self.__get_valid_user_id__(
                     str(decrypt_data(str(user.email))), password
                 )
@@ -114,15 +116,6 @@ class UserSerialiser(User, BaseSerialiser):
 
         password = validate_password(password)
         return str(get_hash_value(password, str(salt_value)))
-
-    def __get_encrypted_user_data__(self, user: User) -> str:
-        """Get User Data."""
-
-        data = user.to_dict()
-        for key, value in data.items():
-            if isinstance(value, Enum):
-                data[key] = value.value
-        return encrypt_data(dumps(data).encode())
 
     def __get_valid_user_id__(self, email: str, password: str) -> str:
         """Get Valid User ID."""

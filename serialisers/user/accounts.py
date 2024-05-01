@@ -30,7 +30,7 @@ class AccountSerialiser(Account, BaseSerialiser):
             if not account:
                 raise AccountError("Account Not Found.")
 
-            return self.__get_encrypted_account_data__(account)
+            return self.__get_model_data__(account)
 
     def create_account(self, user_id) -> str:
         """CRUD Operation: Create Account."""
@@ -83,9 +83,3 @@ class AccountSerialiser(Account, BaseSerialiser):
                 raise AccountError("Account Not Deleted.") from exc
 
             return f"Deleted: {private_id}"
-
-    def __get_encrypted_account_data__(self, account: Account) -> dict:
-        """Get Account Information."""
-
-        data = account.to_dict()
-        return data

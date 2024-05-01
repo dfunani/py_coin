@@ -39,7 +39,7 @@ class LoginHistorySerialiser(LoginHistory, BaseSerialiser):
             if not login_history:
                 raise LoginHistoryError("Login History Not Found.")
 
-            return self.__get_loginhistory_data__(login_history)
+            return self.__get_model_data__(login_history)
 
     def create_login_history(self, user_id: str) -> str:
         """CRUD Operation: Add Login History."""
@@ -94,9 +94,3 @@ class LoginHistorySerialiser(LoginHistory, BaseSerialiser):
                 raise LoginHistoryError("Login History not Deleted.") from exc
 
             return f"Deleted: {private_id}"
-
-    def __get_loginhistory_data__(self, login_history: LoginHistory) -> dict:
-        """Gets the Login History Data."""
-
-        data = login_history.to_dict()
-        return data
