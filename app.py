@@ -4,10 +4,8 @@
 def main():
     """Main Application."""
 
-    pass
+    return "Completed"
 
 
 if __name__ == "__main__":
-    """Execution Time Ingress Point."""
-
     main()
