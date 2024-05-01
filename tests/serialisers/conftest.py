@@ -15,6 +15,7 @@ from models.user.profiles import UserProfile
 from models.user.settings import SettingsProfile
 from models.user.users import User
 from models.warehouse.cards import Card
+from models.warehouse.logins import LoginHistory
 
 
 @fixture
@@ -115,6 +116,7 @@ def card():
         session.delete(card)
         session.commit()
 
+
 @fixture
 def payment():
     """Creates a Test Account."""
@@ -159,6 +161,7 @@ def payment():
         session.delete(card)
         session.commit()
 
+
 @fixture
 def profile():
     """Creates a Test Account."""
@@ -191,34 +194,26 @@ def profile():
         session.commit()
 
 @fixture
-def email():
-    """Test Email for User."""
+def login():
+    """Creates a Test Login History."""
 
-    return "testing123@test.com"
+    with Session(ENGINE) as session:
+        user = User()
+        user.email = encrypt_data("test@test.com".encode())
+        user.password = get_hash_value("password123@", str(user.salt_value))
+        user.user_id = get_hash_value(
+            str("test@test.com") + "password123@", str(AppConfig().salt_value)
+        )
+        session.add(user)
+        session.commit()
 
+        login = LoginHistory()
+        login.user_id = user.id
+        session.add(login)
+        session.commit()
 
-@fixture
-def password():
-    """Test Password for User."""
+        yield login
 
-    return "testing@123"
-
-
-def clear_settings_ids(settings_data: dict) -> dict:
-    """Testing Settings Serialiser: Create Settings."""
-
-    del settings_data["id"]
-    del settings_data["settings_id"]
-    del settings_data["account_id"]
-    del settings_data["created_date"]
-    del settings_data["updated_date"]
-    return settings_data
-
-
-def clear_profile_ids(profile_data: dict) -> dict:
-    del profile_data["id"]
-    del profile_data["profile_id"]
-    del profile_data["account_id"]
-    del profile_data["created_date"]
-    del profile_data["updated_date"]
-    return profile_data
+        session.delete(login)
+        session.delete(user)
+        session.commit()

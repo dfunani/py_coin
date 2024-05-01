@@ -42,7 +42,7 @@ def upgrade() -> None:
         ),
         sa.Column("card_number", sa.String(256), nullable=False),
         sa.Column("cvv_number", sa.String(256), nullable=False),
-        sa.Column("card_type", sa.Enum(CardType, name=f"card_type"), nullable=False),
+        sa.Column("card_type", sa.Enum(CardType, name="card_type"), nullable=False),
         sa.Column(
             "status",
             sa.Enum(Status, name="card_status"),

@@ -18,16 +18,13 @@ class LoginHistorySerialiser(LoginHistory, BaseSerialiser):
 
     __SERIALISER_EXCEPTION__ = LoginHistoryError
     __MUTABLE_KWARGS__: list[str] = [
-        "mfa_enabled",
-        "location_tracking_enabled",
-        "cookies_enabled",
-        "email_status",
-        "data_sharing_preferences",
-        "communication_preference",
-        "theme_preference",
-        "profile_visibility_preference",
-        "mfa_last_used_date",
-        "communication_status",
+        "session_id",
+        "login_location",
+        "login_device",
+        "login_method",
+        "logged_in",
+        "logout_date",
+        "authentication_token",
     ]
 
     def get_login_history(self, login_id: str) -> dict:

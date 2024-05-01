@@ -16,11 +16,11 @@ from models.user.users import User
 from tests.conftest import get_id_by_regex, run_test_teardown
 
 
-def test_userserialiser_create(email, password):
+def test_userserialiser_create():
     """Testing User Serialiser: Create User."""
 
     with Session(ENGINE) as session:
-        user = UserSerialiser().create_user(email, password)
+        user = UserSerialiser().create_user("test@test.com", "password@test1")
         user_id = get_id_by_regex(user)
 
         user = session.query(User).filter(User.user_id == user_id).one_or_none()

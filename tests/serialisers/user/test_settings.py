@@ -19,8 +19,7 @@ from models.user.users import User
 from models.warehouse.cards import Card
 from serialisers.user.settings import SettingsProfileSerialiser
 from models import ENGINE
-from tests.conftest import get_id_by_regex, run_test_teardown, setup_test_commit
-from tests.serialisers.user.conftest import clear_settings_ids
+from tests.conftest import get_id_by_regex, run_test_teardown
 
 
 def test_paymentprofileserialiser_create(account):

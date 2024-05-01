@@ -3,7 +3,7 @@
 from datetime import date, timedelta
 from json import dumps
 from random import randint
-from typing import Union
+from enum import Enum as ENUM
 from sqlalchemy import Column, Date, Enum, String, cast, select
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -49,14 +49,14 @@ class CardSerialiser(Card, BaseSerialiser):
         """CRUD Operation: Add Card."""
 
         with Session(ENGINE) as session:
-            validate_card_type(card_type)
+            card_type = validate_card_type(card_type)
             self.card_type = card_type
             self.cvv_number = str(self.__get_cvv_number__())
             self.expiration_date = (
                 date.today() + timedelta(days=self.__CARD_VALID_YEARS__)
             ).replace(day=1)
             self.card_number = str(self.__get_card_number__())
-            self.pin = str(self.__get_pin__(pin))
+            self.pin = str(self.__get_pin__(pin, self.salt_value))
             self.card_id = str(
                 self.get_card_id(
                     str(decrypt_data(str(self.cvv_number))),
@@ -86,7 +86,7 @@ class CardSerialiser(Card, BaseSerialiser):
                     raise CardValidationError("Invalid attribute to Update.")
 
                 if key == "pin":
-                    valid_pin = self.__get_pin__(value)
+                    valid_pin = self.__get_pin__(value, str(card.salt_value))
                     setattr(card, key, valid_pin)
                 if key == "status":
                     value = validate_status(value)
@@ -131,14 +131,14 @@ class CardSerialiser(Card, BaseSerialiser):
                 if retries == self.__MAX_RETRIES__ - 1:
                     raise
 
-        validate_card_number(str(card_number))
+        card_number = validate_card_number(str(card_number))
         return encrypt_data(str(card_number).encode())
 
-    def __get_pin__(self, pin: str) -> str:
+    def __get_pin__(self, pin: str, salt_value) -> str:
         """Sets Valid Card Pin."""
 
-        validate_pin(pin)
-        return str(get_hash_value(pin, str(self.salt_value)))
+        pin = validate_pin(pin)
+        return str(get_hash_value(pin, salt_value))
 
     def __get_cvv_number__(self) -> str:
         """Sets the Private Attribute."""
@@ -147,7 +147,7 @@ class CardSerialiser(Card, BaseSerialiser):
         if not isinstance(cvv_length, int):
             raise CardValidationError("Invalid CVV Number Length")
         cvv_number = "".join([str(randint(0, 9)) for _ in range(cvv_length)])
-        validate_cvv_number(cvv_number)
+        cvv_number = validate_cvv_number(cvv_number)
         return encrypt_data(cvv_number.encode())
 
     def __get_encrypted_card_data__(self, card: Card) -> str:
@@ -155,7 +155,7 @@ class CardSerialiser(Card, BaseSerialiser):
 
         data = card.to_dict()
         for key, value in data.items():
-            if isinstance(value, Enum):
+            if isinstance(value, ENUM):
                 data[key] = value.value
         return encrypt_data(dumps(data).encode())
 

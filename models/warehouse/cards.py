@@ -34,10 +34,10 @@ class Card(Base, BaseModel):
         "cvv_number", String(256), nullable=False
     )
     card_type: Union[CardType, Column[CardType]] = Column(
-        "card_type", Enum(CardType), nullable=False
+        "card_type", Enum(CardType, name="card_type"), nullable=False
     )
     status: Union[Status, Column[Status]] = Column(
-        "status", Enum(Status), nullable=False, default=Status.NEW
+        "status", Enum(Status, name="card_status"), nullable=False, default=Status.NEW
     )
     pin: str | Column[str] = Column("pin", String(256), nullable=False)
     expiration_date: Union[date, Column[date]] = Column(

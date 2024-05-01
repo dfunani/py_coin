@@ -38,49 +38,49 @@ def test_regex_constants_password_error():
     assert Regex.PASSWORD.value.match("password") is None
 
 
-def test_gender_enum(genders: list[str]):
+def test_gender_enum():
     """Testing Genders Enum"""
 
     assert Gender.FEMALE.value == ("female", "f")
 
 
-def test_account_status_enum(statuses: list[str]):
+def test_account_status_enum():
     """Testing Status Enum"""
 
     assert Status.ACTIVE.value == "Actively is in Use."
 
 
-def test_account_role_enum(roles: list[str]):
+def test_account_role_enum():
     """Testing Roles Enum"""
 
     assert Role.USER.value == "Application User"
 
 
-def test_email_verification_status(email_status: list[Verification]):
+def test_email_verification_status():
     """Testing Email Status Enum"""
 
     assert Verification.VERIFIED.value == "Verified"
 
 
-def device_permissions(permissions: list[str]):
+def device_permissions():
     """Testing Device Permissions Enum"""
 
     assert DevicePermission.CAMERA.value == "camera"
 
 
-def account_login_method(login_methods: list[str]):
+def account_login_method():
     """Testing Login Methods Enum"""
 
     assert LoginMethod.FACEBOOK.value == "Facebook SSO"
 
 
-def account_communication(communications: list[str]):
+def account_communication():
     """Testing User Communication Preferences Enum"""
 
     assert Communication.EMAIL.value == "Email Messenger"
 
 
-def account_occupations(occupations: list[str]):
+def account_occupations():
     """Testing User Occupations Preferences Enum"""
 
     assert Occupation.ARCHITECT.value == "Architect"

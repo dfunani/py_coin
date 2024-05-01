@@ -24,8 +24,7 @@ from models.user.profiles import UserProfile
 from models.user.users import User
 from serialisers.user.profiles import UserProfileSerialiser
 from models import ENGINE
-from tests.conftest import get_id_by_regex, run_test_teardown, setup_test_commit
-from tests.serialisers.user.conftest import clear_profile_ids
+from tests.conftest import get_id_by_regex, run_test_teardown
 
 
 def test_userprofileserialiser_create(account: Account):
