@@ -5,6 +5,12 @@ from json import dumps
 from typing import Any, Tuple, Union
 from lib.interfaces.exceptions import ApplicationError
 from lib.utils.encryption.cryptography import encrypt_data
+from lib.validators.blocks import validate_block_next, validate_block_previous, validate_block_type
+from lib.validators.contracts import validate_contract_status
+from lib.validators.transactions import (
+    validate_transaction_amount,
+    validate_transaction_status,
+)
 from lib.validators.users import (
     validate_balance,
     validate_biography,
@@ -49,6 +55,16 @@ class BaseSerialiser:
         # Settings
         "data_sharing_preferences": validate_data_sharing_preferences,
         "profile_visibility_preference": validate_profile_visibility_preference,
+        # Transactions
+        "title": validate_username,
+        "description": validate_description,
+        # Transactions
+        "amount": validate_transaction_amount,
+        "transaction_status": validate_transaction_status,
+        "contract_status": validate_contract_status,
+        "block_type": validate_block_type,
+        "previous_block_id": validate_block_previous,
+        "next_block_id": validate_block_next,
     }
 
     def __str__(self) -> str:
@@ -61,7 +77,7 @@ class BaseSerialiser:
 
         return f"Application Model: {self.__class__.__name__}"
 
-    def validate_serialiser_kwargs(self, key: str, value: Any) -> Any:
+    def validate_serialiser_kwargs(self, key: str, value: Any, model=None) -> Any:
         """Updates Validated Model Attributes."""
 
         data_type, nullable, validator = self.__get_column_data__(key)
@@ -73,7 +89,7 @@ class BaseSerialiser:
             raise self.__SERIALISER_EXCEPTION__("Invalid Type for this Attribute.")
 
         if validator is not None and hasattr(validator, "__call__"):
-            value = validator(value)
+            value = validator(value, model=model)
 
         return value
 

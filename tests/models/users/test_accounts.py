@@ -32,17 +32,10 @@ def test_account_invalid_args():
             session.commit()
 
 
-def test_account_valid():
+def test_account_valid(user):
     """Testing a Valid Account Constructor, with Required Arguments."""
 
     with Session(ENGINE) as session:
-        user = User()
-        user.email = "email@test.com"
-        user.password = "password@123455"
-        user.user_id = "test_user_id"
-        session.add(user)
-        session.commit()
-
         account = Account()
         account.user_id = user.id
         session.add(account)
@@ -53,4 +46,3 @@ def test_account_valid():
         assert isinstance(account.to_dict(), dict)
 
         run_test_teardown(account.id, Account, session)
-        run_test_teardown(user.id, User, session)

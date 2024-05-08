@@ -36,7 +36,7 @@ def test_user_valid():
 
     with Session(ENGINE) as session:
         user = User()
-        user.email = "test@test.com"
+        user.email = "test3@test.com"
         user.password = "password123@"
         user.user_id = "test_user_id"
 

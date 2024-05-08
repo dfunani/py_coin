@@ -35,31 +35,10 @@ def test_payment_profile_invalid_args():
             session.commit()
 
 
-def test_payment_profile_valid():
+def test_payment_profile_valid(account, card):
     """Testing a Valid User Constructor, with Required Arguments."""
 
     with Session(ENGINE) as session:
-        user = User()
-        user.email = "email@test.com"
-        user.password = "password@123455"
-        user.user_id = "test_user_id"
-        session.add(user)
-        session.commit()
-
-        account = Account()
-        account.user_id = user.id
-        session.add(account)
-        session.commit()
-
-        card = Card()
-        card.card_number = "1991123456789"
-        card.cvv_number = "123"
-        card.pin = "123456"
-        card.card_type = CardType.CHEQUE
-        card.expiration_date = datetime.now()
-        session.add(card)
-        session.commit()
-
         payment_profile = PaymentProfile()
         payment_profile.card_id = card.id
         payment_profile.account_id = account.id
@@ -75,6 +54,3 @@ def test_payment_profile_valid():
         assert payment_profile.status == Status.NEW
 
         run_test_teardown(payment_profile.id, PaymentProfile, session)
-        run_test_teardown(card.id, Card, session)
-        run_test_teardown(account.id, Account, session)
-        run_test_teardown(user.id, User, session)

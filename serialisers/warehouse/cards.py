@@ -29,7 +29,7 @@ class CardSerialiser(Card, BaseSerialiser):
     """Serialiser for the Card Model."""
 
     __SERIALISER_EXCEPTION__ = CardValidationError
-    __MUTABLE_KWARGS__: list[str] = []
+    __MUTABLE_KWARGS__: list[str] = ["status", "pin"]
     __MAX_RETRIES__ = 3
     __CARD_VALID_YEARS__ = 365 * 5
 
@@ -82,14 +82,14 @@ class CardSerialiser(Card, BaseSerialiser):
                 raise CardValidationError("Card Not Found.")
 
             for key, value in kwargs.items():
-                if key not in ["status", "pin"]:
+                if key not in CardSerialiser.__MUTABLE_KWARGS__:
                     raise CardValidationError("Invalid attribute to Update.")
 
                 if key == "pin":
                     valid_pin = self.__get_pin__(value, str(card.salt_value))
                     setattr(card, key, valid_pin)
                 if key == "status":
-                    value = validate_status(value)
+                    value = self.validate_serialiser_kwargs(key, value)
                     setattr(card, key, value)
 
             try:

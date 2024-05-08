@@ -34,22 +34,10 @@ def test_user_profile_profile_invalid_args():
             session.commit()
 
 
-def test_user_profile__():
+def test_user_profile__(account):
     """Testing User With Missing Attributes."""
 
     with Session(ENGINE) as session:
-        user = User()
-        user.email = "email@test.com"
-        user.password = "password@123455"
-        user.user_id = "test_user_id"
-        session.add(user)
-        session.commit()
-
-        account = Account()
-        account.user_id = user.id
-        session.add(account)
-        session.commit()
-
         user_profile = UserProfile()
         user_profile.account_id = account.id
         user_profile.first_name = "firstname"
@@ -67,5 +55,3 @@ def test_user_profile__():
         assert user_profile.social_media_links == {}
 
         run_test_teardown(user_profile.id, UserProfile, session)
-        run_test_teardown(account.id, Account, session)
-        run_test_teardown(user.id, User, session)

@@ -15,7 +15,7 @@ def encrypt_data(data: bytes) -> str:
 
 
 def decrypt_data(data: str) -> str:
-    """Returns Decryoted Data."""
+    """Returns Decrypted Data."""
 
     fernet = AppConfig().fernet
     if not isinstance(fernet, Fernet):

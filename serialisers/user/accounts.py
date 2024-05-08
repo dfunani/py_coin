@@ -16,7 +16,7 @@ class AccountSerialiser(Account, BaseSerialiser):
     """Serialiser for the Account Model."""
 
     __SERIALISER_EXCEPTION__ = AccountError
-    __MUTABLE_KWARGS__: list[str] = []
+    __MUTABLE_KWARGS__: list[str] = ["status"]
 
     def get_account(self, account_id: str) -> dict:
         """CRUD Operation: Read Account."""
@@ -46,7 +46,7 @@ class AccountSerialiser(Account, BaseSerialiser):
 
             return str(self)
 
-    def update_account(self, private_id: str, status: Status | None = None) -> str:
+    def update_account(self, private_id: str, **kwargs) -> str:
         """CRUD Operation: Update Account."""
 
         with Session(ENGINE) as session:
@@ -55,9 +55,12 @@ class AccountSerialiser(Account, BaseSerialiser):
             if account is None:
                 raise AccountError("Account Not Found.")
 
-            if status is not None:
-                status = validate_status(status)
-                setattr(account, "status", status)
+            for key, value in kwargs.items():
+                if key not in AccountSerialiser.__MUTABLE_KWARGS__:
+                    raise AccountError("Invalid Account.")
+
+                value = self.validate_serialiser_kwargs(key, value)
+                setattr(account, key, value)
 
             try:
                 session.add(account)

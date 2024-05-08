@@ -12,22 +12,10 @@ from models.user.users import User
 from tests.conftest import run_test_teardown
 
 
-def test_settings_invalid_no_args():
+def test_settings_invalid_no_args(account):
     """Testing Settings With Missing Attributes."""
 
     with Session(ENGINE) as session:
-        user = User()
-        user.email = "email@test.com"
-        user.password = "password@123455"
-        user.user_id = "test_user_id"
-        session.add(user)
-        session.commit()
-
-        account = Account()
-        account.user_id = user.id
-        session.add(account)
-        session.commit()
-
         settings_profile = SettingsProfile()
         settings_profile.account_id = account.id
         session.add(settings_profile)
@@ -40,8 +28,6 @@ def test_settings_invalid_no_args():
         assert not settings_profile.cookies_enabled
 
         run_test_teardown(settings_profile.id, SettingsProfile, session)
-        run_test_teardown(account.id, Account, session)
-        run_test_teardown(user.id, User, session)
 
 
 def test_settings_profile_invalid_args():

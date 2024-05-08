@@ -3,9 +3,11 @@
 from datetime import datetime
 from uuid import uuid4
 from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, String, text
+from sqlalchemy.orm import relationship
 from lib.utils.constants.users import Status
 from models import Base
 from models.model import BaseModel
+from models.warehouse.cards import Card
 
 
 class PaymentProfile(Base, BaseModel):
