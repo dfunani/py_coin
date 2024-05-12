@@ -1,7 +1,7 @@
 """User: Serialiser for User Model."""
 
 from uuid import UUID
-from sqlalchemy import String, cast, select, UUID as uuid
+from sqlalchemy import String, cast, select
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
