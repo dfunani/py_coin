@@ -94,7 +94,7 @@ def get_cards():
 
         yield cards
 
-        run_test_teardown([*cards], session)
+        run_test_teardown(cards, session)
 
 
 @fixture

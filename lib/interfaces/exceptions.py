@@ -1,4 +1,4 @@
-"""Interfaces Module: Contains Custom Excptions."""
+"""Interfaces: Contains Custom Excptions."""
 
 
 class ApplicationError(Exception):
