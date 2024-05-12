@@ -28,7 +28,7 @@ def upgrade() -> None:
         "cards",
         sa.Column(
             "id",
-            sa.String(256),
+            sa.UUID(as_uuid=True),
             default=sa.text(f"'{str(uuid4())}'"),
             unique=True,
             nullable=False,

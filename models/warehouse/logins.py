@@ -1,7 +1,7 @@
-"""Warehouse Module: Contains Login History Model for Mapping User Login Hostory."""
+"""Warehouse: Login History Model."""
 
-from uuid import uuid4
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, text, Enum
+from uuid import uuid4, UUID as uuid
+from sqlalchemy import UUID, Boolean, Column, DateTime, ForeignKey, String, text, Enum
 
 from lib.utils.constants.users import Country, LoginMethod
 from models import Base
@@ -15,23 +15,23 @@ class LoginHistory(Base, BaseModel):
     __table_args__ = ({"schema": "warehouse"},)
     __EXCLUDE_ATTRIBUTES__: list[str] = []
 
-    id: str | Column[str] = Column(
+    id: uuid | Column[uuid] = Column(
         "id",
-        String(256),
+        UUID(as_uuid=True),
         primary_key=True,
     )
-    login_id: str | Column[str] = Column(
+    login_id: uuid | Column[uuid] = Column(
         "login_id",
-        String(256),
+        UUID(as_uuid=True),
         default=text(f"'{str(uuid4())}'"),
         nullable=False,
     )
-    user_id: str | Column[str] = Column(
-        "user_id", String(256), ForeignKey("users.users.id"), nullable=False
+    user_id: uuid | Column[uuid] = Column(
+        "user_id", UUID(as_uuid=True), ForeignKey("users.users.id"), nullable=False
     )
     session_id = Column(
         "session_id",
-        String(256),
+        UUID(as_uuid=True),
         nullable=True,
     )
     login_date = Column(
@@ -49,18 +49,18 @@ class LoginHistory(Base, BaseModel):
     )
     logged_in = Column("logged_in", Boolean, nullable=False, default=False)
     logout_date = Column("logout_date", DateTime, nullable=True)
-    authentication_token = Column("authentication_token", String, nullable=True)
+    authentication_token = Column("authentication_token", String(256), nullable=True)
 
     def __init__(self):
         """Login History Object Constructor."""
 
-        self.id = str(uuid4())
-        self.login_id = str(uuid4())
+        self.id = uuid4()
+        self.login_id = uuid4()
 
     def __str__(self) -> str:
         """String Representation of the Login History Object."""
 
-        return f"Login History ID: {self.login_id}"
+        return f"Login History ID: {str(self.login_id)}"
 
     def __repr__(self) -> str:
         """String Representation of the Login History Object."""

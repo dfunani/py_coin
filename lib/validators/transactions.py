@@ -15,7 +15,10 @@ def validate_transaction_amount(amount: float, **kwargs) -> float:
         raise TransactionError("Invalid Type for this Attribute.")
     if amount <= 0.0:
         raise TransactionError("Invalid Transaction Amount.")
-    if transaction.transaction_status and transaction.transaction_status != TransactionStatus.DRAFT:
+    if (
+        transaction.transaction_status
+        and transaction.transaction_status != TransactionStatus.DRAFT
+    ):
         raise TransactionError("Can not Update Agreed Amount.")
     return amount
 
@@ -30,6 +33,8 @@ def validate_transaction_status(
         raise TransactionError("Invalid Type for this Attribute.")
     if not isinstance(status, TransactionStatus):
         raise TransactionError("Invalid Type for this Attribute.")
+    if transaction.transaction_status == status:
+        return status
     match (transaction.transaction_status):
         case TransactionStatus.DRAFT:
             if status in [

@@ -1,10 +1,11 @@
-"""Users Module: Contains User Profile Model for Mapping User's Profiles."""
+"""Users: User Profile Model."""
 
 from datetime import date, datetime
-from uuid import uuid4
+from uuid import uuid4, UUID as uuid
 from sqlalchemy import (
     ARRAY,
     JSON,
+    UUID,
     Column,
     Date,
     DateTime,
@@ -35,23 +36,27 @@ class UserProfile(Base, BaseModel):
 
     id = Column(
         "id",
-        String(256),
+        UUID(as_uuid=True),
         default=text(f"'{str(uuid4())}'"),
         primary_key=True,
         nullable=False,
     )
-    profile_id: str | Column[str] = Column(
-        "profile_id", String(256), default=text(f"'{str(uuid4())}'"), nullable=False
+    profile_id: uuid | Column[uuid] = Column(
+        "profile_id",
+        UUID(as_uuid=True),
+        default=text(f"'{str(uuid4())}'"),
+        nullable=False,
     )
-    account_id: str | Column[str] = Column(
-        "account_id", String(256), ForeignKey("users.accounts.id"), nullable=False
+    account_id: uuid | Column[uuid] = Column(
+        "account_id",
+        UUID(as_uuid=True),
+        ForeignKey("users.accounts.id"),
+        nullable=False,
     )
     first_name = Column("first_name", String(256), nullable=True)
     last_name = Column("last_name", String(256), nullable=True)
     username = Column("username", String(256), nullable=True)
-    date_of_birth: date | Column[date] = Column(
-        "date_of_birth", Date, nullable=True
-    )
+    date_of_birth: date | Column[date] = Column("date_of_birth", Date, nullable=True)
     gender: str | Column[str] = Column(
         "gender", Enum(Gender, name="gender"), nullable=True
     )
@@ -105,13 +110,13 @@ class UserProfile(Base, BaseModel):
     def __init__(self):
         """User Profile Constructor."""
 
-        self.id = str(uuid4())
-        self.profile_id = str(uuid4())
+        self.id = uuid4()
+        self.profile_id = uuid4()
 
     def __str__(self) -> str:
         """String Representation of the User Profile Object."""
 
-        return f"User Profile ID: {self.profile_id}"
+        return f"User Profile ID: {str(self.profile_id)}"
 
     def __repr__(self) -> str:
         """String Representation of the User Profile Object."""

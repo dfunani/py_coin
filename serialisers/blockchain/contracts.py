@@ -1,17 +1,12 @@
-"""BlockChain Serialiser Module: Serialiser for Contract Model."""
+"""BlockChain: Serialiser for Contract Model."""
 
-from datetime import datetime
-from json import loads
-import json
-from sqlalchemy import String, cast, select
+from uuid import UUID
+from sqlalchemy import String, cast, select, UUID as uuid
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from lib.interfaces.exceptions import ContractError
-from lib.utils.constants.contracts import ContractStatus
-from lib.utils.encryption.cryptography import decrypt_data
 from lib.utils.encryption.encoders import get_hash_value
-from lib.validators.contracts import validate_contract_status
 from models import ENGINE
 from models.blockchain.contracts import Contract
 from models.user.payments import PaymentProfile
@@ -25,7 +20,7 @@ class ContractSerialiser(Contract, BaseSerialiser):
     __SERIALISER_EXCEPTION__ = ContractError
     __MUTABLE_KWARGS__: list[str] = ["title", "description", "contract_status"]
 
-    def get_Contract(self, contract_id: str) -> dict:
+    def get_contract(self, contract_id: str) -> dict:
         """CRUD Operation: Read Contract."""
 
         with Session(ENGINE) as session:
@@ -39,7 +34,7 @@ class ContractSerialiser(Contract, BaseSerialiser):
 
             return self.__get_model_data__(contract)
 
-    def create_Contract(self, contractor: str, contractee: str, contract: str) -> str:
+    def create_contract(self, contractor: UUID, contractee: UUID, contract: str) -> str:
         """CRUD Operation: Create Contract."""
 
         with Session(ENGINE) as session:
@@ -50,7 +45,7 @@ class ContractSerialiser(Contract, BaseSerialiser):
             if not contractee_profile:
                 raise ContractError("Invalid Receiver.")
 
-            self.contract_id = get_hash_value(contract, self.salt_value)
+            self.contract_id = get_hash_value(contract, str(self.salt_value))
             self.contractor = contractor
             self.contractee = contractee
             self.contract = contract
@@ -64,12 +59,12 @@ class ContractSerialiser(Contract, BaseSerialiser):
                 raise ContractError("Invalid Receiver Card Information.")
 
             self.contractor_signiture = get_hash_value(
-                contractor_card.card_id,
-                self.salt_value,
+                str(contractor_card.card_id),
+                str(self.salt_value),
             )
             self.contractee_signiture = get_hash_value(
-                contractee_card.card_id,
-                self.salt_value,
+                str(contractee_card.card_id),
+                str(self.salt_value),
             )
 
             try:
@@ -81,7 +76,7 @@ class ContractSerialiser(Contract, BaseSerialiser):
             return str(self)
 
     def update_contract(
-        self, private_id: str, contractor_signiture: str, contractee_signiture: str, **kwargs
+        self, private_id: UUID, contractor_signiture: str, contractee_signiture: str, **kwargs
     ) -> str:
         """CRUD Operation: Update Contract."""
 
@@ -111,7 +106,7 @@ class ContractSerialiser(Contract, BaseSerialiser):
 
             return str(Contract)
 
-    def delete_contract(self, private_id: str) -> str:
+    def delete_contract(self, private_id: UUID) -> str:
         """CRUD Operation: Delete Contract."""
 
         with Session(ENGINE) as session:

@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from os import getenv
-from uuid import uuid4
+from uuid import uuid4, UUID
 from cryptography.fernet import Fernet
 from lib.utils.constants.users import DateFormat
 from lib.validators.config import (
@@ -22,7 +22,7 @@ class AppConfig:
     __session__id__ = uuid4()
     __START_DATE__ = datetime.now()
     __end_date__ = datetime.now()
-    __SALT_VALUE__ = getenv("SALT_VALUE")
+    __SALT_VALUE__ = UUID('0c923c48-aea7-48ce-a609-17fb120bf667')
     __FERNET_KEY__ = getenv("FERNET_KEY")
     __CARD_LENGTH__ = 13
     __CVV_LENGTH__ = 3
@@ -59,10 +59,10 @@ class AppConfig:
         self.__end_date__ = validate_end_date(value, self.__START_DATE__)
 
     @property
-    def salt_value(self) -> str:
+    def salt_value(self) -> UUID:
         """Getter for Salt Value."""
 
-        return validate_salt_value(str(self.__SALT_VALUE__))
+        return validate_salt_value(self.__SALT_VALUE__)
 
     @property
     def card_length(self) -> int:

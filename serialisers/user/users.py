@@ -1,6 +1,7 @@
-"""Users Serialiser Module: Serialiser for User Model."""
+"""User: Serialiser for User Model."""
 
-from sqlalchemy import String, cast, select
+from uuid import UUID
+from sqlalchemy import String, cast, select, UUID as uuid
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
@@ -51,7 +52,7 @@ class UserSerialiser(User, BaseSerialiser):
 
     def update_user(
         self,
-        private_id: str,
+        private_id: UUID,
         status: Status | None = None,
         password: str | None = None,
     ) -> str:
@@ -85,7 +86,7 @@ class UserSerialiser(User, BaseSerialiser):
 
             return str(user)
 
-    def delete_user(self, private_id: str) -> str:
+    def delete_user(self, private_id: UUID) -> str:
         """CRUD Operation: Delete User."""
 
         with Session(ENGINE) as session:

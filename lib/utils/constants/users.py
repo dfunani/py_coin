@@ -37,7 +37,7 @@ class Regex(Enum):
     """Holds Regex Constants That are Applicable to the Application."""
 
     EMAIL: Pattern = regex_compile(
-        r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-_]+\.[a-zA-Z]+\.?[a-zA-Z]*$"
+        r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-_]+\.[a-zA-Z]{1,3}\.?[a-zA-Z]{2,3}$"
     )
     PASSWORD: Pattern = regex_compile(
         r"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()-_+=]).{8,}$"
@@ -48,6 +48,7 @@ class Regex(Enum):
     DESCRIPTION = regex_compile(r"^[a-zA-Z][a-zA-Z0-9\s\-,._]{8,125}$")
     BIOGRAPHY = regex_compile(r"^(?!\s+$).{8,250}$")
     PIN = regex_compile(r"^\d{6}$")
+    CVV = regex_compile(r"^\d+$")
 
 
 class Gender(Enum):
@@ -526,7 +527,7 @@ class SocialMediaLink(Enum):
     )
     SLACK = regex_compile(r"^https?:\/\/[a-zA-Z0-9-]+\.slack\.com\/?$")
     TWITCH = regex_compile(r"^https?:\/\/(www\.)?twitch\.tv\/[a-zA-Z0-9_]+$")
-    SPOTIFY = regex_compile(r"^https?:\/\/open\.spotify\.com\/user\/[a-zA-Z0-9]+$")
+    SPOTIFY = regex_compile(r"^https?:\/\/open\.spotify\.com\/user\/[a-zA-Z0-9_]+$")
     SOUNDCLOUD = regex_compile(r"^https?:\/\/(www\.)?soundcloud\.com\/[a-zA-Z0-9_-]+$")
 
 

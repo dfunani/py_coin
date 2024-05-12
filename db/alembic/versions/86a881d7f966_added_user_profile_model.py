@@ -36,20 +36,20 @@ def upgrade() -> None:
         "user_profiles",
         sa.Column(
             "id",
-            sa.String(256),
+            sa.UUID(as_uuid=True),
             default=sa.text(f"'{str(uuid4())}'"),
             primary_key=True,
             nullable=False,
         ),
         sa.Column(
             "profile_id",
-            sa.String(256),
+            sa.UUID(as_uuid=True),
             default=sa.text(f"'{str(uuid4())}'"),
             nullable=False,
         ),
         sa.Column(
             "account_id",
-            sa.String(256),
+            sa.UUID(as_uuid=True),
             sa.ForeignKey("users.accounts.id"),
             nullable=False,
         ),

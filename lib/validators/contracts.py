@@ -14,6 +14,8 @@ def validate_contract_status(
         raise ContractError("Invalid Type for this Attribute.")
     if not isinstance(status, ContractStatus):
         raise ContractError("Invalid Type for this Attribute.")
+    if contract.contract_status == status:
+        return status
     match (contract.contract_status):
         case ContractStatus.DRAFT:
             if status in [

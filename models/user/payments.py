@@ -1,13 +1,11 @@
-"""Users Module: Contains User Payment Profile."""
+"""Users: Payments Profile Model."""
 
 from datetime import datetime
-from uuid import uuid4
-from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, String, text
-from sqlalchemy.orm import relationship
+from uuid import uuid4, UUID as uuid
+from sqlalchemy import UUID, Column, DateTime, Enum, Float, ForeignKey, String, text
 from lib.utils.constants.users import Status
 from models import Base
 from models.model import BaseModel
-from models.warehouse.cards import Card
 
 
 class PaymentProfile(Base, BaseModel):
@@ -17,13 +15,21 @@ class PaymentProfile(Base, BaseModel):
     __table_args__ = ({"schema": "users"},)
     __EXCLUDE_ATTRIBUTES__: list[str] = []
 
-    id: str | Column[str] = Column("id", String(256), primary_key=True)
-    payment_id: str | Column[str] = Column("payment_id", String(256), nullable=False)
-    account_id: str | Column[str] = Column(
-        "account_id", ForeignKey("users.accounts.id"), nullable=False
+    id: uuid | Column[uuid] = Column("id", UUID(as_uuid=True), primary_key=True)
+    payment_id: uuid | Column[uuid] = Column(
+        "payment_id", UUID(as_uuid=True), nullable=False
     )
-    card_id: str | Column[str] = Column(
-        "card_id", String(256), ForeignKey("warehouse.cards.id"), nullable=False
+    account_id: uuid | Column[uuid] = Column(
+        "account_id",
+        UUID(as_uuid=True),
+        ForeignKey("users.accounts.id"),
+        nullable=False,
+    )
+    card_id: uuid | Column[uuid] = Column(
+        "card_id",
+        UUID(as_uuid=True),
+        ForeignKey("warehouse.cards.id"),
+        nullable=False,
     )
     name: str | Column[str] = Column(
         "name", String(256), nullable=False, default="New Payment Account."
@@ -54,13 +60,13 @@ class PaymentProfile(Base, BaseModel):
     def __init__(self):
         """User Payment Information Constructor."""
 
-        self.id = str(uuid4())
-        self.payment_id = str(uuid4())
+        self.id = uuid4()
+        self.payment_id = uuid4()
 
     def __str__(self) -> str:
         """String Representation of the Payment Profile Object."""
 
-        return f"Payment Profile ID: {self.payment_id}"
+        return f"Payment Profile ID: {str(self.payment_id)}"
 
     def __repr__(self) -> str:
         """String Representation of the Payment Profile Object."""

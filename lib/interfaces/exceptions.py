@@ -72,6 +72,7 @@ class LoginHistoryError(Exception):
         super().__init__(message)
         self.message = message
 
+
 class TransactionError(Exception):
     """Custom Error For User Transaction Error."""
 
@@ -79,12 +80,14 @@ class TransactionError(Exception):
         super().__init__(message)
         self.message = message
 
+
 class ContractError(Exception):
     """Custom Error For User Contract Error."""
 
     def __init__(self, message: str) -> None:
         super().__init__(message)
         self.message = message
+
 
 class BlockError(Exception):
     """Custom Error For User Block Error."""

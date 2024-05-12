@@ -1,4 +1,4 @@
-"""Users Module: Testing the Accounts Class."""
+"""Users: Testing Account Model."""
 
 from pytest import raises
 
@@ -8,7 +8,6 @@ from sqlalchemy.exc import IntegrityError
 from lib.utils.constants.users import Status
 from models import ENGINE
 from models.user.accounts import Account
-from models.user.users import User
 from tests.conftest import run_test_teardown
 
 
@@ -32,17 +31,18 @@ def test_account_invalid_args():
             session.commit()
 
 
-def test_account_valid(user):
+def test_account_valid(get_users):
     """Testing a Valid Account Constructor, with Required Arguments."""
 
-    with Session(ENGINE) as session:
-        account = Account()
-        account.user_id = user.id
-        session.add(account)
-        session.commit()
+    for user in get_users:
+        with Session(ENGINE) as session:
+            account = Account()
+            account.user_id = user.id
+            session.add(account)
+            session.commit()
 
-        assert account.id is not None
-        assert account.status == Status.NEW
-        assert isinstance(account.to_dict(), dict)
+            assert account.id is not None
+            assert account.status == Status.NEW
+            assert isinstance(account.to_dict(), dict)
 
-        run_test_teardown(account.id, Account, session)
+            run_test_teardown([account], session)

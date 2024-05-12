@@ -1,5 +1,6 @@
 """Validators Module: validations for Block Related Models."""
 
+from uuid import UUID
 from sqlalchemy.orm import Session
 from lib.interfaces.exceptions import BlockError
 from lib.utils.constants.blocks import BlockType
@@ -23,7 +24,8 @@ def validate_block_type(block_type: BlockType, **kwargs) -> BlockType:
         return BlockType.CONTRACT
     return block_type
 
-def validate_block_next(next_block_id: str, **kwargs) -> BlockType:
+
+def validate_block_next(next_block_id: UUID, **kwargs) -> UUID:
     """Validates Next Block ID."""
 
     block = kwargs.get("model")
@@ -35,10 +37,13 @@ def validate_block_next(next_block_id: str, **kwargs) -> BlockType:
 
     with Session(ENGINE) as session:
         next_block = session.get(Block, next_block_id)
-        if next_block:
-            return next_block_id
+        if not next_block:
+            raise BlockError("Invalid Block.")
 
-def validate_block_previous(previous_block_id: str, **kwargs) -> BlockType:
+    return next_block_id
+
+
+def validate_block_previous(previous_block_id: UUID, **kwargs) -> UUID:
     """Validates Previous Block ID."""
 
     block = kwargs.get("model")
@@ -50,5 +55,7 @@ def validate_block_previous(previous_block_id: str, **kwargs) -> BlockType:
 
     with Session(ENGINE) as session:
         previous_block = session.get(Block, previous_block_id)
-        if previous_block:
-            return previous_block_id
+        if not previous_block:
+            raise BlockError("Invalid Block.")
+
+    return previous_block_id

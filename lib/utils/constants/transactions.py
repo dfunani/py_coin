@@ -10,5 +10,5 @@ class TransactionStatus(Enum):
     APPROVED = "Transaction Approved."
     REJECTED = "Transaction Rejected."
     INSUFFICIENT = "Insufficient Funds."
-    TRANSFERED = "Funds Transfered." 
+    TRANSFERED = "Funds Transfered."
     REVERSED = "Transaction Reversed."

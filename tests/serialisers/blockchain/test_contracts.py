@@ -1,229 +1,241 @@
-"""Serialisers Module: Testing Contracts Serialiser."""
+"""BlockChain: Testing Contract Serialiser."""
 
-from pytest import raises
+from base64 import b64encode
+from pytest import mark, raises
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import DataError, ProgrammingError
 
-from config import AppConfig
 from lib.interfaces.exceptions import ContractError
 from lib.utils.constants.contracts import ContractStatus
-from lib.utils.constants.users import Status
 from lib.utils.encryption.cryptography import encrypt_data
-from lib.utils.encryption.encoders import get_hash_value
 from models.blockchain.contracts import Contract
-from models.user.payments import PaymentProfile
-from models.warehouse.cards import Card
 from serialisers.blockchain.contracts import ContractSerialiser
 from models import ENGINE
-from tests.conftest import get_id_by_regex, run_test_teardown
+from tests.conftest import run_test_teardown
+from tests.test_utils.utils import check_invalid_ids, get_id_by_regex
 
 
-def test_contractserialiser_create(payment, payment2):
+def __read_file__():
+    """Util Function to Read the sample File."""
+    with open("tests/test_contract.html", "rb") as file:
+        return b64encode(file.read())
+
+
+@mark.parametrize(
+    "data",
+    [
+        encrypt_data("Test Contract Data String.".encode()),
+        encrypt_data("Any Valid Test String".encode()),
+        encrypt_data(__read_file__()),
+    ],
+)
+def test_contractserialiser_create(get_payments, data):
     """Testing Contract Serialiser: Create Contract."""
 
-    with Session(ENGINE) as session:
-        contract = ContractSerialiser().create_Contract(
-            payment.id, payment2.id, "Testing a string contract, updated."
-        )
-        contract_id = get_id_by_regex(contract)
-        contract = (
-            session.query(Contract)
-            .filter(Contract.contract_id == contract_id)
-            .one_or_none()
-        )
-        assert contract.id is not None
-        assert contract.contract_id is not None
-        assert contract.contract is not None
+    for payment, payment1 in zip(get_payments, list(reversed(get_payments))):
+        with Session(ENGINE) as session:
+            contract = ContractSerialiser().create_contract(
+                payment.id, payment1.id, data
+            )
+            contract_id = get_id_by_regex(contract)
+            contract = (
+                session.query(Contract)
+                .filter(Contract.contract_id == contract_id)
+                .one_or_none()
+            )
+            assert contract.id is not None
+            assert contract.contract == data
 
-        run_test_teardown(contract.id, Contract, session)
+            run_test_teardown([contract], session)
 
 
-def test_contracter_create_invalid():
+@mark.parametrize(
+    "data",
+    zip(check_invalid_ids(), list(reversed(check_invalid_ids())), (-50, "500", 0.0)),
+)
+def test_contracter_create_invalid(data):
     """Testing Contract Serialiser: Create Contract."""
 
-    with raises(ContractError):
-        ContractSerialiser().create_Contract("payment.id", "payment.id", "50")
+    with raises((ContractError, DataError, ProgrammingError)):
+        ContractSerialiser().create_contract(data[0], data[1], data[1])
 
 
-def test_contractileserialiser_get(contract):
+def test_contractileserialiser_get(get_contracts):
     """Testing Contract Serialiser: Get Contract."""
 
-    contract_data = ContractSerialiser().get_Contract(
-        contract.contract_id
-    )
+    for contract in get_contracts:
+        contract_data = ContractSerialiser().get_contract(contract.contract_id)
 
-    assert isinstance(contract_data, dict)
-    for key in contract_data:
-        assert key not in contract.__EXCLUDE_ATTRIBUTES__
+        assert isinstance(contract_data, dict)
+        for key in contract_data:
+            assert key not in contract.__EXCLUDE_ATTRIBUTES__
 
 
-def test_contractliser_get_invalid():
+@mark.parametrize(
+    "data",
+    check_invalid_ids(),
+)
+def test_contractliser_get_invalid(data):
     """Testing Contract Serialiser: Get Contract."""
 
-    with raises(ContractError):
-        ContractSerialiser().get_Contract("contract_id")
+    with raises((ContractError, DataError, ProgrammingError)):
+        ContractSerialiser().get_contract(data)
 
 
-def test_contractserialiser_delete(contract):
+def test_contractserialiser_delete(get_contracts):
     """Testing Contract Serialiser: Delete Contract."""
 
-    ContractSerialiser().delete_contract(contract.id)
+    for contract in get_contracts:
+        assert ContractSerialiser().delete_contract(contract.id).startswith("Deleted: ")
 
 
-def test_contracter_delete_invalid():
+@mark.parametrize(
+    "data",
+    check_invalid_ids(),
+)
+def test_contracter_delete_invalid(data):
     """Testing Contract Serialiser: Delete Contract."""
 
-    with raises(ContractError):
-        ContractSerialiser().delete_contract("contract_data.id")
+    with raises((ContractError, DataError, ProgrammingError)):
+        ContractSerialiser().delete_contract(data)
 
 
-def test_contractdate_valid_status(contract):
+@mark.parametrize(
+    "data",
+    [
+        {
+            "title": "Test Contract Data String",
+            "description": "Any Valid Test String",
+        },
+        {
+            "title": "Test Contract Data String",
+            "description": "Any Valid Test String",
+        },
+    ],
+)
+def test_contract_update_valid_contract(get_contracts, data):
+    """Testing Contract Serialiser: Update Contract."""
+
+    for contract in get_contracts:
+        with Session(ENGINE) as session:
+            ContractSerialiser().update_contract(
+                contract.id,
+                contract.contractor_signiture,
+                contract.contractee_signiture,
+                **data,
+            )
+            contract = session.get(Contract, contract.id)
+            assert contract.id is not None
+            for key, value in data.items():
+                assert getattr(contract, key) == value
+
+
+@mark.parametrize(
+    "data",
+    [
+        {
+            "title": 1,
+            "description": 1,
+        },
+        {
+            "title": "Test",
+            "description": "Any",
+        },
+        {
+            "title": "   ",
+            "description": "   ",
+        },
+    ],
+)
+def test_contract_update_invalid_contract(get_contracts, data):
+    """Testing Contract Serialiser: Update Contract."""
+
+    for contract in get_contracts:
+        with raises((ContractError, DataError, ProgrammingError)):
+            ContractSerialiser().update_contract(
+                contract.id,
+                contract.contractor_signiture,
+                contract.contractee_signiture,
+                contract=data,
+            )
+
+
+@mark.parametrize(
+    "data",
+    [
+        {
+            "draft": ContractStatus.APPROVED,
+            "approved": ContractStatus.CLOSED,
+            "closed": ContractStatus.CLOSED,
+        },
+        {
+            "draft": ContractStatus.REJECTED,
+            "approved": ContractStatus.ACTIVE,
+            "closed": ContractStatus.CLOSED,
+        },
+    ],
+)
+def test_contractte_valid_status_app(get_contracts, data):
     """Testing Contract Serialiser: Update Contract."""
 
     with Session(ENGINE) as session:
-        ContractSerialiser().update_contract(
-            contract.id,
-            contract.contractor_signiture,
-            contract.contractee_signiture,
-            contract_status=ContractStatus.APPROVED,
-        )
-        contract = session.get(Contract, contract.id)
-        assert contract.id is not None
-        assert contract.contract_status == ContractStatus.APPROVED
+        for contract in get_contracts:
+            match (contract.contract_status):
+                case ContractStatus.DRAFT:
+                    contract_status = data.get("draft")
+                case ContractStatus.APPROVED:
+                    contract_status = data.get("approved")
+                case ContractStatus.CLOSED:
+                    contract_status = data.get("closed")
+                case _:
+                    continue
+            ContractSerialiser().update_contract(
+                contract.id,
+                contract.contractor_signiture,
+                contract.contractee_signiture,
+                contract_status=contract_status,
+            )
+            contract_data = session.get(Contract, contract.id)
+            assert contract_data.id is not None
+            assert contract_data.contract_status == contract_status
 
 
-def test_contractdate_valid_status_approved(contract):
+@mark.parametrize(
+    "data",
+    [
+        {
+            "draft": ContractStatus.CLOSED,
+        },
+        {
+            "closed": ContractStatus.APPROVED,
+        },
+        {
+            "draft": ContractStatus.ACTIVE,
+            "closed": ContractStatus.ACTIVE,
+        },
+        {
+            "approved": ContractStatus.REJECTED,
+            "closed": ContractStatus.REJECTED,
+        },
+    ],
+)
+def test_contractte_invalid_status_app(get_contracts, data):
     """Testing Contract Serialiser: Update Contract."""
 
-    with Session(ENGINE) as session:
-        ContractSerialiser().update_contract(
-            contract.id,
-            contract.contractor_signiture,
-            contract.contractee_signiture,
-            contract_status=ContractStatus.APPROVED,
-        )
-        ContractSerialiser().update_contract(
-            contract.id,
-            contract.contractor_signiture,
-            contract.contractee_signiture,
-            contract_status=ContractStatus.ACTIVE,
-        )
-        contract = session.get(Contract, contract.id)
-        assert contract.id is not None
-        assert contract.contract_status == ContractStatus.ACTIVE
-
-
-def test_contractdate_valid_status_approved(contract):
-    """Testing Contract Serialiser: Update Contract."""
-
-    with Session(ENGINE) as session:
-        ContractSerialiser().update_contract(
-            contract.id,
-            contract.contractor_signiture,
-            contract.contractee_signiture,
-            contract_status=ContractStatus.APPROVED,
-        )
-        ContractSerialiser().update_contract(
-            contract.id,
-            contract.contractor_signiture,
-            contract.contractee_signiture,
-            contract_status=ContractStatus.CLOSED,
-        )
-        contract = session.get(Contract, contract.id)
-        assert contract.id is not None
-        assert contract.contract_status == ContractStatus.CLOSED
-
-
-def test_contractdate_valid_status_approved(contract):
-    """Testing Contract Serialiser: Update Contract."""
-
-    with Session(ENGINE) as session:
-        ContractSerialiser().update_contract(
-            contract.id,
-            contract.contractor_signiture,
-            contract.contractee_signiture,
-            contract_status=ContractStatus.REJECTED,
-        )
-        contract = session.get(Contract, contract.id)
-        assert contract.id is not None
-        assert contract.contract_status == ContractStatus.REJECTED
-
-
-def test_contractdate_valid_status_approved(contract):
-    """Testing Contract Serialiser: Update Contract."""
-
-    with Session(ENGINE) as session:
-        ContractSerialiser().update_contract(
-            contract.id,
-            contract.contractor_signiture,
-            contract.contractee_signiture,
-            title="ContractStatusAPPROVED",
-            description="Longer Description ContractStatus.APPROVED",
-        )
-        contract = session.get(Contract, contract.id)
-        assert contract.id is not None
-        assert contract.contract_status == ContractStatus.DRAFT
-        assert contract.title == "ContractStatusAPPROVED"
-        assert (
-            contract.description == "Longer Description ContractStatus.APPROVED"
-        )
-
-
-def test_contractte_invalid_status(contract):
-    """Testing Contract Serialiser: Update Contract."""
-
-    with raises(ContractError):
-        ContractSerialiser().update_contract(
-            contract.id,
-            contract.contractor_signiture,
-            contract.contractee_signiture,
-            contract_status=ContractStatus.CLOSED,
-        )
-        ContractSerialiser().update_contract(
-            contract.id,
-            contract.contractor_signiture,
-            contract.contractee_signiture,
-            contract_status=ContractStatus.REJECTED,
-        )
-        ContractSerialiser().update_contract(
-            contract.id,
-            contract.contractor_signiture,
-            contract.contractee_signiture,
-            contract_status=ContractStatus.ACTIVE,
-        )
-
-
-def test_contractte_invalid_status_app(contract):
-    """Testing Contract Serialiser: Update Contract."""
-
-    with raises(ContractError):
-        ContractSerialiser().update_contract(
-            contract.id,
-            contract.contractor_signiture,
-            contract.contractee_signiture,
-            contract_status=ContractStatus.APPROVED,
-        )
-        ContractSerialiser().update_contract(
-            contract.id,
-            contract.contractor_signiture,
-            contract.contractee_signiture,
-            contract_status=ContractStatus.REJECTED,
-        )
-
-
-def test_contractte_invalid_status_2(contract):
-    """Testing Contract Serialiser: Update Contract."""
-
-    with raises(ContractError):
-        ContractSerialiser().update_contract(
-            contract.id,
-            contract.contractor_signiture,
-            contract.contractee_signiture,
-            contract_status=ContractStatus.APPROVED,
-        )
-        ContractSerialiser().update_contract(
-            contract.id,
-            contract.contractor_signiture,
-            contract.contractee_signiture,
-            contract = 55.5
-        )
-
+    for contract in get_contracts:
+        match (contract.contract_status):
+            case ContractStatus.DRAFT:
+                contract_status = data.get("draft")
+            case ContractStatus.APPROVED:
+                contract_status = data.get("approved")
+            case ContractStatus.CLOSED:
+                contract_status = data.get("closed")
+            case _:
+                contract_status = None
+        with raises((ContractError, DataError, ProgrammingError)):
+            ContractSerialiser().update_contract(
+                contract.id,
+                contract.contractor_signiture,
+                contract.contractee_signiture,
+                contract_status=contract_status,
+            )

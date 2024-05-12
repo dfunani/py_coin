@@ -1,120 +1,151 @@
-"""Serialisers Module: Testing Payments Serialiser."""
+"""User: Testing Payments Profile Serialiser."""
 
-import json
-from re import compile as regex_compile
-
-from pytest import raises
+from uuid import uuid4
+from pytest import mark, raises
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import DataError, ProgrammingError
 
-from lib.utils.constants.users import CardType, Status
-from lib.utils.encryption.cryptography import decrypt_data
+from lib.utils.constants.users import Status
 from models.user.accounts import Account
 from models.user.payments import PaymentProfile
-from models.user.users import User
-from models.warehouse.cards import Card
 from serialisers.user.payments import PaymentProfileSerialiser
-from lib.interfaces.exceptions import (
-    CardValidationError,
-    PaymentProfileError,
-    UserError,
-    UserProfileError,
-)
+from lib.interfaces.exceptions import PaymentProfileError
 from models import ENGINE
-from serialisers.warehouse.cards import CardSerialiser
-from tests.conftest import get_id_by_regex, run_test_teardown, setup_test_commit
+from tests.conftest import run_test_teardown
+from tests.test_utils.utils import get_id_by_regex, check_invalid_ids
 
 
-def test_paymentprofileserialiser_create(card, account):
+def test_paymentprofileserialiser_create(get_accounts, get_cards):
     """Testing PaymentProfile Serialiser: Create PaymentProfile."""
 
-    with Session(ENGINE) as session:
-        payment_profile = PaymentProfileSerialiser().create_payment_profile(
-            account.id, card.id
-        )
-        payment_id = get_id_by_regex(payment_profile)
-        payment = (
-            session.query(PaymentProfile)
-            .filter(PaymentProfile.payment_id == payment_id)
-            .one_or_none()
-        )
-        assert payment.id is not None
-        run_test_teardown(payment.id, PaymentProfile, session)
+    for account, card in zip(get_accounts, get_cards):
+        with Session(ENGINE) as session:
+            payment_profile = PaymentProfileSerialiser().create_payment_profile(
+                account.id, card.id
+            )
+            payment_id = get_id_by_regex(payment_profile)
+            payment = (
+                session.query(PaymentProfile)
+                .filter(PaymentProfile.payment_id == payment_id)
+                .one_or_none()
+            )
+            assert payment.id is not None
+            run_test_teardown([payment], session)
 
 
-def test_paymentprofileserialiser_create_inavild_private_id():
+@mark.parametrize("data", check_invalid_ids())
+def test_paymentprofileserialiser_create_inavild_private_id(data):
     """Testing PaymentProfile Serialiser: Create PaymentProfile Invalid [Card ID]."""
 
-    with raises(PaymentProfileError):
-        PaymentProfileSerialiser().create_payment_profile("private_id", "card_id")
+    with raises((PaymentProfileError, DataError, ProgrammingError)):
+        PaymentProfileSerialiser().create_payment_profile(data, data)
 
 
-def test_paymentprofileserialiser_get(payment):
+def test_paymentprofileserialiser_get(get_payments):
     """Testing PaymentProfile Serialiser: Get PaymentProfile."""
 
-    payment_data = PaymentProfileSerialiser().get_payment_profile(payment.payment_id)
+    for payment in get_payments:
+        payment_data = PaymentProfileSerialiser().get_payment_profile(
+            payment.payment_id
+        )
 
-    assert isinstance(payment_data, dict)
-    for key in payment_data:
-        assert key not in Account.__EXCLUDE_ATTRIBUTES__
+        assert isinstance(payment_data, dict)
+        for key in payment_data:
+            assert key not in Account.__EXCLUDE_ATTRIBUTES__
 
 
-def test_paymentprofileserialiser_get_inavild_private_id():
+@mark.parametrize("data", check_invalid_ids())
+def test_paymentprofileserialiser_get_inavild_private_id(data):
     """Testing PaymentProfile Serialiser: Create PaymentProfile Invalid [Card ID]."""
 
-    with raises(PaymentProfileError):
-        assert PaymentProfileSerialiser().get_payment_profile("id")
+    with raises((PaymentProfileError, DataError, ProgrammingError)):
+        assert PaymentProfileSerialiser().get_payment_profile(data)
 
 
-def test_paymentprofileserialiser_delete(payment):
+def test_paymentprofileserialiser_delete(get_payments):
     """Testing PaymentProfile Serialiser: Delete PaymentProfile."""
 
-    PaymentProfileSerialiser().delete_payment_profile(payment.id)
+    for payment in get_payments:
+        assert (
+            PaymentProfileSerialiser()
+            .delete_payment_profile(payment.id)
+            .startswith("Deleted: ")
+        )
 
 
-def test_paymentprofileserialiser_delete_inavild_private_id():
+@mark.parametrize("data", check_invalid_ids())
+def test_paymentprofileserialiser_delete_inavild_private_id(data):
     """Testing PaymentProfile Serialiser: Create PaymentProfile Invalid [Card ID]."""
 
-    with raises(PaymentProfileError):
-        assert PaymentProfileSerialiser().delete_payment_profile("id")
+    with raises((PaymentProfileError, DataError, ProgrammingError)):
+        assert PaymentProfileSerialiser().delete_payment_profile(data)
 
 
-def test_paymentprofileserialiser_update_valid(payment):
+@mark.parametrize(
+    "data",
+    [
+        {
+            "balance": 5.0,
+            "name": "Well described name for profile",
+            "description": "Longer Description - Well described name for profile.",
+            "status": Status.ACTIVE,
+        },
+        {
+            "balance": 500.0,
+            "status": Status.NEW,
+        },
+        {
+            "status": Status.DELETED,
+        },
+    ],
+)
+def test_paymentprofileserialiser_update_valid(get_payments, data):
     """Testing PaymentProfile Serialiser: Update PaymentProfile."""
 
-    with Session(ENGINE) as session:
-        PaymentProfileSerialiser().update_payment_profile(
-            payment.id,
-            balance=5.0,
-            name="Well described name for profile",
-            description="Longer Description - Well described name for profile.",
-            status=Status.ACTIVE,
-        )
-        payment = session.get(PaymentProfile, payment.id)
-        assert payment.id is not None
-        assert payment.balance == 5.0
-        assert payment.name == "Well described name for profile"
-        assert (
-            payment.description
-            == "Longer Description - Well described name for profile."
-        )
-        assert payment.status == Status.ACTIVE
+    for payment in get_payments:
+        with Session(ENGINE) as session:
+            PaymentProfileSerialiser().update_payment_profile(payment.id, **data)
+            payment = session.get(PaymentProfile, payment.id)
+            assert payment.id is not None
+            for key, value in data.items():
+                assert getattr(payment, key) == value
 
 
-def test_paymentprofileserialiser_update_invalid(payment):
+@mark.parametrize(
+    "data",
+    [
+        {
+            "balance": -5.0,
+            "name": "Well described name for profile",
+            "description": "Longer Description - Well described name for profile.",
+            "status": Status.ACTIVE,
+        },
+        {
+            "balance": 0.0,
+            "status": Status.DISABLED,
+            "name": 1,
+            "description": 1,
+        },
+        {
+            "balance": "0.0",
+            "status": Status.INACTIVE,
+        },
+        {
+            "balance": None,
+            "name": "Well",
+            "description": "Longe",
+            "status": "Status.ACTIVE",
+        },
+        {
+            "name": None,
+            "description": None,
+            "status": None,
+        },
+    ],
+)
+def test_paymentprofileserialiser_update_invalid(get_payments, data):
     """Testing PaymentProfile Serialiser: Invalid Update PaymentProfile."""
 
-    with raises(PaymentProfileError):
-        PaymentProfileSerialiser().update_payment_profile(
-            payment.id,
-            balance=-5.0,
-            name="profile",
-            description="Longer",
-            status=Status.DISABLED,
-        )
-        PaymentProfileSerialiser().update_payment_profile(
-            payment.id,
-            balance="5.0",
-            name=1,
-            description=1,
-            status="Status.DISABLED",
-        )
+    for payment in get_payments:
+        with raises(PaymentProfileError):
+            PaymentProfileSerialiser().update_payment_profile(payment.id, **data)

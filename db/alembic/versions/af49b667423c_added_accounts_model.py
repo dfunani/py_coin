@@ -27,7 +27,7 @@ def upgrade() -> None:
         "accounts",
         sa.Column(
             "id",
-            sa.String(256),
+            sa.UUID(as_uuid=True),
             default=sa.text(f"'{str(uuid4())}'"),
             unique=True,
             nullable=False,
@@ -35,11 +35,11 @@ def upgrade() -> None:
         ),
         sa.Column(
             "account_id",
-            sa.String(256),
+            sa.UUID(as_uuid=True),
             default=sa.text(f"'{str(uuid4())}'"),
             unique=True,
         ),
-        sa.Column("user_id", sa.String(256), sa.ForeignKey("users.users.id"), nullable=False),
+        sa.Column("user_id", sa.UUID(as_uuid=True), sa.ForeignKey("users.users.id"), nullable=False),
         sa.Column(
             "status", sa.Enum(Status, name="account_status"), default=Status.NEW, nullable=False
         ),

@@ -1,12 +1,15 @@
-"""Exceptions: Testing Module."""
+"""Interfaces: Testing Exceptions Module."""
 
 from lib.interfaces.exceptions import (
     AccountError,
     ApplicationError,
+    BlockError,
     CardValidationError,
+    ContractError,
     FernetError,
     LoginHistoryError,
     PaymentProfileError,
+    TransactionError,
     UserError,
     UserProfileError,
 )
@@ -82,3 +85,30 @@ def test_loginhistoryerror():
         raise LoginHistoryError("Testing LoginHistoryError.")
     except LoginHistoryError as e:
         assert str(e) == "Testing LoginHistoryError."
+
+
+def test_contracterror():
+    """Testing Custom Login History Error."""
+
+    try:
+        raise ContractError("Testing ContractError.")
+    except ContractError as e:
+        assert str(e) == "Testing ContractError."
+
+
+def test_transactionerror():
+    """Testing Custom Login History Error."""
+
+    try:
+        raise TransactionError("Testing TransactionError.")
+    except TransactionError as e:
+        assert str(e) == "Testing TransactionError."
+
+
+def test_blockerror():
+    """Testing Custom Login History Error."""
+
+    try:
+        raise BlockError("Testing BlockError.")
+    except BlockError as e:
+        assert str(e) == "Testing BlockError."

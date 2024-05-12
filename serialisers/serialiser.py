@@ -1,8 +1,9 @@
-"""Warehouse Serialiser Module: Serialiser for model Model."""
+"""Serialisers: Base Serialiser for model Model."""
 
 from enum import Enum, EnumMeta
 from json import dumps
 from typing import Any, Tuple, Union
+
 from lib.interfaces.exceptions import ApplicationError
 from lib.utils.encryption.cryptography import encrypt_data
 from lib.validators.blocks import validate_block_next, validate_block_previous, validate_block_type
@@ -57,7 +58,6 @@ class BaseSerialiser:
         "profile_visibility_preference": validate_profile_visibility_preference,
         # Transactions
         "title": validate_username,
-        "description": validate_description,
         # Transactions
         "amount": validate_transaction_amount,
         "transaction_status": validate_transaction_status,

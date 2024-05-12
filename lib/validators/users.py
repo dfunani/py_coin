@@ -218,6 +218,8 @@ def validate_cvv_number(cvv_number: str, **_) -> str:
         raise CardValidationError("Invalid Type for this Attribute.")
     if len(cvv_number) != AppConfig().cvv_length:
         raise CardValidationError("Invalid CVV Number.")
+    if not Regex.CVV.value.match(cvv_number):
+        raise CardValidationError("Invalid Pin.")
     return cvv_number
 
 

@@ -1,1 +1,1 @@
-"""App Module: Testing Main APplication."""
+"""Tests: Testing Main Application Module."""

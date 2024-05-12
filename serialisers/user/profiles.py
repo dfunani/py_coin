@@ -1,7 +1,8 @@
-"""Users Serialiser Module: Serialiser for User Profile Model."""
+"""User: Serialiser for User Profile Model."""
 
 from typing import Union
-from sqlalchemy import String, cast, select
+from uuid import UUID
+from sqlalchemy import cast, select, UUID as uuid
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from lib.interfaces.exceptions import UserProfileError
@@ -31,13 +32,11 @@ class UserProfileSerialiser(UserProfile, BaseSerialiser):
         "status",
     ]
 
-    def get_user_profile(self, profile_id: str) -> dict:
+    def get_user_profile(self, profile_id: UUID) -> dict:
         """CRUD Operation: Get User Profile."""
 
         with Session(ENGINE) as session:
-            query = select(UserProfile).filter(
-                cast(UserProfile.profile_id, String) == profile_id
-            )
+            query = select(UserProfile).filter(cast(UserProfile.profile_id, uuid) == profile_id)
             user_profile = session.execute(query).scalar_one_or_none()
 
             if not user_profile:
@@ -45,7 +44,7 @@ class UserProfileSerialiser(UserProfile, BaseSerialiser):
 
             return self.__get_model_data__(user_profile)
 
-    def create_user_profile(self, account_id: str) -> str:
+    def create_user_profile(self, account_id: UUID) -> str:
         """CRUD Operation: Add User Profile."""
 
         with Session(ENGINE) as session:
@@ -59,7 +58,7 @@ class UserProfileSerialiser(UserProfile, BaseSerialiser):
 
             return str(self)
 
-    def update_user_profile(self, private_id: str, **kwargs) -> str:
+    def update_user_profile(self, private_id: UUID, **kwargs) -> str:
         """CRUD Operation: Update User Profile."""
 
         with Session(ENGINE) as session:
@@ -84,7 +83,7 @@ class UserProfileSerialiser(UserProfile, BaseSerialiser):
 
             return str(user_profile)
 
-    def delete_user_profile(self, private_id: str) -> str:
+    def delete_user_profile(self, private_id: UUID) -> str:
         """CRUD Operation: Delete User Profile."""
 
         with Session(ENGINE) as session:

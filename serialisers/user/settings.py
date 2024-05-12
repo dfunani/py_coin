@@ -1,6 +1,7 @@
-"""Users Serialiser Module: Serialiser for SettingsProfile Model."""
+"""User: Serialiser for Settings Profile Model."""
 
-from sqlalchemy import String, cast, select
+from uuid import UUID
+from sqlalchemy import cast, select, UUID as uuid
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from lib.interfaces.exceptions import (
@@ -28,12 +29,12 @@ class SettingsProfileSerialiser(SettingsProfile, BaseSerialiser):
         "communication_status",
     ]
 
-    def get_settings_profile(self, settings_id: str) -> dict:
+    def get_settings_profile(self, settings_id: UUID) -> dict:
         """CRUD Operation: Get Settings."""
 
         with Session(ENGINE) as session:
             query = select(SettingsProfile).filter(
-                cast(SettingsProfile.settings_id, String) == settings_id
+                cast(SettingsProfile.settings_id, uuid) == settings_id
             )
             settings_profile = session.execute(query).scalar_one_or_none()
 
@@ -42,7 +43,7 @@ class SettingsProfileSerialiser(SettingsProfile, BaseSerialiser):
 
             return self.__get_model_data__(settings_profile)
 
-    def create_settings_profile(self, account_id: str) -> str:
+    def create_settings_profile(self, account_id: UUID) -> str:
         """CRUD Operation: Add Settings."""
 
         with Session(ENGINE) as session:
@@ -56,7 +57,7 @@ class SettingsProfileSerialiser(SettingsProfile, BaseSerialiser):
 
             return str(self)
 
-    def update_settings_profile(self, private_id: str, **kwargs) -> str:
+    def update_settings_profile(self, private_id: UUID, **kwargs) -> str:
         """CRUD Operation: Update Settings."""
 
         with Session(ENGINE) as session:
@@ -80,7 +81,7 @@ class SettingsProfileSerialiser(SettingsProfile, BaseSerialiser):
 
             return str(settings_profile)
 
-    def delete_settings_profile(self, private_id: str) -> str:
+    def delete_settings_profile(self, private_id: UUID) -> str:
         """CRUD Operation: Delete Settings."""
 
         with Session(ENGINE) as session:

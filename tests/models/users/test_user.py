@@ -1,4 +1,4 @@
-"""Users Module: Testing the User Model."""
+"""Users: Testing User Model."""
 
 from pytest import raises
 
@@ -48,4 +48,4 @@ def test_user_valid():
         assert user.role == Role.USER
         assert isinstance(user.to_dict(), dict)
 
-        run_test_teardown(user.id, User, session)
+        run_test_teardown([user], session)

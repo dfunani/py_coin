@@ -1,7 +1,8 @@
-"""Serialisers Module: Testing Blocks Serialiser."""
+"""BlockChain: Testing Block Serialiser."""
 
-from pytest import raises
+from pytest import mark, raises
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import DataError, ProgrammingError
 
 from config import AppConfig
 from lib.interfaces.exceptions import BlockError
@@ -14,101 +15,119 @@ from models.user.payments import PaymentProfile
 from models.warehouse.cards import Card
 from serialisers.blockchain.blocks import BlockSerialiser
 from models import ENGINE
-from tests.conftest import get_id_by_regex, run_test_teardown
+from tests.conftest import run_test_teardown
+from tests.test_utils.utils import check_invalid_ids, get_id_by_regex
 
 
-def test_blockserialiser_create(blocks):
+def test_blockserialiser_create(get_blocks):
     """Testing Block Serialiser: Create Block."""
 
-    with Session(ENGINE) as session:
-        block = BlockSerialiser().create_Block(
-            blocks[0].id, blocks[1].id
-        )
-        block_id = get_id_by_regex(block)
-        block = (
-            session.query(Block)
-            .filter(Block.block_id == block_id)
-            .one_or_none()
-        )
-        assert block.id is not None
-        assert block.block_id is not None
-        assert block.previous_block_id == blocks[0].id
-        assert block.next_block_id == blocks[1].id
-        assert block.block_type == BlockType.UNIT
+    for block, block1 in zip(get_blocks, list(reversed(get_blocks))):
+        with Session(ENGINE) as session:
+            block_id = BlockSerialiser().create_block(block.id, block1.id)
+            block_id = get_id_by_regex(block_id)
+            block_data = (
+                session.query(Block).filter(Block.block_id == block_id).one_or_none()
+            )
+            assert block_data.id is not None
+            assert block_data.block_id is not None
+            assert block_data.previous_block_id == block.id
+            assert block_data.next_block_id == block1.id
+            assert block_data.block_type == BlockType.UNIT
 
-        run_test_teardown(block.id, Block, session)
+            run_test_teardown([block_data], session)
 
 
-def test_blocker_create_invalid():
-    """Testing Block Serialiser: Create Block."""
+@mark.parametrize(
+    "data",
+    zip(check_invalid_ids(), list(reversed(check_invalid_ids()))),
+)
+def test_block_create_invalid(data):
+    """Testing Contract Serialiser: Create Contract."""
 
-    with Session(ENGINE) as session:
-        block = BlockSerialiser().create_Block(
-            None, None
-        )
-        block_id = get_id_by_regex(block)
-        block = (
-            session.query(Block)
-            .filter(Block.block_id == block_id)
-            .one_or_none()
-        )
-        assert block.id is not None
-        assert block.block_id is not None
-        assert block.previous_block_id is None
-        assert block.next_block_id is None
-        assert block.block_type == BlockType.UNIT
-
-        run_test_teardown(block.id, Block, session)
+    with raises((BlockError, DataError, ProgrammingError)):
+        BlockSerialiser().create_block(data[0], data[1])
 
 
-
-def test_blockileserialiser_get(blocks):
+def test_blockileserialiser_get(get_blocks):
     """Testing Block Serialiser: Get Block."""
 
-    block = blocks[0]
-    block_data = BlockSerialiser().get_Block(
-        block.block_id
-    )
+    for block in get_blocks:
+        block_data = BlockSerialiser().get_block(block.block_id)
 
-    assert isinstance(block_data, dict)
-    for key in block_data:
-        assert key not in block.__EXCLUDE_ATTRIBUTES__
+        assert isinstance(block_data, dict)
+        for key in block_data:
+            assert key not in block.__EXCLUDE_ATTRIBUTES__
 
 
-def test_blockliser_get_invalid():
+@mark.parametrize(
+    "data",
+    check_invalid_ids(),
+)
+def test_blockliser_get_invalid(data):
     """Testing Block Serialiser: Get Block."""
 
-    with raises(BlockError):
-        BlockSerialiser().get_Block("block_id")
+    with raises((BlockError, DataError, ProgrammingError)):
+        BlockSerialiser().get_block(data)
 
 
-def test_blockserialiser_delete(blocks):
+def test_blockserialiser_delete(get_blocks):
     """Testing Block Serialiser: Delete Block."""
 
-    BlockSerialiser().delete_block(blocks[0].id)
-    BlockSerialiser().delete_block(blocks[1].id)
-    BlockSerialiser().delete_block(blocks[2].id)
+    for block in get_blocks:
+        assert BlockSerialiser().delete_block(block.id).startswith("Deleted: ")
 
 
-def test_blocker_delete_invalid():
+@mark.parametrize(
+    "data",
+    check_invalid_ids(),
+)
+def test_blocker_delete_invalid(data):
     """Testing Block Serialiser: Delete Block."""
 
-    with raises(BlockError):
-        BlockSerialiser().delete_block("block_data.id")
+    with raises((BlockError, DataError, ProgrammingError)):
+        BlockSerialiser().delete_block(data)
 
 
-def test_blockdate_valid_status(blocks):
+@mark.parametrize(
+    "data",
+    list(BlockType),
+)
+def test_block_update_valid_type(get_blocks, data):
     """Testing Block Serialiser: Update Block."""
 
-    with Session(ENGINE) as session:
-        BlockSerialiser().update_block(
-            blocks[0].id,
-            next_block_id=blocks[1].id,
-            previous_block_id=blocks[2].id,
-            block_type=BlockType.CONTRACT,
-        )
-        block = session.get(Block, blocks[0].id)
-        assert block.id is not None
-        assert block.block_type == BlockType.CONTRACT
+    for block in get_blocks:
+        with Session(ENGINE) as session:
+            BlockSerialiser().update_block(
+                block.id,
+                block_type=data,
+            )
+            block_data = session.get(Block, block.id)
+            assert block_data.id is not None
+            assert block_data.block_type == data
 
+@mark.parametrize(
+    "data",
+    check_invalid_ids(),
+)
+def test_block_update_invalid_type(get_blocks, data):
+    """Testing Block Serialiser: Update Block."""
 
+    for block in get_blocks:
+        with raises((BlockError, DataError, ProgrammingError)):
+            BlockSerialiser().update_block(
+                block.id,
+                block_type=data,
+            )
+
+def test_block_update_valid_id(get_blocks):
+    """Testing Block Serialiser: Update Block."""
+
+    for block, block1 in zip(get_blocks, list(reversed(get_blocks))):
+        with Session(ENGINE) as session:
+            BlockSerialiser().update_block(
+                block.id, previous_block_id=block.id, next_block_id=block1.id
+            )
+            block_data = session.get(Block, block.id)
+            assert block_data.id is not None
+            assert block_data.block_type == BlockType.UNIT

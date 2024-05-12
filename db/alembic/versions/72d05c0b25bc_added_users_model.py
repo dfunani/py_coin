@@ -29,7 +29,7 @@ def upgrade() -> None:
         "users",
         sa.Column(
             "id",
-            sa.String(256),
+            sa.UUID(as_uuid=True),
             nullable=False,
             unique=True,
             primary_key=True,
@@ -58,7 +58,7 @@ def upgrade() -> None:
         ),
         sa.Column(
             "salt_value",
-            sa.String(256),
+            sa.UUID(as_uuid=True),
             nullable=False,
         ),
         sa.Column(

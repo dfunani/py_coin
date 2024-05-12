@@ -1,16 +1,15 @@
-"""Warehouse Serialiser Module: Serialiser for Card Model."""
+"""Warehouse: Serialiser for Card Model."""
 
 from datetime import date, timedelta
-from json import dumps
 from random import randint
-from enum import Enum as ENUM
-from sqlalchemy import Column, Date, Enum, String, cast, select
+from uuid import UUID
+from sqlalchemy import Column, Date, Enum, String, cast, select, UUID as uuid
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from config import AppConfig
 from lib.interfaces.exceptions import CardValidationError
-from lib.utils.constants.users import Status, CardType, DateFormat, Regex
+from lib.utils.constants.users import CardType, DateFormat, Status
 from lib.utils.encryption.cryptography import decrypt_data, encrypt_data
 from lib.utils.encryption.encoders import get_hash_value
 from lib.validators.users import (
@@ -18,7 +17,6 @@ from lib.validators.users import (
     validate_card_type,
     validate_cvv_number,
     validate_pin,
-    validate_status,
 )
 from models import ENGINE
 from models.warehouse.cards import Card
@@ -33,7 +31,7 @@ class CardSerialiser(Card, BaseSerialiser):
     __MAX_RETRIES__ = 3
     __CARD_VALID_YEARS__ = 365 * 5
 
-    def get_card(self, card_id: str) -> str:
+    def get_card(self, card_id: UUID) -> str:
         """CRUD Operation: Get Card."""
 
         with Session(ENGINE) as session:
@@ -56,7 +54,7 @@ class CardSerialiser(Card, BaseSerialiser):
                 date.today() + timedelta(days=self.__CARD_VALID_YEARS__)
             ).replace(day=1)
             self.card_number = str(self.__get_card_number__())
-            self.pin = str(self.__get_pin__(pin, self.salt_value))
+            self.pin = str(self.__get_pin__(pin, str(self.salt_value)))
             self.card_id = str(
                 self.get_card_id(
                     str(decrypt_data(str(self.cvv_number))),
@@ -72,7 +70,7 @@ class CardSerialiser(Card, BaseSerialiser):
 
             return str(self)
 
-    def update_card(self, private_id: str, **kwargs) -> str:
+    def update_card(self, private_id: UUID, **kwargs) -> str:
         """CRUD Operation: Update Card."""
 
         with Session(ENGINE) as session:
@@ -101,7 +99,7 @@ class CardSerialiser(Card, BaseSerialiser):
             return str(card)
 
     @classmethod
-    def delete_card(cls, private_id: str) -> str:
+    def delete_card(cls, private_id: UUID) -> str:
         """CRUD Operation: Delete Card."""
 
         with Session(ENGINE) as session:
@@ -134,7 +132,7 @@ class CardSerialiser(Card, BaseSerialiser):
         card_number = validate_card_number(str(card_number))
         return encrypt_data(str(card_number).encode())
 
-    def __get_pin__(self, pin: str, salt_value) -> str:
+    def __get_pin__(self, pin: str, salt_value: str) -> str:
         """Sets Valid Card Pin."""
 
         pin = validate_pin(pin)
@@ -191,13 +189,13 @@ class CardSerialiser(Card, BaseSerialiser):
         """Sets Valid Card ID."""
 
         salt_value = AppConfig().salt_value
-        if not isinstance(salt_value, str):
+        if not isinstance(salt_value, UUID):
             raise CardValidationError("Invalid Card Information.")
         return str(
             get_hash_value(
                 card_number
                 + cvv_number
                 + expiration_date.strftime(DateFormat.SHORT.value),
-                salt_value,
+                str(salt_value),
             )
         )

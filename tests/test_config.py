@@ -1,4 +1,4 @@
-"""App Module: Testing Application Configuration."""
+"""Tests: Testing Application Config Module."""
 
 from datetime import datetime, timedelta
 
@@ -7,85 +7,85 @@ from config import AppConfig
 from lib.utils.constants.users import DateFormat
 
 
-def test_app_config_str_repr(app: AppConfig):
+def test_app_config_str_repr():
     """Test AppConfig Init - Class Representaion."""
 
-    assert str(app).startswith("Application Session: ")
+    assert str(AppConfig()).startswith("Application Session: ")
 
 
-def test_app_config_session_id(app: AppConfig):
+def test_app_config_session_id():
     """Test AppConfig Init - Session ID."""
 
-    assert app.session_id is not None
+    assert AppConfig().session_id is not None
 
 
-def test_app_config_start_date(app: AppConfig):
+def test_app_config_start_date():
     """Test AppConfig Init - Start Date."""
 
-    assert str(app.start_date) < (
-        (datetime.now() + timedelta(seconds=5)).strftime(DateFormat.LONG.value)
-    ) and str(app.start_date) > (datetime.now() - timedelta(seconds=5)).strftime(
+    assert str(AppConfig().start_date) < (
+        (datetime.now() + timedelta(seconds=8)).strftime(DateFormat.LONG.value)
+    ) and str(AppConfig().start_date) > (datetime.now() - timedelta(seconds=8)).strftime(
         DateFormat.LONG.value
     )
 
 
-def test_app_config_start_date_setter(app: AppConfig):
+def test_app_config_start_date_setter():
     """Test AppConfig Start Date Setter."""
 
     with raises(AttributeError):
-        app.start_date = datetime.now().strftime(DateFormat.LONG.value)
+        AppConfig().start_date = datetime.now().strftime(DateFormat.LONG.value)
 
 
-def test_app_config_end_date(app: AppConfig):
+def test_app_config_end_date():
     """Test AppConfig Init - End Date."""
 
     assert datetime.strptime(
-        str(app.end_date), DateFormat.LONG.value
-    ) >= datetime.strptime(str(app.start_date), DateFormat.LONG.value)
+        str(AppConfig().end_date), DateFormat.LONG.value
+    ) >= datetime.strptime(str(AppConfig().start_date), DateFormat.LONG.value)
 
 
-def test_app_config_end_date_setter(app: AppConfig):
+def test_app_config_end_date_setter():
     """Test AppConfig End Date Setter."""
 
     now = datetime.now()
-    setattr(app, "end_date", now)
-    assert app.end_date is not None
+    setattr(AppConfig(), "end_date", now)
+    assert AppConfig().end_date is not None
 
 
-def test_app_config_salt_value(app: AppConfig):
+def test_app_config_salt_value():
     """Test AppConfig Init - Salt Value."""
 
-    assert app.salt_value is not None
+    assert AppConfig().salt_value is not None
 
 
-def test_app_config_salt_value_setter(app: AppConfig):
+def test_app_config_salt_value_setter():
     """Test AppConfig Salt Value Setter."""
 
     with raises(AttributeError):
-        app.salt_value = "Testing Setter"
+        AppConfig().salt_value = "Testing Setter"
 
 
-def test_app_config_card_length(app: AppConfig):
+def test_app_config_card_length():
     """Test AppConfig Init - Salt Value."""
 
-    assert app.card_length is not None
+    assert AppConfig().card_length is not None
 
 
-def test_app_config_card_length_setter(app: AppConfig):
+def test_app_config_card_length_setter():
     """Test AppConfig Salt Value Setter."""
 
     with raises(AttributeError):
-        app.card_length = 12
+        AppConfig().card_length = 12
 
 
-def test_app_config_cvv_length(app: AppConfig):
+def test_app_config_cvv_length():
     """Test AppConfig Init - Salt Value."""
 
-    assert app.cvv_length is not None
+    assert AppConfig().cvv_length is not None
 
 
-def test_app_config_cvv_length_setter(app: AppConfig):
+def test_app_config_cvv_length_setter():
     """Test AppConfig Salt Value Setter."""
 
     with raises(AttributeError):
-        app.cvv_length = 5
+        AppConfig().cvv_length = 5

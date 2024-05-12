@@ -1,9 +1,19 @@
-"""Models Module: Contains Contract Model for Mapping Contracts."""
+"""BlockChain: Contract Model."""
 
 from datetime import datetime
-from uuid import uuid4
+from uuid import uuid4, UUID as uuid
 
-from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, LargeBinary, String, text
+from sqlalchemy import (
+    UUID,
+    Column,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    LargeBinary,
+    String,
+    text,
+)
 
 from lib.utils.constants.contracts import ContractStatus
 from lib.utils.constants.users import Status
@@ -18,26 +28,38 @@ class Contract(Base, BaseModel):
     __table_args__ = ({"schema": "blockchain"},)
     __EXCLUDE_ATTRIBUTES__: list[str] = []
 
-    id: str | Column[str] = Column("id", String(256), primary_key=True, nullable=False)
-    contract_id: str | Column[str] = Column("contract_id", String(256), nullable=False)
-    contractor: str | Column[str] = Column(
-        "contractor", String(256), ForeignKey("users.payment_profiles.id"), nullable=False
+    id: uuid | Column[uuid] = Column(
+        "id", UUID(as_uuid=True), primary_key=True, nullable=False
     )
-    contractee: str | Column[str] = Column(
-        "contractee", String(256), ForeignKey("users.payment_profiles.id"), nullable=False
+    contract_id: str | Column[str] = Column("contract_id", String(256), nullable=False)
+    contractor: uuid | Column[uuid] = Column(
+        "contractor",
+        UUID(as_uuid=True),
+        ForeignKey("users.payment_profiles.id"),
+        nullable=False,
+    )
+    contractee: uuid | Column[uuid] = Column(
+        "contractee",
+        UUID(as_uuid=True),
+        ForeignKey("users.payment_profiles.id"),
+        nullable=False,
     )
     title: str | Column[str] = Column("title", String(256), nullable=False)
     description: str | Column[str] = Column("description", String(256), nullable=False)
-    contract: str | Column[str] = Column("contract", String(256), nullable=False)
+    contract: str | Column[str] = Column("contract", String, nullable=False)
     contract_status: ContractStatus | Column[ContractStatus] = Column(
         "contract_status",
         Enum(ContractStatus, name="contract_status"),
         nullable=False,
         default=ContractStatus.DRAFT,
     )
-    contractor_signiture: str | Column[str] = Column("contractor_signiture", String(256), nullable=False)
-    contractee_signiture: str | Column[str] = Column("contractee_signiture", String(256), nullable=True)
-    salt_value: str | Column[str] = Column("salt_value", String(256), nullable=False)
+    contractor_signiture: str | Column[str] = Column(
+        "contractor_signiture", String(256), nullable=False
+    )
+    contractee_signiture: str | Column[str] = Column(
+        "contractee_signiture", String(256), nullable=True
+    )
+    salt_value: uuid | Column[uuid] = Column("salt_value", UUID(as_uuid=True), nullable=False)
     created_date: datetime | Column[datetime] = Column(
         "created_date", DateTime, default=text("CURRENT_TIMESTAMP"), nullable=False
     )
@@ -52,13 +74,13 @@ class Contract(Base, BaseModel):
     def __init__(self) -> None:
         """Contract Object Constructor."""
 
-        self.id = str(uuid4())
-        self.salt_value = str(uuid4())
+        self.id = uuid4()
+        self.salt_value = uuid4()
 
     def __str__(self) -> str:
         """String Representation of the Contract Object."""
 
-        return f"Block ID: {self.contract_id}"
+        return f"Block ID: {str(self.contract_id)}"
 
     def __repr__(self) -> str:
         """String Representation of the Contract Object."""

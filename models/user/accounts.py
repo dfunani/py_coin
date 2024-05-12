@@ -1,7 +1,7 @@
-"""Users Module: Contains Account Model for Mapping User Accounts."""
+"""Users: Accounts Model."""
 
-from uuid import uuid4
-from sqlalchemy import Column, DateTime, String, text, ForeignKey, Enum
+from uuid import uuid4, UUID as uuid
+from sqlalchemy import UUID, Column, DateTime, text, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from lib.utils.constants.users import Status
 from models import Base
@@ -18,22 +18,22 @@ class Account(Base, BaseModel):
     __table_args__ = ({"schema": "users"},)
     __EXCLUDE_ATTRIBUTES__: list[str] = []
 
-    id: str | Column[str] = Column(
+    id: uuid | Column[uuid] = Column(
         "id",
-        String(256),
+        UUID(as_uuid=True),
         default=text(f"'{str(uuid4())}'"),
         unique=True,
         nullable=False,
         primary_key=True,
     )
-    account_id: str | Column[str] = Column(
+    account_id: uuid | Column[uuid] = Column(
         "account_id",
-        String(256),
+        UUID(as_uuid=True),
         default=text(f"'{str(uuid4())}'"),
         unique=True,
     )
-    user_id: str | Column[str] = Column(
-        "user_id", String(256), ForeignKey("users.users.id"), nullable=False
+    user_id: uuid | Column[uuid] = Column(
+        "user_id", UUID(as_uuid=True), ForeignKey("users.users.id"), nullable=False
     )
     status: Status | Column[Status] = Column(
         "status",
@@ -64,13 +64,13 @@ class Account(Base, BaseModel):
     def __init__(self) -> None:
         """Account Object Constructor."""
 
-        self.id = str(uuid4())
-        self.account_id = str(uuid4())
+        self.id = uuid4()
+        self.account_id = uuid4()
 
     def __str__(self) -> str:
         """String Representation of the Account Object."""
 
-        return f"Account ID: {self.account_id}"
+        return f"Account ID: {str(self.account_id)}"
 
     def __repr__(self) -> str:
         """String Representation of the Account Object."""

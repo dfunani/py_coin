@@ -1,12 +1,11 @@
-"""Users Serialiser Module: Serialiser for Account Model."""
+"""User: Serialiser for Account Model."""
 
-from sqlalchemy import String, cast, select
+from uuid import UUID
+from sqlalchemy import cast, select, UUID as uuid
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from lib.interfaces.exceptions import AccountError
-from lib.utils.constants.users import Status
-from lib.validators.users import validate_status
 from models import ENGINE
 from models.user.accounts import Account
 from serialisers.serialiser import BaseSerialiser
@@ -18,13 +17,11 @@ class AccountSerialiser(Account, BaseSerialiser):
     __SERIALISER_EXCEPTION__ = AccountError
     __MUTABLE_KWARGS__: list[str] = ["status"]
 
-    def get_account(self, account_id: str) -> dict:
+    def get_account(self, account_id: UUID) -> dict:
         """CRUD Operation: Read Account."""
 
         with Session(ENGINE) as session:
-            query = select(Account).filter(
-                cast(Account.account_id, String) == account_id
-            )
+            query = select(Account).filter(cast(Account.account_id, uuid) == account_id)
             account = session.execute(query).scalar_one_or_none()
 
             if not account:
@@ -32,7 +29,7 @@ class AccountSerialiser(Account, BaseSerialiser):
 
             return self.__get_model_data__(account)
 
-    def create_account(self, user_id) -> str:
+    def create_account(self, user_id: UUID) -> str:
         """CRUD Operation: Create Account."""
 
         with Session(ENGINE) as session:
@@ -46,7 +43,7 @@ class AccountSerialiser(Account, BaseSerialiser):
 
             return str(self)
 
-    def update_account(self, private_id: str, **kwargs) -> str:
+    def update_account(self, private_id: UUID, **kwargs) -> str:
         """CRUD Operation: Update Account."""
 
         with Session(ENGINE) as session:
@@ -70,7 +67,7 @@ class AccountSerialiser(Account, BaseSerialiser):
 
             return str(account)
 
-    def delete_account(self, private_id: str) -> str:
+    def delete_account(self, private_id: UUID) -> str:
         """CRUD Operation: Delete Account."""
 
         with Session(ENGINE) as session:

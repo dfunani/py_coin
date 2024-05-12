@@ -1,9 +1,10 @@
-"""Models Module: Contains Block Model for Mapping Blocks."""
+"""BlockChain: Block Model."""
 
 from datetime import datetime
-from uuid import uuid4
+from uuid import uuid4, UUID as uuid
 
 from sqlalchemy import (
+    UUID,
     Column,
     DateTime,
     Enum,
@@ -28,22 +29,29 @@ class Block(Base, BaseModel):
     __table_args__ = ({"schema": "blockchain"},)
     __EXCLUDE_ATTRIBUTES__: list[str] = []
 
-    id: str | Column[str] = Column("id", String(256), primary_key=True, nullable=False)
-    block_id: str | Column[str] = Column("block_id", String(256), nullable=False)
-    transaction_id: str | Column[str] = Column(
+    id: uuid | Column[uuid] = Column(
+        "id", UUID(as_uuid=True), primary_key=True, nullable=False
+    )
+    block_id: uuid | Column[uuid] = Column(
+        "block_id", UUID(as_uuid=True), nullable=False
+    )
+    transaction_id: uuid | Column[uuid] = Column(
         "transaction_id",
-        String(256),
+        UUID(as_uuid=True),
         ForeignKey("blockchain.transactions.id"),
         nullable=True,
     )
-    contract_id: str | Column[str] = Column(
-        "contract_id", String(256), ForeignKey("blockchain.contracts.id"), nullable=True
+    contract_id: uuid | Column[uuid] = Column(
+        "contract_id",
+        UUID(as_uuid=True),
+        ForeignKey("blockchain.contracts.id"),
+        nullable=True,
     )
-    previous_block_id: str | Column[str] = Column(
-        "previous_block_id", String(256), nullable=True
+    previous_block_id: uuid | Column[uuid] = Column(
+        "previous_block_id", UUID(as_uuid=True), nullable=True
     )
-    next_block_id: str | Column[str] = Column(
-        "next_block_id", String(256), nullable=True
+    next_block_id: uuid | Column[uuid] = Column(
+        "next_block_id", UUID(as_uuid=True), nullable=True
     )
     block_type: Status | Column[Status] = Column(
         "block_type",
@@ -65,13 +73,13 @@ class Block(Base, BaseModel):
     def __init__(self) -> None:
         """Contract Object Constructor."""
 
-        self.id = str(uuid4())
-        self.block_id = str(uuid4())
+        self.id = uuid4()
+        self.block_id = uuid4()
 
     def __str__(self) -> str:
         """String Representation of the Contract Object."""
 
-        return f"Block ID: {self.block_id}"
+        return f"Block ID: {str(self.block_id)}"
 
     def __repr__(self) -> str:
         """String Representation of the Contract Object."""

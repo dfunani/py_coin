@@ -1,8 +1,7 @@
-"""Users Serialiser Module: Serialiser for LoginHistory Model."""
+"""Warehouse: Serialiser for Login History Model."""
 
-from typing import Union
-
-from sqlalchemy import String, cast, select
+from uuid import UUID
+from sqlalchemy import cast, select, UUID as uuid
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from lib.interfaces.exceptions import (
@@ -27,13 +26,11 @@ class LoginHistorySerialiser(LoginHistory, BaseSerialiser):
         "authentication_token",
     ]
 
-    def get_login_history(self, login_id: str) -> dict:
+    def get_login_history(self, login_id: UUID) -> dict:
         """CRUD Operation: Get Login History."""
 
         with Session(ENGINE) as session:
-            query = select(LoginHistory).filter(
-                cast(LoginHistory.login_id, String) == login_id
-            )
+            query = select(LoginHistory).filter(cast(LoginHistory.login_id, uuid) == login_id)
             login_history = session.execute(query).scalar_one_or_none()
 
             if not login_history:
@@ -41,7 +38,7 @@ class LoginHistorySerialiser(LoginHistory, BaseSerialiser):
 
             return self.__get_model_data__(login_history)
 
-    def create_login_history(self, user_id: str) -> str:
+    def create_login_history(self, user_id: UUID) -> str:
         """CRUD Operation: Add Login History."""
 
         with Session(ENGINE) as session:
@@ -55,7 +52,7 @@ class LoginHistorySerialiser(LoginHistory, BaseSerialiser):
 
             return str(self)
 
-    def update_login_history(self, private_id: str, **kwargs) -> str:
+    def update_login_history(self, private_id: UUID, **kwargs) -> str:
         """CRUD Operation: Update Login History."""
 
         with Session(ENGINE) as session:
@@ -78,7 +75,7 @@ class LoginHistorySerialiser(LoginHistory, BaseSerialiser):
 
             return str(login_history)
 
-    def delete_login_history(self, private_id: str) -> str:
+    def delete_login_history(self, private_id: UUID) -> str:
         """CRUD Operation: Delete Login History."""
 
         with Session(ENGINE) as session:

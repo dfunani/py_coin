@@ -1,20 +1,12 @@
-"""BlockChain Serialiser Module: Serialiser for Transaction Model."""
+"""BlockChain: Serialiser for Transaction Model."""
 
-from datetime import datetime
-from json import loads
-import json
-from sqlalchemy import String, cast, select
+from uuid import UUID
+from sqlalchemy import cast, select, UUID as uuid
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from lib.interfaces.exceptions import TransactionError
-from lib.utils.constants.transactions import TransactionStatus
-from lib.utils.encryption.cryptography import decrypt_data
 from lib.utils.encryption.encoders import get_hash_value
-from lib.validators.transactions import (
-    validate_transaction_amount,
-    validate_transaction_status,
-)
 from models import ENGINE
 from models.blockchain.transactions import Transaction
 from models.user.payments import PaymentProfile
@@ -26,14 +18,19 @@ class TransactionSerialiser(Transaction, BaseSerialiser):
     """Serialiser for the Transaction Model."""
 
     __SERIALISER_EXCEPTION__ = TransactionError
-    __MUTABLE_KWARGS__: list[str] = ["title", "description", "amount", "transaction_status"]
+    __MUTABLE_KWARGS__: list[str] = [
+        "title",
+        "description",
+        "amount",
+        "transaction_status",
+    ]
 
     def get_Transaction(self, transaction_id: str) -> dict:
         """CRUD Operation: Read Transaction."""
 
         with Session(ENGINE) as session:
             query = select(Transaction).filter(
-                cast(Transaction.transaction_id, String) == transaction_id
+                cast(Transaction.transaction_id, uuid) == transaction_id
             )
             transaction = session.execute(query).scalar_one_or_none()
 
@@ -42,7 +39,7 @@ class TransactionSerialiser(Transaction, BaseSerialiser):
 
             return self.__get_model_data__(transaction)
 
-    def create_Transaction(self, sender: str, receiver: str, amount: float) -> str:
+    def create_Transaction(self, sender: UUID, receiver: UUID, amount: float) -> str:
         """CRUD Operation: Create Transaction."""
 
         with Session(ENGINE) as session:
@@ -66,12 +63,12 @@ class TransactionSerialiser(Transaction, BaseSerialiser):
                 raise TransactionError("Invalid Receiver Card Information.")
 
             self.sender_signiture = get_hash_value(
-                sender_card.card_id,
-                self.salt_value,
+                str(sender_card.card_id),
+                str(self.salt_value),
             )
             self.receiver_signiture = get_hash_value(
-                receiver_card.card_id,
-                self.salt_value,
+                str(receiver_card.card_id),
+                str(self.salt_value),
             )
 
             try:

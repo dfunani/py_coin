@@ -1,328 +1,216 @@
-"""Serialisers Module: Testing Transactions Serialiser."""
+"""BlockChain: Testing Transaction Serialiser."""
 
-from pytest import raises
+from pytest import mark, raises
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import DataError, ProgrammingError
 
-from config import AppConfig
 from lib.interfaces.exceptions import TransactionError
 from lib.utils.constants.transactions import TransactionStatus
-from lib.utils.constants.users import Status
-from lib.utils.encryption.cryptography import encrypt_data
-from lib.utils.encryption.encoders import get_hash_value
 from models.blockchain.transactions import Transaction
-from models.user.payments import PaymentProfile
-from models.warehouse.cards import Card
 from serialisers.blockchain.transactions import TransactionSerialiser
 from models import ENGINE
-from tests.conftest import get_id_by_regex, run_test_teardown
+from tests.conftest import run_test_teardown
+from tests.test_utils.utils import check_invalid_ids, get_id_by_regex
 
 
-def test_transactionserialiser_create(payment, payment2):
+@mark.parametrize("data", [50.0, 55.5, 1234656.02])
+def test_transactionserialiser_create(get_payments, data):
     """Testing transaction Serialiser: Create transaction."""
 
-    with Session(ENGINE) as session:
-        transaction = TransactionSerialiser().create_Transaction(
-            payment.id, payment2.id, 50.0
-        )
-        transaction_id = get_id_by_regex(transaction)
-        transaction = (
-            session.query(Transaction)
-            .filter(Transaction.transaction_id == transaction_id)
-            .one_or_none()
-        )
-        assert transaction.id is not None
-        assert transaction.amount == 50.0
+    for payment, payment1 in zip(get_payments, list(reversed(get_payments))):
+        with Session(ENGINE) as session:
+            transaction = TransactionSerialiser().create_Transaction(
+                payment.id, payment1.id, data
+            )
+            transaction_id = get_id_by_regex(transaction)
+            transaction = (
+                session.query(Transaction)
+                .filter(Transaction.transaction_id == transaction_id)
+                .one_or_none()
+            )
+            assert transaction.id is not None
+            assert transaction.amount == data
 
-        run_test_teardown(transaction.id, Transaction, session)
+            run_test_teardown([transaction], session)
 
 
-def test_transactioner_create_invalid():
+@mark.parametrize(
+    "data",
+    zip(check_invalid_ids(), list(reversed(check_invalid_ids())), (-50, "500", 0.0)),
+)
+def test_transactioner_create_invalid(data):
     """Testing transaction Serialiser: Create transaction."""
 
-    with raises(TransactionError):
-        TransactionSerialiser().create_Transaction("payment.id", "payment.id", "50")
+    with raises((TransactionError, DataError, ProgrammingError)):
+        TransactionSerialiser().create_Transaction(data[0], data[1], data[1])
 
 
-def test_transactionileserialiser_get(transaction):
+def test_transactionileserialiser_get(get_transactions):
     """Testing transaction Serialiser: Get transaction."""
 
-    transaction_data = TransactionSerialiser().get_Transaction(
-        transaction.transaction_id
-    )
+    for transaction in get_transactions:
+        transaction_data = TransactionSerialiser().get_Transaction(
+            transaction.transaction_id
+        )
 
-    assert isinstance(transaction_data, dict)
-    for key in transaction_data:
-        assert key not in transaction.__EXCLUDE_ATTRIBUTES__
+        assert isinstance(transaction_data, dict)
+        for key in transaction_data:
+            assert key not in transaction.__EXCLUDE_ATTRIBUTES__
 
 
-def test_transactionliser_get_invalid():
+@mark.parametrize(
+    "data",
+    check_invalid_ids(),
+)
+def test_transactionliser_get_invalid(data):
     """Testing transaction Serialiser: Get transaction."""
 
-    with raises(TransactionError):
-        TransactionSerialiser().get_Transaction("transaction_id")
+    with raises((TransactionError, DataError, ProgrammingError)):
+        TransactionSerialiser().get_Transaction(data)
 
 
-def test_transactionserialiser_delete(transaction):
+def test_transactionserialiser_delete(get_transactions):
     """Testing transaction Serialiser: Delete transaction."""
 
-    TransactionSerialiser().delete_transaction(transaction.id)
-
-
-def test_transactioner_delete_invalid():
-    """Testing transaction Serialiser: Delete transaction."""
-
-    with raises(TransactionError):
-        TransactionSerialiser().delete_transaction("transaction_data.id")
-
-
-def test_transactiondate_valid_amount(transaction):
-    """Testing transaction Serialiser: Update transaction."""
-
-    with Session(ENGINE) as session:
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            amount=55.0,
-        )
-        transaction = session.get(Transaction, transaction.id)
-        assert transaction.id is not None
-        assert transaction.amount == 55.0
-        assert transaction.transaction_status == TransactionStatus.DRAFT
-
-
-def test_transactiondate_valid_status(transaction):
-    """Testing transaction Serialiser: Update transaction."""
-
-    with Session(ENGINE) as session:
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            transaction_status=TransactionStatus.APPROVED,
-        )
-        transaction = session.get(Transaction, transaction.id)
-        assert transaction.id is not None
-        assert transaction.amount == 5.0
-        assert transaction.transaction_status == TransactionStatus.APPROVED
-
-
-def test_transactiondate_valid_status_approved(transaction):
-    """Testing transaction Serialiser: Update transaction."""
-
-    with Session(ENGINE) as session:
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            status=TransactionStatus.APPROVED,
-        )
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            status=TransactionStatus.TRANSFERED,
-        )
-        transaction = session.get(Transaction, transaction.id)
-        assert transaction.id is not None
-        assert transaction.amount == 5.0
-        assert transaction.transaction_status == TransactionStatus.TRANSFERED
-
-
-def test_transactiondate_valid_status_approved(transaction):
-    """Testing transaction Serialiser: Update transaction."""
-
-    with Session(ENGINE) as session:
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            status=TransactionStatus.APPROVED,
-        )
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            status=TransactionStatus.INSUFFICIENT,
-        )
-        transaction = session.get(Transaction, transaction.id)
-        assert transaction.id is not None
-        assert transaction.amount == 5.0
-        assert transaction.transaction_status == TransactionStatus.INSUFFICIENT
-
-
-def test_transactiondate_valid_status_approved(transaction):
-    """Testing transaction Serialiser: Update transaction."""
-
-    with Session(ENGINE) as session:
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            status=TransactionStatus.REJECTED,
-        )
-        transaction = session.get(Transaction, transaction.id)
-        assert transaction.id is not None
-        assert transaction.amount == 5.0
-        assert transaction.transaction_status == TransactionStatus.REJECTED
-
-
-def test_transactiondate_valid_status_approved(transaction):
-    """Testing transaction Serialiser: Update transaction."""
-
-    with Session(ENGINE) as session:
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            title="TransactionStatusAPPROVED",
-            description="Longer Description TransactionStatus.APPROVED",
-        )
-        transaction = session.get(Transaction, transaction.id)
-        assert transaction.id is not None
-        assert transaction.amount == 5.0
-        assert transaction.transaction_status == TransactionStatus.DRAFT
-        assert transaction.title == "TransactionStatusAPPROVED"
+    for transaction in get_transactions:
         assert (
-            transaction.description == "Longer Description TransactionStatus.APPROVED"
+            TransactionSerialiser()
+            .delete_transaction(transaction.id)
+            .startswith("Deleted: ")
         )
 
 
-def test_transactionte_invalid_status(transaction):
+@mark.parametrize(
+    "data",
+    check_invalid_ids(),
+)
+def test_transactioner_delete_invalid(data):
+    """Testing transaction Serialiser: Delete transaction."""
+
+    with raises((TransactionError, DataError, ProgrammingError)):
+        TransactionSerialiser().delete_transaction(data)
+
+
+@mark.parametrize(
+    "data",
+    [55.0, 4505775.7, 0.1],
+)
+def test_transaction_update_valid_amount(get_transactions, data):
     """Testing transaction Serialiser: Update transaction."""
 
-    with raises(TransactionError):
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            status=TransactionStatus.REVERSED,
-        )
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            status=TransactionStatus.INSUFFICIENT,
-        )
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            status=TransactionStatus.TRANSFERED,
-        )
+    for transaction in get_transactions:
+        if transaction.transaction_status != TransactionStatus.DRAFT:
+            continue
+        with Session(ENGINE) as session:
+            TransactionSerialiser().update_transaction(
+                transaction.id,
+                transaction.sender_signiture,
+                transaction.receiver_signiture,
+                amount=data,
+            )
+            transaction = session.get(Transaction, transaction.id)
+            assert transaction.id is not None
+            assert transaction.amount == data
+            assert transaction.transaction_status == TransactionStatus.DRAFT
 
 
-def test_transactionte_invalid_status_app(transaction):
+@mark.parametrize(
+    "data",
+    [-55.0, 0.0, "0.1"],
+)
+def test_transaction_update_invalid_amount(get_transactions, data):
     """Testing transaction Serialiser: Update transaction."""
 
-    with raises(TransactionError):
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            status=TransactionStatus.APPROVED,
-        )
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            status=TransactionStatus.REVERSED,
-        )
+    for transaction in get_transactions:
+        with raises((TransactionError, DataError, ProgrammingError)):
+            TransactionSerialiser().update_transaction(
+                transaction.id,
+                transaction.sender_signiture,
+                transaction.receiver_signiture,
+                amount=data,
+            )
 
 
-def test_transactionte_invalid_status_rej(transaction):
+@mark.parametrize(
+    "data",
+    [
+        {
+            "draft": TransactionStatus.APPROVED,
+            "approved": TransactionStatus.TRANSFERED,
+            "transferred": TransactionStatus.REVERSED,
+        },
+        {
+            "draft": TransactionStatus.REJECTED,
+            "approved": TransactionStatus.INSUFFICIENT,
+            "transferred": TransactionStatus.REVERSED,
+        },
+    ],
+)
+def test_transactionte_valid_status_app(get_transactions, data):
     """Testing transaction Serialiser: Update transaction."""
 
-    with raises(TransactionError):
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            status=TransactionStatus.REJECTED,
-        )
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            status=TransactionStatus.TRANSFERED,
-        )
+    with Session(ENGINE) as session:
+        for transaction in get_transactions:
+            match (transaction.transaction_status):
+                case TransactionStatus.DRAFT:
+                    transaction_status = data.get("draft")
+                case TransactionStatus.APPROVED:
+                    transaction_status = data.get("approved")
+                case TransactionStatus.TRANSFERED:
+                    transaction_status = data.get("transferred")
+                case _:
+                    transaction_status = None
+            TransactionSerialiser().update_transaction(
+                transaction.id,
+                transaction.sender_signiture,
+                transaction.receiver_signiture,
+                transaction_status=transaction_status,
+            )
+            transaction = session.get(Transaction, transaction.id)
+            assert transaction.id is not None
+            assert transaction.transaction_status == transaction_status
 
 
-def test_transactionte_invalid_status_1(transaction):
+@mark.parametrize(
+    "data",
+    [
+        {
+            "draft": TransactionStatus.TRANSFERED,
+        },
+        {
+            "transferred": TransactionStatus.APPROVED,
+        },
+        {
+            "draft": TransactionStatus.INSUFFICIENT,
+            "transferred": TransactionStatus.INSUFFICIENT,
+        },
+        {
+            "approved": TransactionStatus.REJECTED,
+            "transferred": TransactionStatus.REJECTED,
+        },
+        {
+            "draft": TransactionStatus.REVERSED,
+            "approved": TransactionStatus.REVERSED,
+        },
+    ],
+)
+def test_transactionte_invalid_status_app(get_transactions, data):
     """Testing transaction Serialiser: Update transaction."""
 
-    with raises(TransactionError):
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            status=TransactionStatus.TRANSFERED,
-        )
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            status=TransactionStatus.REJECTED,
-        )
-
-def test_transactionte_invalid_status_2(transaction):
-    """Testing transaction Serialiser: Update transaction."""
-
-    with raises(TransactionError):
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            status=TransactionStatus.APPROVED,
-        )
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            status=TransactionStatus.TRANSFERED,
-        )
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            status=TransactionStatus.REJECTED,
-        )
-
-def test_transactionte_invalid_status_2(transaction):
-    """Testing transaction Serialiser: Update transaction."""
-
-    with raises(TransactionError):
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            status=TransactionStatus.APPROVED,
-        )
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            amount = 55.5
-        )
-
-def test_transactionte_invalid_status_2(transaction):
-    """Testing transaction Serialiser: Update transaction."""
-
-    with raises(TransactionError):
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            amount = "55.5"
-        )
-
-def test_transactionte_invalid_status_2(transaction):
-    """Testing transaction Serialiser: Update transaction."""
-
-    with raises(TransactionError):
-        TransactionSerialiser().update_transaction(
-            transaction.id,
-            transaction.sender_signiture,
-            transaction.receiver_signiture,
-            amounts = "55.5"
-        )
+    for transaction in get_transactions:
+        match (transaction.transaction_status):
+            case TransactionStatus.DRAFT:
+                transaction_status = data.get("draft")
+            case TransactionStatus.APPROVED:
+                transaction_status = data.get("approved")
+            case TransactionStatus.TRANSFERED:
+                transaction_status = data.get("transferred")
+            case _:
+                transaction_status = None
+        with raises((TransactionError, DataError, ProgrammingError)):
+            TransactionSerialiser().update_transaction(
+                transaction.id,
+                transaction.sender_signiture,
+                transaction.receiver_signiture,
+                transaction_status=transaction_status,
+            )

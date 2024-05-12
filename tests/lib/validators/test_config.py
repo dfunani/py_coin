@@ -1,118 +1,187 @@
-"""Testing Application Config Validators."""
+"""Validators: Testing Application Config Module."""
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from uuid import uuid4
 
-from pytest import raises
+from pytest import mark, raises
 
 from lib.interfaces.exceptions import ApplicationError
 from lib.validators.config import (
-    validate_salt_value,
-    validate_fernet_key,
-    validate_start_date,
-    validate_session_id,
-    validate_card_length,
     validate_cvv_length,
     validate_end_date,
+    validate_salt_value,
+    validate_fernet_key,
+    validate_session_id,
+    validate_card_length,
+    validate_start_date,
 )
 
 
-def test_validate_salt_value_invalid():
-    """Tests Validate SALT_VALUE"""
-
-    with raises(ApplicationError):
-        validate_salt_value(1)
-
-
-def test_validate_salt_value():
+@mark.parametrize(
+    "data",
+    [uuid4(), uuid4()],
+)
+def test_validate_salt_value(data):
     """Tests Validating Salt Value."""
 
-    assert validate_salt_value("salt_value")
+    assert validate_salt_value(data)
 
 
-def test_validate_fernet_key_invalid():
-    """Tests Validate FERNET_KEY"""
+@mark.parametrize(
+    "data",
+    [1, None, validate_card_length],
+)
+def test_invalidate_salt_value(data):
+    """Tests Invalidates Salt Value."""
 
     with raises(ApplicationError):
-        validate_fernet_key(1)
+        validate_salt_value(data)
 
 
-def test_validate_fernet_key():
+@mark.parametrize(
+    "data",
+    ["fernet-key", "Any Valid String."],
+)
+def test_validate_fernet_key(data):
     """Tests Validating Fernet Key."""
 
-    assert validate_fernet_key("fernet_key") == "fernet_key"
+    assert validate_fernet_key(data) == data
 
 
-def test_validate_start_date_invalid():
-    """Tests Validate START_DATE"""
+@mark.parametrize(
+    "data",
+    [1, None, validate_card_length],
+)
+def test_invalidate_fernet_key(data):
+    """Tests Invalidates Fernet Key."""
 
     with raises(ApplicationError):
-        validate_start_date("test_validate_start_date")
+        validate_fernet_key(data)
 
 
-def test_validate_start_date():
+@mark.parametrize(
+    "data",
+    [datetime.now(), datetime(2010, 12, 31, 15, 1, 15), datetime(1972, 1, 15, 0, 0, 0)],
+)
+def test_validate_start_date(data):
     """Tests Validating Start Date."""
 
-    test_now = datetime.now()
-    assert validate_start_date(test_now) == test_now
+    assert validate_start_date(data) == data
 
 
-def test_validate_end_date_invalid():
-    """Tests Validate END_DATE"""
-
-    with raises(ApplicationError):
-        validate_end_date("test_validate_end_date", datetime.now())
-
-
-def test_validate_end_date_invalid_start():
-    """Tests Validate END_DATE"""
+@mark.parametrize(
+    "data",
+    ["2022-05-20", date(2010, 12, 31), date(1972, 1, 15), 20220519],
+)
+def test_invalidate_start_date(data):
+    """Tests Invalidates Start Date."""
 
     with raises(ApplicationError):
-        validate_end_date(datetime.now(), "datetime.now()")
+        validate_start_date(data)
 
 
-def test_validate_end_date():
+@mark.parametrize(
+    "data",
+    [
+        (datetime.now(), datetime.now() - timedelta(days=1)),
+        (
+            datetime(2010, 12, 31, 15, 1, 15),
+            datetime(2010, 12, 31, 15, 1, 15) - timedelta(hours=1),
+        ),
+        (
+            datetime(1972, 1, 15, 0, 0, 0),
+            datetime(1972, 1, 15, 0, 0, 0) - timedelta(seconds=1),
+        ),
+    ],
+)
+def test_validate_end_date(data):
     """Tests Validating End Date."""
 
-    test_now = datetime.now() + timedelta(days=1)
-    assert validate_end_date(test_now, datetime.now()) == test_now
+    assert validate_end_date(data[0], data[1]) == data[0]
 
 
-def test_validate_card_length_invalid():
-    """Tests Validate CARD_LENGTH"""
+@mark.parametrize(
+    "data",
+    [
+        ("2022-05-20", "2021-04-15"),
+        (
+            datetime(1972, 1, 15, 0, 0, 0),
+            datetime(1972, 1, 15, 0, 0, 0),
+        ),
+        (
+            datetime(1972, 1, 15, 0, 0, 0),
+            datetime(1972, 1, 15, 0, 0, 0) + timedelta(seconds=1),
+        ),
+        (date(2010, 12, 31), date(2008, 12, 31)),
+        (date(1972, 1, 15), date(2010, 12, 31)),
+        (20220519, 20100515),
+    ],
+)
+def test_invalidate_end_date(data):
+    """Tests Invalidates End Date."""
 
     with raises(ApplicationError):
-        validate_card_length("test_validate_card_length")
+        validate_end_date(data[0], data[1])
 
 
-def test_validate_card_length():
+@mark.parametrize(
+    "data",
+    [9, 15, 27],
+)
+def test_validate_card_length(data):
     """Tests Validating Card length."""
 
-    assert validate_card_length(9) == 9
+    assert validate_card_length(data) == data
 
 
-def test_validate_cvv_length_invalid():
-    """Tests Validate CVV_LENGTH"""
+@mark.parametrize(
+    "data",
+    [-9, 0, "27", 27.0, 0.0],
+)
+def test_invalidate_card_length(data):
+    """Tests Validating Card length."""
 
     with raises(ApplicationError):
-        validate_cvv_length("test_validate_cvv_length")
+        validate_card_length(data)
 
 
-def test_validate_cvv_length():
+@mark.parametrize(
+    "data",
+    [3, 19, 115, 270],
+)
+def test_validate_cvv_length(data):
     """Tests Validating CVV Length."""
 
-    assert validate_cvv_length(3) == 3
+    assert validate_cvv_length(data) == data
 
 
-def test_validate_session_id_invalid():
-    """Tests Validate SESSION_ID"""
+@mark.parametrize(
+    "data",
+    [-9, 0, "27", 27.0, 0.0],
+)
+def test_invalidate_cvv_length(data):
+    """Tests Invalidates CVV Length."""
 
     with raises(ApplicationError):
-        validate_session_id("test_validate_session_id")
+        validate_cvv_length(data)
 
 
-def test_validate_session_id():
+@mark.parametrize(
+    "data",
+    [uuid4(), uuid4()],
+)
+def test_validate_session_id(data):
     """Tests Validating Session ID."""
 
-    test_uuid = uuid4()
-    assert validate_session_id(test_uuid) == test_uuid
+    assert validate_session_id(data) == data
+
+
+@mark.parametrize(
+    "data",
+    [1, None, validate_card_length, "uuid value as a string"],
+)
+def test_invalidate_session_id(data):
+    """Tests Invalidates Session ID."""
+
+    with raises(ApplicationError):
+        validate_session_id(data)

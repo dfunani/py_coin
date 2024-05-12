@@ -1,4 +1,4 @@
-"""Warehouse Modules: Test the Cards Class."""
+"""Warehouse: Testing Cards Model."""
 
 from datetime import date
 from pytest import raises
@@ -51,4 +51,4 @@ def test_card_valid():
             assert card.salt_value is not None
             assert isinstance(card.to_dict(), dict)
 
-            run_test_teardown(card.id, Card, session)
+            run_test_teardown([card], session)

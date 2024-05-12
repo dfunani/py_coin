@@ -1,23 +1,15 @@
-"""BlockChain Module: Testing the Contract Class."""
+"""BlockChain: Testing Contract Model."""
 
-import base64
-from datetime import date
 from pytest import raises
 
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
-from config import AppConfig
 from lib.utils.constants.contracts import ContractStatus
-from lib.utils.constants.users import CardType, Status
-from lib.utils.encryption.cryptography import decrypt_data, encrypt_data
+from lib.utils.encryption.cryptography import encrypt_data
 from lib.utils.encryption.encoders import get_hash_value
 from models import ENGINE
 from models.blockchain.contracts import Contract
-from models.user.accounts import Account
-from models.user.payments import PaymentProfile
-from models.user.users import User
-from models.warehouse.cards import Card
 from tests.conftest import run_test_teardown
 
 
@@ -41,21 +33,22 @@ def test_contract_invalid_args():
             session.commit()
 
 
-def test_contract_valid(payment, payment2):
+def test_contract_valid(get_payments):
     """Testing a Valid Contract Constructor, with Required Arguments."""
 
-    with Session(ENGINE) as session:
-        with open("test_markdown.md", "r") as file:
-            contract = Contract()
-            contract.contract_id = get_hash_value(file.read(), contract.salt_value)
-            contract.contractor = payment.id
-            contract.contractee = payment2.id
-            contract.contract = encrypt_data(file.read().encode())
-            session.add(contract)
-            session.commit()
+    for contractor, contractee in zip(get_payments, list(reversed(get_payments))):
+        with Session(ENGINE) as session:
+            with open("test_markdown.md", "r", encoding="utf-8") as file:
+                contract = Contract()
+                contract.contract_id = get_hash_value(file.read(), str(contract.salt_value))
+                contract.contractor = contractor.id
+                contract.contractee = contractee.id
+                contract.contract = encrypt_data(file.read().encode())
+                session.add(contract)
+                session.commit()
 
-            assert contract.id is not None
-            assert contract.contract_status == ContractStatus.DRAFT
-            assert isinstance(contract.to_dict(), dict)
+                assert contract.id is not None
+                assert contract.contract_status == ContractStatus.DRAFT
+                assert isinstance(contract.to_dict(), dict)
 
-            run_test_teardown(contract.id, Contract, session)
+                run_test_teardown([contract], session)

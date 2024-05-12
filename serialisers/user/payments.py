@@ -1,6 +1,7 @@
-"""Users Serialiser Module: Serialiser for Payment Profile Model."""
+"""User: Serialiser for Payment Profile Model."""
 
-from sqlalchemy import String, cast, select
+from uuid import UUID
+from sqlalchemy import cast, select, UUID as uuid
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from lib.interfaces.exceptions import PaymentProfileError
@@ -20,12 +21,12 @@ class PaymentProfileSerialiser(PaymentProfile, BaseSerialiser):
         "balance",
     ]
 
-    def get_payment_profile(self, payment_id: str) -> dict:
+    def get_payment_profile(self, payment_id: UUID) -> dict:
         """CRUD Operation: Get Payment Profile."""
 
         with Session(ENGINE) as session:
             query = select(PaymentProfile).filter(
-                cast(PaymentProfile.payment_id, String) == payment_id
+                cast(PaymentProfile.payment_id, uuid) == payment_id
             )
             payment_profile = session.execute(query).scalar_one_or_none()
 
@@ -34,7 +35,7 @@ class PaymentProfileSerialiser(PaymentProfile, BaseSerialiser):
 
             return self.__get_model_data__(payment_profile)
 
-    def create_payment_profile(self, account_id: str, card_id: str) -> str:
+    def create_payment_profile(self, account_id: UUID, card_id: UUID) -> str:
         """CRUD Operation: Add Payment Profile."""
 
         with Session(ENGINE) as session:
@@ -49,7 +50,7 @@ class PaymentProfileSerialiser(PaymentProfile, BaseSerialiser):
 
             return str(self)
 
-    def update_payment_profile(self, private_id: str, **kwargs) -> str:
+    def update_payment_profile(self, private_id: UUID, **kwargs) -> str:
         """CRUD Operation: Update Payment Profile."""
 
         with Session(ENGINE) as session:
@@ -73,7 +74,7 @@ class PaymentProfileSerialiser(PaymentProfile, BaseSerialiser):
 
             return str(payment_profile)
 
-    def delete_payment_profile(self, private_id: str) -> str:
+    def delete_payment_profile(self, private_id: UUID) -> str:
         """CRUD Operation: Delete Payment Profile."""
 
         with Session(ENGINE) as session:

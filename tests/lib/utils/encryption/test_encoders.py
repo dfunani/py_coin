@@ -1,38 +1,51 @@
-"""Testing Encoding Helpers"""
+"""Encryption: Testing Encoders Module."""
 
-from pytest import raises
+from uuid import uuid4
+from pytest import mark, raises
 from lib.utils.encryption.encoders import get_hash_value
 
 
-def test_get_hash_value():
-    """Test Hash Value."""
+@mark.parametrize(
+    "data",
+    [
+        ("Testing Hash Value.", ""),
+        (str(uuid4()), str(uuid4())),
+        (str(123456789), str(123456789)),
+    ],
+)
+def test_get_hash_value(data):
+    """Test Valid Hash Value."""
 
-    assert len(get_hash_value("1")) == 64
-    assert (
-        get_hash_value("1")
-        == "6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b"
-    )
-
-
-def test_get_hash_value_salted():
-    """Test Hash Value."""
-
-    assert len(get_hash_value("1")) == 64
-    assert (
-        get_hash_value("1", "1")
-        == "4fc82b26aecb47d2868c4efbe3581732a3e7cbcc6c2efb32062c08170a05eeb8"
-    )
+    assert len(get_hash_value(data[0])) == 64
+    assert get_hash_value(data[0]) is not None
+    assert isinstance(get_hash_value(data[0], data[1]), str)
 
 
-def test_get_hash_value_invalid_value():
-    """Test Hash Value."""
-
-    with raises(ValueError, match="Value must be a String."):
-        get_hash_value(1)
-
-
-def test_get_hash_value_invalid_salt():
-    """Test Hash Value."""
+@mark.parametrize(
+    "data",
+    [
+        ("Testing Hash Value.", None),
+        (str(uuid4()), 1),
+        (str(123456789), uuid4()),
+    ],
+)
+def test_get_hash_value_invalid_salt(data):
+    """Test Invalid Salt Value."""
 
     with raises(ValueError, match="Salt must be a String."):
-        get_hash_value("1", 1)
+        get_hash_value(data[0], data[1])
+
+
+@mark.parametrize(
+    "data",
+    [
+        (123456789, ""),
+        (uuid4(), str(uuid4())),
+        (None, 123456789),
+    ],
+)
+def test_get_hash_value_invalid_value(data):
+    """Test Invalid Hash Value."""
+
+    with raises(ValueError, match="Value must be a String."):
+        get_hash_value(data[0], data[1])

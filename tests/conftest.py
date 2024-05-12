@@ -1,505 +1,240 @@
-"""App Module: Testing Configuration."""
+"""Tests: Testing Configuration Module."""
 
-from re import compile as regex_compile
-from typing import Any
-from datetime import date
 from pytest import fixture
 from sqlalchemy.orm import Session
 
-from config import AppConfig
-from lib.utils.constants.users import CardType
-from lib.utils.encryption.cryptography import encrypt_data
-from lib.utils.encryption.encoders import get_hash_value
+from lib.interfaces.exceptions import ApplicationError
 from models import ENGINE
-from models.blockchain.blocks import Block
-from models.blockchain.contracts import Contract
-from models.blockchain.transactions import Transaction
-from models.user.accounts import Account
-from models.user.payments import PaymentProfile
-from models.user.profiles import UserProfile
-from models.user.settings import SettingsProfile
-from models.user.users import User
-from models.warehouse.cards import Card
-from models.warehouse.logins import LoginHistory
+from tests.test_utils.blockchain import (
+    create_blocks,
+    create_contracts,
+    create_transactions,
+)
+from tests.test_utils.users import (
+    create_accounts,
+    create_cards,
+    create_logins,
+    create_payment_profiles,
+    create_settings,
+    create_user_profiles,
+    create_users,
+)
+from tests.test_utils.utils import (
+    generate_socials,
+    run_test_teardown,
+    setup_test_commit,
+)
 
 
 @fixture
-def app() -> AppConfig:
-    """Initializes the Application Config."""
+def get_socials() -> dict[str, str]:
+    """Returns Test Social Media Links."""
 
-    return AppConfig()
-
-
-def setup_test_commit(model: Any, session: Session):
-    """Abstraction of the persistence functionality."""
-
-    session.add(model)
-    session.commit()
-
-
-def run_test_teardown(private_id: str, model: Any, session: Session):
-    """Abstraction of the Clearing of the Test Database."""
-
-    model = session.get(model, private_id)
-    session.delete(model)
-    session.commit()
-
-
-def get_id_by_regex(value: str) -> str:
-    """Get Model ID By Regex."""
-
-    regex = regex_compile(r"^.*: (.*)$")
-    regex_match = regex.match(value)
-    assert regex_match is not None
-    matches = regex_match.groups()
-    assert regex_match is not None
-    assert len(matches) == 1
-    return matches[0]
+    result = generate_socials()
+    if not isinstance(result, dict):
+        raise ApplicationError("Error Running Social Media Links.")
+    return result
 
 
 @fixture
-def user():
-    """Creates a test User."""
+def get_users():
+    """Returns Test Users."""
 
     with Session(ENGINE) as session:
-        user = User()
-        user.email = encrypt_data("test@test.com".encode())
-        user.password = get_hash_value("password123@", str(user.salt_value))
-        user.user_id = get_hash_value(
-            str("test@test.com") + "password123@", str(AppConfig().salt_value)
-        )
-        session.add(user)
-        session.commit()
+        users = create_users()
+        setup_test_commit(users, session)
 
-        yield user
+        yield users
 
-        session.delete(user)
-        session.commit()
+        run_test_teardown([*users], session)
 
 
 @fixture
-def account():
-    """Creates a Test Account."""
+def get_accounts():
+    """Returns Test Accounts."""
 
     with Session(ENGINE) as session:
-        user = User()
-        user.email = encrypt_data("test@test.com".encode())
-        user.password = get_hash_value("password123@", str(user.salt_value))
-        user.user_id = get_hash_value(
-            str("test@test.com") + "password123@", str(AppConfig().salt_value)
-        )
-        session.add(user)
-        session.commit()
+        users = create_users()
+        setup_test_commit(users, session)
 
-        account = Account()
-        account.user_id = user.id
-        session.add(account)
-        session.commit()
+        accounts = create_accounts(list(map(lambda user: user.id, users)))
+        setup_test_commit(accounts, session)
 
-        yield account
+        yield accounts
 
-        session.delete(account)
-        session.delete(user)
-        session.commit()
+        run_test_teardown([*accounts, *users], session)
 
 
 @fixture
-def settings():
-    """Creates a Test Setting."""
+def get_settings():
+    """Returns Test Setting Profiles."""
 
     with Session(ENGINE) as session:
-        user = User()
-        user.email = encrypt_data("test@test.com".encode())
-        user.password = get_hash_value("password123@", str(user.salt_value))
-        user.user_id = get_hash_value(
-            str("test@test.com") + "password123@", str(AppConfig().salt_value)
-        )
-        session.add(user)
-        session.commit()
+        users = create_users()
+        setup_test_commit(users, session)
 
-        account = Account()
-        account.user_id = user.id
-        session.add(account)
-        session.commit()
+        accounts = create_accounts(list(map(lambda user: user.id, users)))
+        setup_test_commit(accounts, session)
 
-        settings = SettingsProfile()
-        settings.account_id = account.id
-        session.add(settings)
-        session.commit()
+        settings = create_settings(list(map(lambda account: account.id, accounts)))
+        setup_test_commit(settings, session)
 
         yield settings
 
-        session.delete(settings)
-        session.delete(account)
-        session.delete(user)
-        session.commit()
+        run_test_teardown([*settings, *accounts, *users], session)
 
 
 @fixture
-def card():
-    """Creates a Test Card"""
+def get_cards():
+    """Returns Test Cards."""
 
     with Session(ENGINE) as session:
-        card = Card()
-        card.card_number = "1991123456789"
-        card.card_type = CardType.CHEQUE
-        card.cvv_number = "123"
-        card.expiration_date = date.today()
-        card.pin = "123456"
+        cards = create_cards()
+        setup_test_commit(cards, session)
 
-        session.add(card)
-        session.commit()
+        yield cards
 
-        yield card
-
-        session.delete(card)
-        session.commit()
+        run_test_teardown([*cards], session)
 
 
 @fixture
-def card2():
-    """Creates a Test Card"""
+def get_payments():
+    """Returns Test Payments Profiles."""
 
     with Session(ENGINE) as session:
-        card = Card()
-        card.card_number = "1991123456788"
-        card.card_type = CardType.CHEQUE
-        card.cvv_number = "123"
-        card.expiration_date = date.today()
-        card.pin = "123456"
+        users = create_users()
+        setup_test_commit(users, session)
 
-        session.add(card)
-        session.commit()
+        accounts = create_accounts(list(map(lambda user: user.id, users)))
+        setup_test_commit(accounts, session)
 
-        yield card
+        cards = create_cards()
+        setup_test_commit(cards, session)
 
-        session.delete(card)
-        session.commit()
+        payments = create_payment_profiles(
+            list(map(lambda account: account.id, accounts)),
+            list(map(lambda card: card.id, cards)),
+        )
+        setup_test_commit(payments, session)
+
+        yield payments
+
+        run_test_teardown([*payments, *accounts, *cards, *users], session)
 
 
 @fixture
-def payment():
-    """Creates a Test Account."""
+def get_profiles():
+    """Returns Test User Profiles."""
 
     with Session(ENGINE) as session:
-        user = User()
-        user.email = encrypt_data("test@test.com".encode())
-        user.password = get_hash_value("password123@", str(user.salt_value))
-        user.user_id = get_hash_value(
-            str("test@test.com") + "password123@", str(AppConfig().salt_value)
+        users = create_users()
+        setup_test_commit(users, session)
+
+        accounts = create_accounts(list(map(lambda user: user.id, users)))
+        setup_test_commit(accounts, session)
+
+        user_profiles = create_user_profiles(
+            list(map(lambda account: account.id, accounts))
         )
-        session.add(user)
-        session.commit()
+        setup_test_commit(user_profiles, session)
 
-        account = Account()
-        account.user_id = user.id
-        session.add(account)
-        session.commit()
+        yield user_profiles
 
-        card = Card()
-        card.card_number = "1991123456789"
-        card.card_type = CardType.CHEQUE
-        card.cvv_number = "123"
-        card.expiration_date = date.today()
-        card.pin = "123456"
-
-        session.add(card)
-        session.commit()
-
-        payment = PaymentProfile()
-        payment.account_id = account.id
-        payment.card_id = card.id
-
-        session.add(payment)
-        session.commit()
-
-        yield payment
-
-        session.delete(payment)
-        session.delete(account)
-        session.delete(user)
-        session.delete(card)
-        session.commit()
+        run_test_teardown([*user_profiles, *accounts, *users], session)
 
 
 @fixture
-def payment2():
-    """Creates a Test Account."""
+def get_logins():
+    """Returns Test Logins History."""
 
     with Session(ENGINE) as session:
-        user = User()
-        user.email = encrypt_data("test2@test.com".encode())
-        user.password = get_hash_value("password123@", str(user.salt_value))
-        user.user_id = get_hash_value(
-            str("test2@test.com") + "password123@", str(AppConfig().salt_value)
-        )
-        session.add(user)
-        session.commit()
+        users = create_users()
+        setup_test_commit(users, session)
 
-        account = Account()
-        account.user_id = user.id
-        session.add(account)
-        session.commit()
+        logins = create_logins(list(map(lambda user: user.id, users)))
+        setup_test_commit(logins, session)
 
-        card = Card()
-        card.card_number = "1991123456788"
-        card.card_type = CardType.CHEQUE
-        card.cvv_number = "123"
-        card.expiration_date = date.today()
-        card.pin = "123456"
+        yield logins
 
-        session.add(card)
-        session.commit()
-
-        payment = PaymentProfile()
-        payment.account_id = account.id
-        payment.card_id = card.id
-
-        session.add(payment)
-        session.commit()
-
-        yield payment
-
-        session.delete(payment)
-        session.delete(account)
-        session.delete(user)
-        session.delete(card)
-        session.commit()
+        run_test_teardown([*logins, *users], session)
 
 
 @fixture
-def profile():
-    """Creates a Test Account."""
+def get_transactions():
+    """Returns Test Transactions."""
 
     with Session(ENGINE) as session:
-        user = User()
-        user.email = encrypt_data("test@test.com".encode())
-        user.password = get_hash_value("password123@", str(user.salt_value))
-        user.user_id = get_hash_value(
-            str("test@test.com") + "password123@", str(AppConfig().salt_value)
+        users = create_users()
+        setup_test_commit(users, session)
+
+        accounts = create_accounts(list(map(lambda user: user.id, users)))
+        setup_test_commit(accounts, session)
+
+        cards = create_cards()
+        setup_test_commit(cards, session)
+
+        payments = create_payment_profiles(
+            list(map(lambda account: account.id, accounts)),
+            list(map(lambda card: card.id, cards)),
         )
-        session.add(user)
-        session.commit()
+        setup_test_commit(payments, session)
 
-        account = Account()
-        account.user_id = user.id
-        session.add(account)
-        session.commit()
+        transactions = create_transactions(
+            list(map(lambda payment: payment.id, payments)),
+            list(map(lambda payment: payment.id, list(reversed(payments)))),
+            list(map(lambda card: card.card_id, cards)),
+            list(map(lambda card: card.card_id, list(reversed(cards)))),
+        )
+        setup_test_commit(transactions, session)
 
-        profile = UserProfile()
-        profile.account_id = account.id
-        session.add(profile)
-        session.commit()
+        yield transactions
 
-        yield profile
-
-        session.delete(profile)
-        session.delete(account)
-        session.delete(user)
-        session.commit()
+        run_test_teardown(
+            [*transactions, *payments, *accounts, *cards, *users], session
+        )
 
 
 @fixture
-def login():
-    """Creates a Test Login History."""
+def get_contracts():
+    """Returns Test Contracts."""
 
     with Session(ENGINE) as session:
-        user = User()
-        user.email = encrypt_data("test@test.com".encode())
-        user.password = get_hash_value("password123@", str(user.salt_value))
-        user.user_id = get_hash_value(
-            str("test@test.com") + "password123@", str(AppConfig().salt_value)
+        users = create_users()
+        setup_test_commit(users, session)
+
+        accounts = create_accounts(list(map(lambda user: user.id, users)))
+        setup_test_commit(accounts, session)
+
+        cards = create_cards()
+        setup_test_commit(cards, session)
+
+        payments = create_payment_profiles(
+            list(map(lambda account: account.id, accounts)),
+            list(map(lambda card: card.id, cards)),
         )
-        session.add(user)
-        session.commit()
+        setup_test_commit(payments, session)
 
-        login = LoginHistory()
-        login.user_id = user.id
-        session.add(login)
-        session.commit()
+        contracts = create_contracts(
+            list(map(lambda payment: payment.id, payments)),
+            list(map(lambda payment: payment.id, list(reversed(payments)))),
+            list(map(lambda card: card.card_id, cards)),
+            list(map(lambda card: card.card_id, list(reversed(cards)))),
+        )
+        setup_test_commit(contracts, session)
 
-        yield login
+        yield contracts
 
-        session.delete(login)
-        session.delete(user)
-        session.commit()
+        run_test_teardown([*contracts, *payments, *accounts, *cards, *users], session)
 
 
 @fixture
-def transaction():
-    """Creates a Test Transaction."""
+def get_blocks():
+    """Returns Test Blocks."""
 
     with Session(ENGINE) as session:
-        user = User()
-        user.email = encrypt_data("test@test.com".encode())
-        user.password = get_hash_value("password123@", str(user.salt_value))
-        user.user_id = get_hash_value(
-            str("test@test.com") + "password123@", str(AppConfig().salt_value)
-        )
-        session.add(user)
-        session.commit()
+        blocks = create_blocks()
+        setup_test_commit(blocks, session)
 
-        card1 = Card()
-        card1.card_number = "1991123456789"
-        card1.card_type = CardType.CHEQUE
-        card1.cvv_number = "123"
-        card1.expiration_date = date.today()
-        card1.pin = "123456"
+        yield blocks
 
-        session.add(card1)
-        session.commit()
-
-        card2 = Card()
-        card2.card_number = "1991123456788"
-        card2.card_type = CardType.CHEQUE
-        card2.cvv_number = "123"
-        card2.expiration_date = date.today()
-        card2.pin = "123456"
-
-        session.add(card2)
-        session.commit()
-
-        account = Account()
-        account.user_id = user.id
-        session.add(account)
-        session.commit()
-
-        payment1 = PaymentProfile()
-        payment1.account_id = account.id
-        payment1.card_id = card1.id
-        session.add(payment1)
-        session.commit()
-
-        payment2 = PaymentProfile()
-        payment2.account_id = account.id
-        payment2.card_id = card2.id
-        session.add(payment2)
-        session.commit()
-
-        transaction = Transaction()
-        transaction.sender = payment1.id
-        transaction.receiver = payment2.id
-        transaction.amount = 5.0
-        transaction.sender_signiture = get_hash_value(
-            card1.card_id, transaction.salt_value
-        )
-        transaction.receiver_signiture = get_hash_value(
-            card2.card_id, transaction.salt_value
-        )
-        session.add(transaction)
-        session.commit()
-
-        yield transaction
-
-        session.delete(transaction)
-        session.delete(payment1)
-        session.delete(payment2)
-        session.delete(account)
-        session.delete(card1)
-        session.delete(card2)
-        session.delete(user)
-        session.commit()
-
-
-@fixture
-def contract():
-    """Creates a Test Transaction."""
-
-    with Session(ENGINE) as session:
-        user = User()
-        user.email = encrypt_data("test@test.com".encode())
-        user.password = get_hash_value("password123@", str(user.salt_value))
-        user.user_id = get_hash_value(
-            str("test@test.com") + "password123@", str(AppConfig().salt_value)
-        )
-        session.add(user)
-        session.commit()
-
-        card1 = Card()
-        card1.card_number = "1991123456789"
-        card1.card_type = CardType.CHEQUE
-        card1.cvv_number = "123"
-        card1.expiration_date = date.today()
-        card1.pin = "123456"
-
-        session.add(card1)
-        session.commit()
-
-        card2 = Card()
-        card2.card_number = "1991123456788"
-        card2.card_type = CardType.CHEQUE
-        card2.cvv_number = "123"
-        card2.expiration_date = date.today()
-        card2.pin = "123456"
-
-        session.add(card2)
-        session.commit()
-
-        account = Account()
-        account.user_id = user.id
-        session.add(account)
-        session.commit()
-
-        payment1 = PaymentProfile()
-        payment1.account_id = account.id
-        payment1.card_id = card1.id
-        session.add(payment1)
-        session.commit()
-
-        payment2 = PaymentProfile()
-        payment2.account_id = account.id
-        payment2.card_id = card2.id
-        session.add(payment2)
-        session.commit()
-
-        contract = Contract()
-        contract.contract_id = get_hash_value(
-            "Testing a string contract", contract.salt_value
-        )
-        contract.contractor = payment1.id
-        contract.contractee = payment2.id
-        contract.contract = "Testing a string contract"
-        contract.contractor_signiture = get_hash_value(
-            card1.card_id, contract.salt_value
-        )
-        contract.contractee_signiture = get_hash_value(
-            card2.card_id, contract.salt_value
-        )
-        session.add(contract)
-        session.commit()
-
-        yield contract
-
-        session.delete(contract)
-        session.delete(payment1)
-        session.delete(payment2)
-        session.delete(account)
-        session.delete(card1)
-        session.delete(card2)
-        session.delete(user)
-        session.commit()
-
-
-@fixture
-def blocks():
-    """Creates a Test Block."""
-
-    with Session(ENGINE) as session:
-        block = Block()
-        session.add(block)
-        session.commit()
-
-        block2 = Block()
-        session.add(block2)
-        session.commit()
-
-        block3 = Block()
-        session.add(block3)
-        session.commit()
-
-        yield block, block2, block3
-
-        session.delete(block)
-        session.delete(block2)
-        session.delete(block3)
-        session.commit()
+        run_test_teardown(blocks, session)

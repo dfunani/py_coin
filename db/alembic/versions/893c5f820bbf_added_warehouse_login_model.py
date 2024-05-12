@@ -29,21 +29,21 @@ def upgrade() -> None:
         "login_history",
         sa.Column(
             "id",
-            sa.String(256),
+            sa.UUID(as_uuid=True),
             primary_key=True,
         ),
         sa.Column(
-            "user_id", sa.String(256), sa.ForeignKey("users.users.id"), nullable=False
+            "user_id", sa.UUID(as_uuid=True), sa.ForeignKey("users.users.id"), nullable=False
         ),
         sa.Column(
             "login_id",
-            sa.String(256),
+            sa.UUID(as_uuid=True),
             default=sa.text(f"'{str(uuid4())}'"),
             nullable=False,
         ),
         sa.Column(
             "session_id",
-            sa.String(256),
+            sa.UUID(as_uuid=True),
             nullable=True,
         ),
         sa.Column(
@@ -64,7 +64,7 @@ def upgrade() -> None:
         ),
         sa.Column("logged_in", sa.Boolean, nullable=False, default=False),
         sa.Column("logout_date", sa.DateTime, nullable=True),
-        sa.Column("authentication_token", sa.String, nullable=True),
+        sa.Column("authentication_token", sa.String(256), nullable=True),
         schema="warehouse",
     )
     # ### end Alembic commands ###

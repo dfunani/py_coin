@@ -1,8 +1,17 @@
-"""Users Module: Contains User Settings."""
+"""Users: Settings Profile Model."""
 
 from datetime import datetime
-from uuid import uuid4
-from sqlalchemy import Boolean, Column, DateTime, Enum, ForeignKey, String, ARRAY, text
+from uuid import uuid4, UUID as uuid
+from sqlalchemy import (
+    UUID,
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    ForeignKey,
+    ARRAY,
+    text,
+)
 
 from lib.utils.constants.users import (
     Communication,
@@ -22,10 +31,17 @@ class SettingsProfile(Base, BaseModel):
     __table_args__ = ({"schema": "users"},)
     __EXCLUDE_ATTRIBUTES__: list[str] = []
 
-    id: str | Column[str] = Column("id", String(256), primary_key=True, nullable=False)
-    settings_id: str | Column[str] = Column("settings_id", String(256), nullable=False)
-    account_id: str | Column[str] = Column(
-        "account_id", ForeignKey("users.accounts.id"), nullable=False
+    id: uuid | Column[uuid] = Column(
+        "id", UUID(as_uuid=True), primary_key=True, nullable=False
+    )
+    settings_id: uuid | Column[uuid] = Column(
+        "settings_id", UUID(as_uuid=True), nullable=False
+    )
+    account_id: uuid | Column[uuid] = Column(
+        "account_id",
+        UUID(as_uuid=True),
+        ForeignKey("users.accounts.id"),
+        nullable=False,
     )
     email_status: Verification | Column[Verification] = Column(
         "email_status",
@@ -87,13 +103,13 @@ class SettingsProfile(Base, BaseModel):
     def __init__(self) -> None:
         """Settings Object Constructor."""
 
-        self.id = str(uuid4())
-        self.settings_id = str(uuid4())
+        self.id = uuid4()
+        self.settings_id = uuid4()
 
     def __str__(self) -> str:
         """String Representation of the Settings Object."""
 
-        return f"Settings Profile ID: {self.settings_id}"
+        return f"Settings Profile ID: {str(self.settings_id)}"
 
     def __repr__(self) -> str:
         """String Representation of the Settings Object."""

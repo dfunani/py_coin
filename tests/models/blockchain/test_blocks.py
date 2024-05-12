@@ -1,23 +1,12 @@
-"""BlockChain Module: Testing the Block Class."""
+"""BlockChain: Testing Block Model."""
 
-import base64
-from datetime import date
 from pytest import raises
 
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
 
-from config import AppConfig
 from lib.utils.constants.blocks import BlockType
-from lib.utils.constants.users import CardType, Status
-from lib.utils.encryption.cryptography import decrypt_data, encrypt_data
-from lib.utils.encryption.encoders import get_hash_value
 from models import ENGINE
 from models.blockchain.blocks import Block
-from models.user.accounts import Account
-from models.user.payments import PaymentProfile
-from models.user.users import User
-from models.warehouse.cards import Card
 from tests.conftest import run_test_teardown
 
 
@@ -44,4 +33,4 @@ def test_block_valid():
         assert block.block_type == BlockType.CONTRACT
         assert isinstance(block.to_dict(), dict)
 
-        run_test_teardown(block.id, Block, session)
+        run_test_teardown([block], session)

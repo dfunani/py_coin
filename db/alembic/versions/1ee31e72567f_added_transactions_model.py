@@ -26,17 +26,17 @@ def upgrade() -> None:
     op.execute("CREATE SCHEMA IF NOT EXISTS blockchain")
     op.create_table(
         "transactions",
-        sa.Column("id", sa.String(256), primary_key=True, nullable=False),
-        sa.Column("transaction_id", sa.String(256), nullable=False),
+        sa.Column("id", sa.UUID(as_uuid=True), primary_key=True, nullable=False),
+        sa.Column("transaction_id", sa.UUID(as_uuid=True), nullable=False),
         sa.Column(
             "sender",
-            sa.String(256),
+            sa.UUID(as_uuid=True),
             sa.ForeignKey("users.payment_profiles.id"),
             nullable=False,
         ),
         sa.Column(
             "receiver",
-            sa.String(256),
+            sa.UUID(as_uuid=True),
             sa.ForeignKey("users.payment_profiles.id"),
             nullable=False,
         ),
@@ -51,7 +51,7 @@ def upgrade() -> None:
             nullable=False,
             default=TransactionStatus.DRAFT,
         ),
-        sa.Column("salt_value", sa.String(256), nullable=False),
+        sa.Column("salt_value", sa.UUID(as_uuid=True), nullable=False),
         sa.Column(
             "created_date",
             sa.DateTime,

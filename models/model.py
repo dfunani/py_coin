@@ -1,6 +1,8 @@
-"""Models Module: Contains Base Model for Creating Models."""
+"""Models: Base Model for Creating Models."""
 
 from datetime import date, datetime
+
+from uuid import UUID
 
 from lib.utils.constants.users import DateFormat
 
@@ -32,6 +34,8 @@ class BaseModel:
                 data[key.name] = value.strftime(DateFormat.SHORT.value)
             elif isinstance(value, datetime):
                 data[key.name] = value.strftime(DateFormat.HYPHEN.value)
+            elif isinstance(value, UUID):
+                data[key.name] = str(value)
             else:
                 data[key.name] = value
         return data

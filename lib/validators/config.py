@@ -5,10 +5,10 @@ from uuid import UUID
 from lib.interfaces.exceptions import ApplicationError
 
 
-def validate_salt_value(salt_value: str) -> str:
+def validate_salt_value(salt_value: UUID) -> UUID:
     """Validates Salt Value."""
 
-    if not isinstance(salt_value, str):
+    if not isinstance(salt_value, UUID):
         raise ApplicationError("Invalid Type for this Attribute.")
     if not salt_value:
         raise ApplicationError("Invalid Application Configuration.")
