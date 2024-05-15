@@ -1,4 +1,4 @@
-"""Encryption Module: Contains Data Encrypters."""
+"""Encryption: Contains Data Encrypters."""
 
 from cryptography.fernet import Fernet
 from config import AppConfig

@@ -1,4 +1,4 @@
-"""Validators Module: validations for Block Related Models."""
+"""Validators: validations for Block Related Models."""
 
 from uuid import UUID
 from sqlalchemy.orm import Session
@@ -16,8 +16,6 @@ def validate_block_type(block_type: BlockType, **kwargs) -> BlockType:
         raise BlockError("Invalid Type for this Attribute.")
     if not isinstance(block_type, BlockType):
         raise BlockError("Invalid Type for this Attribute.")
-    if block.transaction_id and block.contract_id:
-        return BlockType.COMPLEX
     if block.transaction_id:
         return BlockType.TRANSACTION
     if block.contract_id:
@@ -31,7 +29,6 @@ def validate_block_next(next_block_id: UUID, **kwargs) -> UUID:
     block = kwargs.get("model")
     if not isinstance(block, Block):
         raise BlockError("Invalid Type for this Attribute.")
-
     if block.next_block_id:
         raise BlockError("Invalid Block.")
 
@@ -39,7 +36,10 @@ def validate_block_next(next_block_id: UUID, **kwargs) -> UUID:
         next_block = session.get(Block, next_block_id)
         if not next_block:
             raise BlockError("Invalid Block.")
-
+        if next_block.next_block_id:
+            raise BlockError("Invalid Block.")
+        if next_block_id == next_block.previous_block_id:
+            raise BlockError("Invalid Block.")
     return next_block_id
 
 
@@ -50,12 +50,14 @@ def validate_block_previous(previous_block_id: UUID, **kwargs) -> UUID:
     if not isinstance(block, Block):
         raise BlockError("Invalid Type for this Attribute.")
 
-    if block.previous_block_id:
+    if block.next_block_id:
         raise BlockError("Invalid Block.")
 
     with Session(ENGINE) as session:
         previous_block = session.get(Block, previous_block_id)
         if not previous_block:
+            raise BlockError("Invalid Block.")
+        if previous_block.next_block_id:
             raise BlockError("Invalid Block.")
 
     return previous_block_id

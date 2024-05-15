@@ -94,9 +94,9 @@ class ContractSerialiser(Contract, BaseSerialiser):
             for key, value in kwargs.items():
                 if key not in ContractSerialiser.__MUTABLE_KWARGS__:
                     raise ContractError("Invalid Contract.")
-                print(key, value)
-                value = self.validate_serialiser_kwargs(key, value, model=contract)
-                setattr(contract, key, value)
+                if value != getattr(contract, key):
+                    value = self.validate_serialiser_kwargs(key, value, model=contract)
+                    setattr(contract, key, value)
 
             try:
                 session.add(contract)

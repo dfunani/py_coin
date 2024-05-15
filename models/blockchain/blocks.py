@@ -8,17 +8,16 @@ from sqlalchemy import (
     Column,
     DateTime,
     Enum,
-    Float,
     ForeignKey,
-    LargeBinary,
-    String,
     text,
 )
+from sqlalchemy.orm import relationship
 
 from lib.utils.constants.blocks import BlockType
-from lib.utils.constants.contracts import ContractStatus
 from lib.utils.constants.users import Status
 from models import Base
+from models.blockchain.contracts import Contract
+from models.blockchain.transactions import Transaction
 from models.model import BaseModel
 
 

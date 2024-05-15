@@ -123,11 +123,10 @@ def test_block_update_invalid_type(get_blocks, data):
 def test_block_update_valid_id(get_blocks):
     """Testing Block Serialiser: Update Block."""
 
-    for block, block1 in zip(get_blocks, list(reversed(get_blocks))):
-        with Session(ENGINE) as session:
-            BlockSerialiser().update_block(
-                block.id, previous_block_id=block.id, next_block_id=block1.id
-            )
-            block_data = session.get(Block, block.id)
-            assert block_data.id is not None
-            assert block_data.block_type == BlockType.UNIT
+    with Session(ENGINE) as session:
+        BlockSerialiser().update_block(
+            get_blocks[0].id, previous_block_id=get_blocks[1].id, next_block_id=get_blocks[2].id
+        )
+        block_data = session.get(Block, get_blocks[0].id)
+        assert block_data.id is not None
+        assert block_data.block_type == BlockType.UNIT

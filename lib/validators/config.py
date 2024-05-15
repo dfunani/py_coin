@@ -1,4 +1,4 @@
-"""Validators Module: validations for Application Config related Models."""
+"""Validators: validations for Application Config related Models."""
 
 from datetime import datetime
 from uuid import UUID

@@ -1,4 +1,4 @@
-"""Constants Module: Contains Constants, Enumerations and Other Static data."""
+"""Constants: Contains Constants, Enumerations and Other Static data."""
 
 from enum import Enum
 

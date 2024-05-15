@@ -35,9 +35,9 @@ def create_user(email: str, password: str, status: Status) -> User:
 def create_users() -> list[User]:
     """Creates Test Users."""
 
-    user = create_user("test@test.com", "password123@", STATUSES[0])
-    user1 = create_user("test1@test.com", "password123@1", STATUSES[1])
-    user2 = create_user("test2@test.com", "password123@2", STATUSES[2])
+    user = create_user("testc3@test.com", "password123@", STATUSES[0])
+    user1 = create_user("test13c@test.com", "password123@1", STATUSES[1])
+    user2 = create_user("test23c@test.com", "password123@2", STATUSES[2])
     return [user, user1, user2]
 
 
@@ -99,7 +99,7 @@ def create_cards() -> list[Card]:
     """Creates Test Settings Profiles."""
 
     cards = []
-    base = "12345"
+    base = "12545"
     for card in CardType:
         card_type = card.value[1]
         cards.append(

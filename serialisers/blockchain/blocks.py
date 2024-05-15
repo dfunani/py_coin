@@ -18,28 +18,41 @@ class BlockSerialiser(Block, BaseSerialiser):
     __SERIALISER_EXCEPTION__ = BlockError
     __MUTABLE_KWARGS__: list[str] = ["block_type", "previous_block_id", "next_block_id"]
 
-    def get_block(self, block_id: UUID) -> dict:
+    def get_block(
+        self,
+        block_id: UUID = None,
+        transaction_id: UUID = None,
+        contract_id: UUID = None,
+    ) -> dict:
         """CRUD Operation: Read Block."""
 
         with Session(ENGINE) as session:
-            query = select(Block).filter(cast(Block.block_id, uuid) == block_id)
+            if block_id:
+                query = select(Block).filter(cast(Block.block_id, uuid) == block_id)
+            elif transaction_id:
+                query = select(Block).filter(
+                    cast(Block.transaction_id, uuid) == transaction_id
+                )
+            else:
+                query = select(Block).filter(
+                    cast(Block.contract_id, uuid) == contract_id
+                )
             block = session.execute(query).scalar_one_or_none()
 
             if not block:
                 raise BlockError("Block Not Found.")
-
             return self.__get_model_data__(block)
 
     def create_block(
         self,
-        previous_block_id: UUID,
-        next_block_id: UUID,
+        transaction_id: UUID,
+        contract_id: UUID,
     ) -> str:
         """CRUD Operation: Create Block."""
 
         with Session(ENGINE) as session:
-            self.previous_block_id = validate_block_previous(previous_block_id, model=self)
-            self.next_block_id = validate_block_next(next_block_id, model=self)
+            self.transaction_id = transaction_id
+            self.contract_id = contract_id
 
             try:
                 session.add(self)
@@ -65,7 +78,6 @@ class BlockSerialiser(Block, BaseSerialiser):
             for key, value in kwargs.items():
                 if key not in BlockSerialiser.__MUTABLE_KWARGS__:
                     raise BlockError("Invalid Block.")
-
                 value = self.validate_serialiser_kwargs(key, value, model=block)
                 setattr(block, key, value)
 

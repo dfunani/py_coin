@@ -25,7 +25,7 @@ class TransactionSerialiser(Transaction, BaseSerialiser):
         "transaction_status",
     ]
 
-    def get_Transaction(self, transaction_id: str) -> dict:
+    def get_transaction(self, transaction_id: str) -> dict:
         """CRUD Operation: Read Transaction."""
 
         with Session(ENGINE) as session:
@@ -39,7 +39,7 @@ class TransactionSerialiser(Transaction, BaseSerialiser):
 
             return self.__get_model_data__(transaction)
 
-    def create_Transaction(self, sender: UUID, receiver: UUID, amount: float) -> str:
+    def create_transaction(self, sender: UUID, receiver: UUID, amount: float) -> str:
         """CRUD Operation: Create Transaction."""
 
         with Session(ENGINE) as session:
@@ -98,9 +98,9 @@ class TransactionSerialiser(Transaction, BaseSerialiser):
             for key, value in kwargs.items():
                 if key not in TransactionSerialiser.__MUTABLE_KWARGS__:
                     raise TransactionError("Invalid Transaction.")
-
-                value = self.validate_serialiser_kwargs(key, value, model=transaction)
-                setattr(transaction, key, value)
+                if value != getattr(transaction, key):
+                    value = self.validate_serialiser_kwargs(key, value, model=transaction)
+                    setattr(transaction, key, value)
 
             try:
                 session.add(transaction)
@@ -108,7 +108,7 @@ class TransactionSerialiser(Transaction, BaseSerialiser):
             except IntegrityError as exc:
                 raise TransactionError("Transaction Not Updated.") from exc
 
-            return str(Transaction)
+            return str(transaction)
 
     def delete_transaction(self, private_id: str) -> str:
         """CRUD Operation: Delete Transaction."""

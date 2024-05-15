@@ -1,4 +1,4 @@
-"""Validators Module: validations for User related Models."""
+"""Validators: validations for User related Models."""
 
 from datetime import date
 from config import AppConfig

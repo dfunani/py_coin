@@ -528,7 +528,7 @@ min-similarity-lines=4
 # Limits count of emitted suggestions for spelling mistakes.
 max-spelling-suggestions=4
 
-# Spelling dictionary name. No available dictionaries : You need to install
+# Spelling dictionary name. No available dictionaries: You need to install
 # both the python package and the system dependency for enchant to work.
 spelling-dict=
 

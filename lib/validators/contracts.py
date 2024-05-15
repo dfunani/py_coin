@@ -1,4 +1,4 @@
-"""Validators Module: validations for Contract Related Models."""
+"""Validators: validations for Contract Related Models."""
 
 from lib.interfaces.exceptions import ContractError
 from lib.utils.constants.contracts import ContractStatus

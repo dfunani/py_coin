@@ -31,12 +31,14 @@ def upgrade() -> None:
             "transaction_id",
             sa.UUID(as_uuid=True),
             sa.ForeignKey("blockchain.transactions.id"),
+            unique=True,
             nullable=True,
         ),
         sa.Column(
             "contract_id",
             sa.UUID(as_uuid=True),
             sa.ForeignKey("blockchain.contracts.id"),
+            unique=True,
             nullable=True,
         ),
         sa.Column(

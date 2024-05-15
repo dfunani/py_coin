@@ -1,4 +1,4 @@
-"""Constants Module: Contains Constants, Enumerations and Other Static data."""
+"""Constants: Contains Constants, Enumerations and Other Static data."""
 
 from enum import Enum
 
@@ -8,5 +8,4 @@ class BlockType(Enum):
 
     TRANSACTION = "Transaction Block"
     CONTRACT = "Contract Block"
-    COMPLEX = "Complex Block"
     UNIT = "Unit Block"

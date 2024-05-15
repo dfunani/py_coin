@@ -1,4 +1,4 @@
-"""Encryption Module: Contains Encoders (SHA256)."""
+"""Encryption: Contains Encoders (SHA256)."""
 
 from hashlib import sha256
 

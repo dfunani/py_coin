@@ -19,7 +19,7 @@ def test_transactionserialiser_create(get_payments, data):
 
     for payment, payment1 in zip(get_payments, list(reversed(get_payments))):
         with Session(ENGINE) as session:
-            transaction = TransactionSerialiser().create_Transaction(
+            transaction = TransactionSerialiser().create_transaction(
                 payment.id, payment1.id, data
             )
             transaction_id = get_id_by_regex(transaction)
@@ -42,14 +42,14 @@ def test_transactioner_create_invalid(data):
     """Testing transaction Serialiser: Create transaction."""
 
     with raises((TransactionError, DataError, ProgrammingError)):
-        TransactionSerialiser().create_Transaction(data[0], data[1], data[1])
+        TransactionSerialiser().create_transaction(data[0], data[1], data[1])
 
 
 def test_transactionileserialiser_get(get_transactions):
     """Testing transaction Serialiser: Get transaction."""
 
     for transaction in get_transactions:
-        transaction_data = TransactionSerialiser().get_Transaction(
+        transaction_data = TransactionSerialiser().get_transaction(
             transaction.transaction_id
         )
 
@@ -66,7 +66,7 @@ def test_transactionliser_get_invalid(data):
     """Testing transaction Serialiser: Get transaction."""
 
     with raises((TransactionError, DataError, ProgrammingError)):
-        TransactionSerialiser().get_Transaction(data)
+        TransactionSerialiser().get_transaction(data)
 
 
 def test_transactionserialiser_delete(get_transactions):
