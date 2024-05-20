@@ -22,11 +22,11 @@ class BlockChainService:
     __instance = None
     CHAIN: list[dict] = []
 
-    def __new__(cls, *args, **kwargs) -> "BlockChainService":
+    def __new__(cls) -> "BlockChainService":
         """Singleton Class Constructor."""
 
         if not cls.__instance:
-            cls.__instance = super().__new__(cls, *args, **kwargs)
+            cls.__instance = super().__new__(cls)
         return cls.__instance
 
     @classmethod
@@ -93,7 +93,7 @@ class BlockChainService:
         )
 
     @classmethod
-    def update_transaction_block(
+    def update_transaction(
         cls,
         transaction_id: UUID,
         sender_signiture: str,
@@ -122,7 +122,7 @@ class BlockChainService:
         )
 
     @classmethod
-    def update_contract_block(
+    def update_contract(
         cls,
         contract_id: UUID,
         contractor_signiture: str,

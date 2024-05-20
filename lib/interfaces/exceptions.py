@@ -26,7 +26,7 @@ class UserError(Exception):
 
 
 class AccountError(Exception):
-    """Custom Error For User Account (Users) Model."""
+    """Custom Error For User Account (Users) Models."""
 
     def __init__(self, message: str) -> None:
         super().__init__(message)
@@ -42,7 +42,7 @@ class UserProfileError(Exception):
 
 
 class PaymentProfileError(Exception):
-    """Custom Error For Invalid Payment Information."""
+    """Custom Error For Invalid Payment Informations."""
 
     def __init__(self, message: str) -> None:
         super().__init__(message)
@@ -50,7 +50,7 @@ class PaymentProfileError(Exception):
 
 
 class CardValidationError(Exception):
-    """Custom Error For Invalid Card Information."""
+    """Custom Error For Invalid Card Informations."""
 
     def __init__(self, message: str) -> None:
         super().__init__(message)
@@ -58,7 +58,7 @@ class CardValidationError(Exception):
 
 
 class SettingsProfileError(Exception):
-    """Custom Error For User Settings Error."""
+    """Custom Error For User Settings Errors."""
 
     def __init__(self, message: str) -> None:
         super().__init__(message)
@@ -66,7 +66,7 @@ class SettingsProfileError(Exception):
 
 
 class LoginHistoryError(Exception):
-    """Custom Error For User Login History Error."""
+    """Custom Error For User Login History Errors."""
 
     def __init__(self, message: str) -> None:
         super().__init__(message)
@@ -74,7 +74,7 @@ class LoginHistoryError(Exception):
 
 
 class TransactionError(Exception):
-    """Custom Error For User Transaction Error."""
+    """Custom Error For User Transaction Errors."""
 
     def __init__(self, message: str) -> None:
         super().__init__(message)
@@ -82,7 +82,7 @@ class TransactionError(Exception):
 
 
 class ContractError(Exception):
-    """Custom Error For User Contract Error."""
+    """Custom Error For User Contract Errors."""
 
     def __init__(self, message: str) -> None:
         super().__init__(message)
@@ -90,7 +90,7 @@ class ContractError(Exception):
 
 
 class BlockError(Exception):
-    """Custom Error For User Block Error."""
+    """Custom Error For User Block Errors."""
 
     def __init__(self, message: str) -> None:
         super().__init__(message)

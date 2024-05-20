@@ -17,6 +17,7 @@ class TransactionForm(TypedDict):
 
 
 class ContractForm(TypedDict):
+    """Type Check for Contract Data."""
 
     contract: bytes
     title: str
