@@ -17,9 +17,9 @@ jobs:
       postgres:
         image: postgres
         env:
-          POSTGRES_DB: py_coin_db_test
-          POSTGRES_USER: py_user_test
-          POSTGRES_PASSWORD: py_user_password_test
+          POSTGRES_DB: py_coin_db
+          POSTGRES_USER: py_user
+          POSTGRES_PASSWORD: py_user_password
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3

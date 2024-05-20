@@ -1,5 +1,5 @@
 # Use an appropriate base image for your Flask application
-FROM python:3.10
+FROM python:3.12
 
 # Set the working directory within the container
 WORKDIR /app
@@ -25,8 +25,7 @@ RUN /bin/bash -c "source .env"
 ENV PYTHONPATH=${PYTHONPATH}:${PWD}
 
 # Run the migration script
-RUN export SQLALCHEMY_DATABASE_URI="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}" \
-    && alembic upgrade head
+RUN alembic upgrade head
 
 # Start your application (modify as needed)
 # CMD ["python", "app.py"]
