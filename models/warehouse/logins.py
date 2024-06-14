@@ -47,9 +47,9 @@ class LoginHistory(Base, BaseModel):
         nullable=True,
         default=LoginMethod.EMAIL,
     )
-    logged_in = Column("logged_in", Boolean, nullable=False, default=False)
+    logged_in = Column("logged_in", Boolean, nullable=False, default=True)
     logout_date = Column("logout_date", DateTime, nullable=True)
-    authentication_token = Column("authentication_token", String(256), nullable=True)
+    authentication_token = Column("authentication_token", String, nullable=True)
 
     def __init__(self):
         """Login History Object Constructor."""

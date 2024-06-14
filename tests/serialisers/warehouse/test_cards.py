@@ -16,8 +16,9 @@ from lib.interfaces.exceptions import CardValidationError, UserError
 from lib.utils.constants.users import Status, CardType
 from models import ENGINE
 from models.warehouse.cards import Card
+from services.authentication import AbstractService
 from tests.conftest import run_test_teardown
-from tests.test_utils.utils import get_id_by_regex, check_invalid_ids
+from tests.test_utils.utils import check_invalid_ids
 
 
 @mark.parametrize("data", ["199715", "546789", "235968"])
@@ -27,7 +28,7 @@ def test_cardserialiser_create(data):
     for card_type in CardType:
         with Session(ENGINE) as session:
             card = CardSerialiser().create_card(card_type, data)
-            card_id = get_id_by_regex(card)
+            card_id = AbstractService.get_public_id(card)
             card_data = (
                 session.query(Card).filter(Card.card_id == card_id).one_or_none()
             )

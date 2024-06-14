@@ -11,8 +11,9 @@ from models.user.payments import PaymentProfile
 from serialisers.user.payments import PaymentProfileSerialiser
 from lib.interfaces.exceptions import PaymentProfileError
 from models import ENGINE
+from services.authentication import AbstractService
 from tests.conftest import run_test_teardown
-from tests.test_utils.utils import get_id_by_regex, check_invalid_ids
+from tests.test_utils.utils import check_invalid_ids
 
 
 def test_paymentprofileserialiser_create(get_accounts, get_cards):
@@ -23,7 +24,7 @@ def test_paymentprofileserialiser_create(get_accounts, get_cards):
             payment_profile = PaymentProfileSerialiser().create_payment_profile(
                 account.id, card.id
             )
-            payment_id = get_id_by_regex(payment_profile)
+            payment_id = AbstractService.get_public_id(payment_profile)
             payment = (
                 session.query(PaymentProfile)
                 .filter(PaymentProfile.payment_id == payment_id)

@@ -9,8 +9,9 @@ from lib.utils.constants.transactions import TransactionStatus
 from models.blockchain.transactions import Transaction
 from serialisers.blockchain.transactions import TransactionSerialiser
 from models import ENGINE
+from services.authentication import AbstractService
 from tests.conftest import run_test_teardown
-from tests.test_utils.utils import check_invalid_ids, get_id_by_regex
+from tests.test_utils.utils import check_invalid_ids
 
 
 @mark.parametrize("data", [50.0, 55.5, 1234656.02])
@@ -22,7 +23,7 @@ def test_transactionserialiser_create(get_payments, data):
             transaction = TransactionSerialiser().create_transaction(
                 payment.id, payment1.id, data
             )
-            transaction_id = get_id_by_regex(transaction)
+            transaction_id = AbstractService.get_public_id(transaction)
             transaction = (
                 session.query(Transaction)
                 .filter(Transaction.transaction_id == transaction_id)

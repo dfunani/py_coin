@@ -15,8 +15,9 @@ from lib.utils.encryption.encoders import get_hash_value
 from serialisers.user.users import UserSerialiser
 from models import ENGINE
 from models.user.users import User
+from services.authentication import AbstractService
 from tests.conftest import run_test_teardown
-from tests.test_utils.utils import check_invalid_ids, get_id_by_regex
+from tests.test_utils.utils import check_invalid_ids
 
 
 @mark.parametrize(
@@ -32,7 +33,7 @@ def test_userserialiser_create(data):
 
     with Session(ENGINE) as session:
         user = UserSerialiser().create_user(data[0], data[1])
-        user_id = get_id_by_regex(user)
+        user_id = AbstractService.get_public_id(user)
 
         user = session.query(User).filter(User.user_id == user_id).one_or_none()
         assert user.id is not None

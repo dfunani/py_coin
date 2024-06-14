@@ -6,7 +6,11 @@ from typing import Any, Tuple, Union
 
 from lib.interfaces.exceptions import ApplicationError
 from lib.utils.encryption.cryptography import encrypt_data
-from lib.validators.blocks import validate_block_next, validate_block_previous, validate_block_type
+from lib.validators.blocks import (
+    validate_block_next,
+    validate_block_previous,
+    validate_block_type,
+)
 from lib.validators.contracts import validate_contract_status
 from lib.validators.transactions import (
     validate_transaction_amount,
@@ -113,6 +117,17 @@ class BaseSerialiser:
         """Get model Information."""
 
         data = model.to_dict()
+        if hasattr(model, "login_history"):
+            data.update(
+                {
+                    "login_history": [
+                        cls.__get_encrypted_model_data__(login_history)
+                        for login_history in model.login_history
+                        if login_history.logged_in
+                    ]
+                }
+            )
+
         for key, value in data.items():
             if isinstance(value, Enum):
                 data[key] = value.value
@@ -123,4 +138,18 @@ class BaseSerialiser:
         """Gets the Model Data."""
 
         data = model.to_dict()
+        if hasattr(model, "user_profiles"):
+            data.update({
+                "user_profiles": [profile.to_dict() for profile in model.user_profiles]
+            })
+
+        if hasattr(model, "payment_profiles"):
+            data.update({
+                "payment_profiles": [payment.to_dict() for payment in model.payment_profiles]
+            })
+        
+        if hasattr(model, "settings_profile"):
+            data.update({
+                "settings_profile": [settings.to_dict() for settings in model.settings_profile]
+            })
         return data

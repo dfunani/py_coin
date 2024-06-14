@@ -15,28 +15,70 @@ from models.user.payments import PaymentProfile
 from models.warehouse.cards import Card
 from serialisers.blockchain.blocks import BlockSerialiser
 from models import ENGINE
+from services.authentication import AbstractService
 from tests.conftest import run_test_teardown
-from tests.test_utils.utils import check_invalid_ids, get_id_by_regex
+from tests.test_utils.utils import check_invalid_ids
 
 
-def test_blockserialiser_create(get_blocks):
+def test_transaction_blockserialiser_create(get_transactions):
     """Testing Block Serialiser: Create Block."""
 
-    for block, block1 in zip(get_blocks, list(reversed(get_blocks))):
+    for transaction in get_transactions:
         with Session(ENGINE) as session:
-            block_id = BlockSerialiser().create_block(block.id, block1.id)
-            block_id = get_id_by_regex(block_id)
+            block_id = BlockSerialiser().create_block(transaction.id, None)
+            block_id = AbstractService.get_public_id(block_id)
             block_data = (
                 session.query(Block).filter(Block.block_id == block_id).one_or_none()
             )
             assert block_data.id is not None
             assert block_data.block_id is not None
-            assert block_data.previous_block_id == block.id
-            assert block_data.next_block_id == block1.id
-            assert block_data.block_type == BlockType.UNIT
+            assert block_data.transaction_id is not None
+            assert block_data.contract_id is None
+            assert block_data.previous_block_id is None
+            assert block_data.next_block_id is None
+            assert block_data.block_type == BlockType.TRANSACTION
 
             run_test_teardown([block_data], session)
 
+def test_contract_blockserialiser_create(get_contracts):
+    """Testing Block Serialiser: Create Block."""
+
+    for contract in get_contracts:
+        with Session(ENGINE) as session:
+            block_id = BlockSerialiser().create_block(None, contract.id)
+            block_id = AbstractService.get_public_id(block_id)
+            block_data = (
+                session.query(Block).filter(Block.block_id == block_id).one_or_none()
+            )
+            assert block_data.id is not None
+            assert block_data.block_id is not None
+            assert block_data.transaction_id is None
+            assert block_data.contract_id is not None
+            assert block_data.previous_block_id is None
+            assert block_data.next_block_id is None
+            assert block_data.block_type == BlockType.CONTRACT
+
+            run_test_teardown([block_data], session)
+
+def test_unit_blockserialiser_create(get_contracts):
+    """Testing Block Serialiser: Create Block."""
+
+    for contract in get_contracts:
+        with Session(ENGINE) as session:
+            block_id = BlockSerialiser().create_block(None, None)
+            block_id = AbstractService.get_public_id(block_id)
+            block_data = (
+                session.query(Block).filter(Block.block_id == block_id).one_or_none()
+            )
+            assert block_data.id is not None
+            assert block_data.block_id is not None
+            assert block_data.contract_id is None
+            assert block_data.transaction_id is None
+            assert block_data.previous_block_id is None
+            assert block_data.next_block_id is None
+            assert block_data.block_type == BlockType.UNIT
+
+            run_test_teardown([block_data], session)
 
 @mark.parametrize(
     "data",

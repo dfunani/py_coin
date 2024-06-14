@@ -6,6 +6,7 @@ from re import compile as regex_compile
 from uuid import uuid4
 
 from pytest import mark, raises
+from services.authentication import AbstractService
 from tests.test_utils.utils import generate_socials, check_invalid_ids
 from sqlalchemy import cast, String
 from sqlalchemy.orm import Session
@@ -13,23 +14,18 @@ from sqlalchemy.exc import DataError, ProgrammingError
 
 from lib.interfaces.exceptions import UserError, UserProfileError
 from lib.utils.constants.users import (
-    Communication,
     Country,
     Gender,
     Interest,
     Language,
     Occupation,
-    ProfileVisibility,
     SocialMediaLink,
     Status,
 )
-from models.user.accounts import Account
 from models.user.profiles import UserProfile
-from models.user.users import User
 from serialisers.user.profiles import UserProfileSerialiser
 from models import ENGINE
 from tests.conftest import run_test_teardown
-from tests.test_utils.utils import get_id_by_regex
 
 
 def __read_file__():
@@ -44,7 +40,7 @@ def test_userprofileserialiser_create(get_accounts):
     for account in get_accounts:
         with Session(ENGINE) as session:
             user_profile = UserProfileSerialiser().create_user_profile(account.id)
-            user_profile_id = get_id_by_regex(user_profile)
+            user_profile_id = AbstractService.get_public_id(user_profile)
             user_profile = (
                 session.query(UserProfile)
                 .filter(cast(UserProfile.profile_id, String) == user_profile_id)

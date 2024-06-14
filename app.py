@@ -1,3 +1,5 @@
+"""Main App Entry."""
+
 from services.cli import Cli
 
 

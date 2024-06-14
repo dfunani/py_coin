@@ -1,7 +1,6 @@
 """User: Testing Settings Profile Serialiser."""
 
 from datetime import datetime, timedelta
-from uuid import uuid4
 from pytest import mark, raises
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import DataError, ProgrammingError
@@ -15,14 +14,12 @@ from lib.utils.constants.users import (
     Theme,
     Verification,
 )
-from models.user.accounts import Account
 from models.user.settings import SettingsProfile
-from models.user.users import User
-from models.warehouse.cards import Card
 from serialisers.user.settings import SettingsProfileSerialiser
 from models import ENGINE
+from services.authentication import AbstractService
 from tests.conftest import run_test_teardown
-from tests.test_utils.utils import get_id_by_regex, check_invalid_ids
+from tests.test_utils.utils import check_invalid_ids
 
 
 def test_settingsprofileserialiser_create(get_accounts):
@@ -31,7 +28,7 @@ def test_settingsprofileserialiser_create(get_accounts):
     for account in get_accounts:
         with Session(ENGINE) as session:
             settings = SettingsProfileSerialiser().create_settings_profile(account.id)
-            settings_id = get_id_by_regex(settings)
+            settings_id = AbstractService.get_public_id(settings)
             settings = (
                 session.query(SettingsProfile)
                 .filter(SettingsProfile.settings_id == settings_id)

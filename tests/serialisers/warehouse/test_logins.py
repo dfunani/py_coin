@@ -7,14 +7,14 @@ from pytest import mark, raises
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import DataError, ProgrammingError
 
-from config import AppConfig
 from lib.interfaces.exceptions import LoginHistoryError
 from lib.utils.constants.users import Country, LoginMethod
 from models.warehouse.logins import LoginHistory
 from serialisers.warehouse.logins import LoginHistorySerialiser
 from models import ENGINE
+from services.authentication import AbstractService
 from tests.conftest import run_test_teardown
-from tests.test_utils.utils import get_id_by_regex, check_invalid_ids
+from tests.test_utils.utils import check_invalid_ids
 
 
 def test_loginhistoryserialiser_create(get_users):
@@ -23,7 +23,7 @@ def test_loginhistoryserialiser_create(get_users):
     for user in get_users:
         with Session(ENGINE) as session:
             login_history = LoginHistorySerialiser().create_login_history(user.id)
-            login_id = get_id_by_regex(login_history)
+            login_id = AbstractService.get_public_id(login_history)
             login = (
                 session.query(LoginHistory)
                 .filter(LoginHistory.login_id == login_id)

@@ -47,6 +47,8 @@ types-psycopg2 = "==2.9.21.20240218"
 typing-extensions = "==4.10.0"
 uuid = "==1.30"
 wcwidth = "==0.2.13"
+pyinputplus = "*"
+beautifulsoup4 = "*"
 
 [dev-packages]
 

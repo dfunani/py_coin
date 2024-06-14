@@ -41,6 +41,6 @@ def test_login_valid(get_users):
             session.commit()
 
             assert login_history.id is not None
-            assert not login_history.logged_in
+            assert login_history.logged_in
 
             run_test_teardown([login_history], session)

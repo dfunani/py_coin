@@ -1,10 +1,10 @@
 """Services: BlockChain Service."""
 
 from uuid import UUID
-from lib.decorators.utils import validate_typed_dict
-from lib.interfaces.blockchain import ContractForm, TransactionForm
+from lib.decorators.utils import validate_function_signature
 from lib.interfaces.exceptions import BlockError
 from lib.interfaces.responses import ServiceResponse
+from lib.interfaces.types import ContractDict, TransactionDict
 from lib.utils.constants.blocks import BlockType
 from lib.utils.constants.contracts import ContractStatus
 from lib.utils.constants.responses import ServiceStatus
@@ -30,6 +30,7 @@ class BlockChainService:
         return cls.__instance
 
     @classmethod
+    @validate_function_signature(True)
     def append_block_chain(cls, block_id: UUID) -> ServiceResponse:
         """Appends a Block."""
 
@@ -61,6 +62,7 @@ class BlockChainService:
         return ServiceResponse("Block Chain Updated.", ServiceStatus.SUCCESS, data=data)
 
     @classmethod
+    @validate_function_signature(True)
     def create_transaction(
         cls, sender: UUID, receiver: UUID, transaction_amount: float
     ) -> ServiceResponse:
@@ -78,6 +80,7 @@ class BlockChainService:
         )
 
     @classmethod
+    @validate_function_signature(True)
     def create_contract(
         cls, contractor: UUID, contractee: UUID, contract_data: str
     ) -> ServiceResponse:
@@ -93,12 +96,13 @@ class BlockChainService:
         )
 
     @classmethod
+    @validate_function_signature(True)
     def update_transaction(
         cls,
         transaction_id: UUID,
         sender_signiture: str,
         receiver_signiture: str,
-        transaction_data: TransactionForm,
+        transaction_data: TransactionDict,
     ) -> ServiceResponse:
         """Approve a Given Transaction."""
 
@@ -107,7 +111,7 @@ class BlockChainService:
             transaction_id,
             sender_signiture,
             receiver_signiture,
-            **transaction_data,
+            **transaction_data.to_dict(),
         )
         transaction_id = response.split(" ")[-1]
         transaction = TransactionSerialiser().get_transaction(transaction_id)
@@ -122,18 +126,22 @@ class BlockChainService:
         )
 
     @classmethod
+    @validate_function_signature(True)
     def update_contract(
         cls,
         contract_id: UUID,
         contractor_signiture: str,
         contractee_signiture: str,
-        contract_data: ContractForm,
+        contract_data: ContractDict,
     ) -> ServiceResponse:
         """Approve a Given Contract."""
 
         data = {}
         response = ContractSerialiser().update_contract(
-            contract_id, contractor_signiture, contractee_signiture, **contract_data
+            contract_id,
+            contractor_signiture,
+            contractee_signiture,
+            **contract_data.to_dict(),
         )
         contract_id = response.split(" ")[-1]
         contract = ContractSerialiser().get_contract(contract_id)
@@ -146,6 +154,7 @@ class BlockChainService:
         )
 
     @classmethod
+    @validate_function_signature(True)
     def __create_new_block__(
         cls, transaction_id: UUID = None, contract_id: UUID = None
     ) -> dict:

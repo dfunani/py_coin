@@ -159,7 +159,7 @@ def get_logins():
         run_test_teardown([*logins, *users], session)
 
 
-# @fixture
+@fixture
 def get_transactions():
     """Returns Test Transactions."""
 
@@ -187,14 +187,14 @@ def get_transactions():
         )
         setup_test_commit(transactions, session)
 
-        return transactions
+        yield transactions
 
         run_test_teardown(
             [*transactions, *payments, *accounts, *cards, *users], session
         )
 
 
-# @fixture
+@fixture
 def get_contracts():
     """Returns Test Contracts."""
 
@@ -222,7 +222,7 @@ def get_contracts():
         )
         setup_test_commit(contracts, session)
 
-        return contracts
+        yield contracts
 
         run_test_teardown([*contracts, *payments, *accounts, *cards, *users], session)
 

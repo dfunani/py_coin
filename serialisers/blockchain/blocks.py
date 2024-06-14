@@ -45,20 +45,22 @@ class BlockSerialiser(Block, BaseSerialiser):
 
     def create_block(
         self,
-        transaction_id: UUID,
-        contract_id: UUID,
+        transaction_id: UUID = None,
+        contract_id: UUID = None,
     ) -> str:
         """CRUD Operation: Create Block."""
 
         with Session(ENGINE) as session:
-            self.transaction_id = transaction_id
-            self.contract_id = contract_id
+            if transaction_id:
+                self.transaction_id = transaction_id
+            if contract_id:
+                self.contract_id = contract_id
 
             try:
                 session.add(self)
                 session.commit()
             except IntegrityError as exc:
-                raise BlockError("Block Not Created.") from exc
+                raise BlockError("Block Not Created." + str(exc)) from exc
 
             return str(self)
 

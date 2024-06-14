@@ -10,8 +10,9 @@ from lib.utils.constants.users import Status
 from models.user.accounts import Account
 from serialisers.user.accounts import AccountSerialiser
 from models import ENGINE
+from services.authentication import AbstractService
 from tests.conftest import run_test_teardown
-from tests.test_utils.utils import get_id_by_regex, check_invalid_ids
+from tests.test_utils.utils import check_invalid_ids
 
 
 def test_accountprofileserialiser_create(get_users):
@@ -20,7 +21,7 @@ def test_accountprofileserialiser_create(get_users):
     for user in get_users:
         with Session(ENGINE) as session:
             account = AccountSerialiser().create_account(user.id)
-            account_id = get_id_by_regex(account)
+            account_id = AbstractService.get_public_id(account)
             account = (
                 session.query(Account)
                 .filter(Account.account_id == account_id)

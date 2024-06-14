@@ -47,18 +47,7 @@ def run_test_teardown(models: list[Any], session: Session):
     session.commit()
 
 
-def get_id_by_regex(value: str) -> str:
-    """Get Model ID By Regex."""
-
-    regex = regex_compile(r"^.*: (.*)$")
-    regex_match = regex.match(value)
-    assert regex_match is not None
-    matches = regex_match.groups()
-    assert regex_match is not None
-    assert len(matches) == 1
-    return matches[0]
-
-
 def check_invalid_ids() -> list[Any]:
     """Returns a list of invalid ID to Test."""
+
     return [uuid4(), "Invalid ID String.", 1, None]

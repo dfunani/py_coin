@@ -11,8 +11,9 @@ from lib.utils.encryption.cryptography import encrypt_data
 from models.blockchain.contracts import Contract
 from serialisers.blockchain.contracts import ContractSerialiser
 from models import ENGINE
+from services.authentication import AbstractService
 from tests.conftest import run_test_teardown
-from tests.test_utils.utils import check_invalid_ids, get_id_by_regex
+from tests.test_utils.utils import check_invalid_ids
 
 
 def __read_file__():
@@ -37,7 +38,7 @@ def test_contractserialiser_create(get_payments, data):
             contract = ContractSerialiser().create_contract(
                 payment.id, payment1.id, data
             )
-            contract_id = get_id_by_regex(contract)
+            contract_id = AbstractService.get_public_id(contract)
             contract = (
                 session.query(Contract)
                 .filter(Contract.contract_id == contract_id)
