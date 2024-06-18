@@ -1,4 +1,4 @@
-"""User: Serialiser for Payment Profile Model."""
+"""Payments: Serialiser for Payment Profile Model."""
 
 from uuid import UUID
 from sqlalchemy import cast, select, UUID as uuid

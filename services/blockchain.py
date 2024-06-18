@@ -1,16 +1,15 @@
-"""Services: BlockChain Service."""
+"""Blockchain: BlockChain Services."""
 
+from typing import Optional
 from uuid import UUID
 from lib.decorators.utils import validate_function_signature
 from lib.interfaces.exceptions import BlockError
 from lib.interfaces.responses import ServiceResponse
-from lib.interfaces.types import ContractDict, TransactionDict
+from lib.interfaces.typed_dicts import ContractDict, TransactionDict
 from lib.utils.constants.blocks import BlockType
 from lib.utils.constants.contracts import ContractStatus
 from lib.utils.constants.responses import ServiceStatus
 from lib.utils.constants.transactions import TransactionStatus
-from lib.utils.constants.users import CardType
-from models.blockchain.blocks import Block
 from serialisers.blockchain.blocks import BlockSerialiser
 from serialisers.blockchain.contracts import ContractSerialiser
 from serialisers.blockchain.transactions import TransactionSerialiser
@@ -35,29 +34,30 @@ class BlockChainService:
         """Appends a Block."""
 
         block = BlockSerialiser().get_block(block_id)
+        previous_block: Optional[dict] = None
 
         if not block["transaction_id"] and not block["contract_id"]:
             raise BlockError("Invalid Transaction Block.")
 
-        if not cls.CHAIN:
-            cls.CHAIN.append(block)
-            previous_block = None
-        else:
-            previous_block: dict = BlockSerialiser().get_block(
+        if cls.CHAIN:
+            previous_block = BlockSerialiser().get_block(
                 UUID(cls.CHAIN[-1]["block_id"])
             )
-
+            
+        if previous_block:
             BlockSerialiser().update_block(
                 block["id"], previous_block_id=UUID(previous_block["id"])
             )
             BlockSerialiser().update_block(
                 previous_block["id"], next_block_id=UUID(block["id"])
             )
-            cls.CHAIN.append(block)
+
+        cls.CHAIN.append(block)
 
         block = BlockSerialiser().get_block(block["block_id"])
         if previous_block:
             previous_block = BlockSerialiser().get_block(previous_block["block_id"])
+
         data = {"block": block, "previous_block": previous_block}
         return ServiceResponse("Block Chain Updated.", ServiceStatus.SUCCESS, data=data)
 
@@ -111,7 +111,7 @@ class BlockChainService:
             transaction_id,
             sender_signiture,
             receiver_signiture,
-            **transaction_data.to_dict(),
+            **transaction_data,
         )
         transaction_id = response.split(" ")[-1]
         transaction = TransactionSerialiser().get_transaction(transaction_id)
@@ -141,7 +141,7 @@ class BlockChainService:
             contract_id,
             contractor_signiture,
             contractee_signiture,
-            **contract_data.to_dict(),
+            **contract_data,
         )
         contract_id = response.split(" ")[-1]
         contract = ContractSerialiser().get_contract(contract_id)
@@ -156,7 +156,7 @@ class BlockChainService:
     @classmethod
     @validate_function_signature(True)
     def __create_new_block__(
-        cls, transaction_id: UUID = None, contract_id: UUID = None
+        cls, transaction_id: Optional[UUID] = None, contract_id: Optional[UUID] = None
     ) -> dict:
         """Creates a New Block - Transaction or Contract."""
 

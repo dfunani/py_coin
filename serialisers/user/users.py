@@ -1,4 +1,4 @@
-"""User: Serialiser for User Model."""
+"""Users: Serialiser for User Model."""
 
 from uuid import UUID
 from sqlalchemy import String, cast, select

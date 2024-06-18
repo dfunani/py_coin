@@ -1,4 +1,4 @@
-"""Models: Base Model for Creating Models."""
+"""Model: Base Model for Creating Models."""
 
 from datetime import date, datetime
 

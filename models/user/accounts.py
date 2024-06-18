@@ -1,4 +1,4 @@
-"""Users: Accounts Model."""
+"""Accounts: Accounts Model."""
 
 from uuid import uuid4, UUID as uuid
 from sqlalchemy import UUID, Column, DateTime, text, ForeignKey, Enum

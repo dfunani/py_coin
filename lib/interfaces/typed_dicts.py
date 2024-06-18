@@ -1,4 +1,4 @@
-"""Interfaces: Custom Types."""
+"""Types: Data-Classes for Custom Typed Dictionaries."""
 
 from typing import Optional, TypedDict
 
@@ -23,10 +23,14 @@ from lib.utils.constants.users import (
 
 
 class AccountDict(TypedDict):
+    """Typed Account Dictionary."""
+
     status: Optional[Status]
 
 
 class ProfileDict(TypedDict):
+    """Typed Profile Dictionary."""
+
     first_name: Optional[str]
     last_name: Optional[str]
     username: Optional[str]
@@ -44,6 +48,8 @@ class ProfileDict(TypedDict):
 
 
 class SettingsDict(TypedDict):
+    """Typed Settings Dictionary."""
+
     mfa_enabled: Optional[str]
     location_tracking_enabled: Optional[bool]
     cookies_enabled: Optional[bool]
@@ -57,6 +63,8 @@ class SettingsDict(TypedDict):
 
 
 class UserDict(TypedDict):
+    """Typed User-Account Dictionary."""
+
     email: Optional[str]
     password: Optional[str]
     login_location: Optional[Country]
@@ -64,16 +72,22 @@ class UserDict(TypedDict):
     login_method: Optional[LoginMethod]
 
 
-class __DataDict__(TypedDict):
+class DataDict(TypedDict):
+    """Generic Typed Data Dictionary."""
+
     title: Optional[str]
     description: Optional[str]
 
 
-class TransactionDict(__DataDict__):
+class TransactionDict(DataDict):
+    """Typed Dictionary for Transaction Data."""
+
     amount: Optional[float]
     transaction_status: Optional[TransactionStatus]
 
 
-class ContractDict(__DataDict__):
+class ContractDict(DataDict):
+    """Typed Dictionary for Contract Data."""
+
     contract: Optional[str]
     contract_status: Optional[ContractStatus]

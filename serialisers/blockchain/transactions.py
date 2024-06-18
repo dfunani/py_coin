@@ -1,4 +1,4 @@
-"""BlockChain: Serialiser for Transaction Model."""
+"""Transactions: Serialiser for Transaction Model."""
 
 from uuid import UUID
 from sqlalchemy import cast, select, UUID as uuid

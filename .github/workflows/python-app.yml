@@ -2,9 +2,9 @@ name: Python application
 
 on:
   push:
-    branches: ["release/Production", "release/UAT", "release/Development"]
+    branches: ["release/*"]
   pull_request:
-    branches: ["release/Production", "release/UAT", "release/Development"]
+    branches: ["release/*"]
 
 permissions:
   contents: read
@@ -29,12 +29,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
-          python-version: 3.10.12
+          python-version: 3.12
 
       - name: Install Dependencies
         run: |

@@ -1,14 +1,11 @@
 """Services: CLI Service."""
 
-from argparse import ArgumentParser, ArgumentTypeError, RawDescriptionHelpFormatter
-from datetime import datetime
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from enum import Enum
-from json import JSONDecodeError, dumps, loads
-import sys
+from json import dumps, loads
 import textwrap
-from typing import Any, List, Optional, Type, Union, get_type_hints
+from typing import Any, List, Type, Union, get_type_hints
 from pyinputplus import (
-    inputChoice,
     inputMenu,
     inputStr,
     inputBool,
@@ -21,7 +18,7 @@ from sqlalchemy import DateTime
 
 from lib.interfaces.cli import Args, CLIError
 from lib.interfaces.exceptions import ApplicationError
-from lib.interfaces.types import (
+from lib.interfaces.typed_dicts import (
     AccountDict,
     ContractDict,
     UserDict,
@@ -29,8 +26,8 @@ from lib.interfaces.types import (
     SettingsDict,
     TransactionDict,
 )
-from lib.interfaces.users import UserData
-from lib.utils.constants.users import Country, LoginMethod, SocialMediaLink
+from lib.interfaces.data_classes import UserData
+from lib.utils.constants.users import SocialMediaLink
 from services.blockchain import BlockChainService
 from services.authentication import AuthenticationService
 

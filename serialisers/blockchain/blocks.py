@@ -1,5 +1,6 @@
-"""BlockChain: Serialiser for Block Model."""
+"""Blocks: Serialiser for Block Model."""
 
+from typing import Optional
 from uuid import UUID
 from sqlalchemy import cast, select, UUID as uuid
 from sqlalchemy.orm import Session
@@ -20,9 +21,9 @@ class BlockSerialiser(Block, BaseSerialiser):
 
     def get_block(
         self,
-        block_id: UUID = None,
-        transaction_id: UUID = None,
-        contract_id: UUID = None,
+        block_id: Optional[UUID] = None,
+        transaction_id: Optional[UUID] = None,
+        contract_id: Optional[UUID] = None,
     ) -> dict:
         """CRUD Operation: Read Block."""
 
@@ -45,8 +46,8 @@ class BlockSerialiser(Block, BaseSerialiser):
 
     def create_block(
         self,
-        transaction_id: UUID = None,
-        contract_id: UUID = None,
+        transaction_id: Optional[UUID] = None,
+        contract_id: Optional[UUID] = None,
     ) -> str:
         """CRUD Operation: Create Block."""
 

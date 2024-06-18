@@ -1,10 +1,10 @@
-"""Constants: Contains Constants, Enumerations and Other Static data."""
+"""Blocks: Contains Constants, Enumerations and Other Static data."""
 
 from enum import Enum
 
 
 class BlockType(Enum):
-    """Enumeration of Transaction Statuses."""
+    """Enumeration of Block Types."""
 
     TRANSACTION = "Transaction Block"
     CONTRACT = "Contract Block"

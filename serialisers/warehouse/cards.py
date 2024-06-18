@@ -1,4 +1,4 @@
-"""Warehouse: Serialiser for Card Model."""
+"""Cards: Serialiser for Card Model."""
 
 from datetime import date, timedelta
 from random import randint

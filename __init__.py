@@ -1,4 +1,4 @@
-"""Main Package."""
+"""App: Application Package."""
 
 import logging
 import sys

@@ -1,15 +1,12 @@
-"""Services: User Service."""
+"""Authentication: User Authentication Services."""
 
 from datetime import datetime, timedelta
 from json import dumps, loads
-from re import compile as regex_compile
-from typing import Optional
 from uuid import uuid4
 from config import AppConfig
 from lib.decorators.utils import validate_function_signature
-from lib.interfaces.exceptions import UserError
 from lib.interfaces.responses import ServiceResponse
-from lib.interfaces.users import UserData
+from lib.interfaces.data_classes import UserData
 from lib.utils.constants.responses import ServiceStatus
 from lib.utils.constants.users import DateFormat
 from lib.utils.encryption.cryptography import decrypt_data, encrypt_data
@@ -95,6 +92,8 @@ class AuthenticationService(AbstractService):
 
     @staticmethod
     def __generate_authentication_token__(**kwargs) -> str:
+        """Generates a valid JSON Web Token."""
+
         result = {
             "expires": (datetime.now() + timedelta(days=30)).strftime(
                 DateFormat.HYPHEN.value

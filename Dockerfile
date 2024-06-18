@@ -30,5 +30,5 @@ RUN export $(cat .env | xargs)
 # Set PYTHONPATH
 ENV PYTHONPATH=${PYTHONPATH}:${PWD}
 
-# Command to run Alembic migrations and start the application
+# Command to run Alembic migrations
 CMD ["sh", "-c", "/app/db/test_db_migration.sh postgres 5432"]

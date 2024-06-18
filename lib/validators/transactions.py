@@ -1,4 +1,4 @@
-"""Validators: validations for Transaction Related Models."""
+"""Transactions: validations for Transaction Related Models."""
 
 from lib.interfaces.exceptions import TransactionError
 from lib.utils.constants.transactions import TransactionStatus

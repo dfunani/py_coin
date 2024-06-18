@@ -1,4 +1,4 @@
-"""Constants: Contains Constants, Enumerations and Other Static data."""
+"""Responses: Contains Constants, Enumerations and Other Static data."""
 
 from enum import Enum
 
@@ -9,4 +9,3 @@ class ServiceStatus(Enum):
     SUCCESS = "Success"
     ERROR = "Error"
     WARNING = "Warning"
-

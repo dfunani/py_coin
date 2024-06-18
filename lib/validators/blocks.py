@@ -1,4 +1,4 @@
-"""Validators: validations for Block Related Models."""
+"""Blocks: validations for Block Related Models."""
 
 from uuid import UUID
 from sqlalchemy.orm import Session

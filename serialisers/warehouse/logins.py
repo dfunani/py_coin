@@ -1,4 +1,4 @@
-"""Warehouse: Serialiser for Login History Model."""
+"""Logins: Serialiser for Login History Model."""
 
 from uuid import UUID
 from sqlalchemy import cast, select, UUID as uuid

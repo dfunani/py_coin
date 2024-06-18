@@ -1,9 +1,11 @@
-"""Main App Entry."""
+"""App: Ingress Point."""
 
 from services.cli import Cli
 
 
 def main():
+    """CLI Interface."""
+
     cli = Cli()
     cli.run()
 

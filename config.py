@@ -1,4 +1,4 @@
-"""Application's (Global) Configurations and Settings."""
+"""App: Global Configurations."""
 
 from datetime import datetime
 from os import getenv
@@ -17,36 +17,38 @@ from lib.validators.config import (
 
 
 class AppConfig:
-    """AppConfig Singleton Class."""
+    """Singleton Configuration Class."""
 
     __session__id__ = uuid4()
     __START_DATE__ = datetime.now()
     __end_date__ = datetime.now()
-    __SALT_VALUE__ = UUID('0c923c48-aea7-48ce-a609-17fb120bf667')
+    __SALT_VALUE__ = UUID("0c923c48-aea7-48ce-a609-17fb120bf667")
     __FERNET_KEY__ = getenv("FERNET_KEY")
     __CARD_LENGTH__ = 13
     __CVV_LENGTH__ = 3
+    __TCP_PORT__ = 42424
+    __HTTP_PORT__ = 10443
 
     def __str__(self) -> str:
-        """String Representation of the Application Configuration."""
+        """String Representation."""
 
         return f"Application Session: {self.__session__id__}"
 
     @property
     def session_id(self) -> str:
-        """Getter for Session ID."""
+        """Getter: Session ID."""
 
         return str(validate_session_id(self.__session__id__))
 
     @property
     def start_date(self) -> str:
-        """Getter for Start Datetime."""
+        """Getter: Start Datetime."""
 
         return validate_start_date(self.__START_DATE__).strftime(DateFormat.LONG.value)
 
     @property
     def end_date(self) -> str:
-        """Getter for End Datetime."""
+        """Getter: End Datetime."""
 
         return validate_end_date(self.__end_date__, self.__START_DATE__).strftime(
             DateFormat.LONG.value
@@ -54,30 +56,30 @@ class AppConfig:
 
     @end_date.setter
     def end_date(self, value: datetime):
-        """Getter for End Datetime."""
+        """Setter: End Datetime."""
 
         self.__end_date__ = validate_end_date(value, self.__START_DATE__)
 
     @property
     def salt_value(self) -> UUID:
-        """Getter for Salt Value."""
+        """Getter: Salt Value."""
 
         return validate_salt_value(self.__SALT_VALUE__)
 
     @property
     def card_length(self) -> int:
-        """Getter for Card Length."""
+        """Getter: Card Length."""
 
         return validate_card_length(self.__CARD_LENGTH__)
 
     @property
     def cvv_length(self) -> int:
-        """Getter for CVV Length."""
+        """Getter: CVV Length."""
 
         return validate_cvv_length(self.__CVV_LENGTH__)
 
     @property
     def fernet(self) -> Fernet:
-        """Getter for Fernet Key."""
+        """Getter: Fernet Key."""
 
         return Fernet(validate_fernet_key(str(self.__FERNET_KEY__)))

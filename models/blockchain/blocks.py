@@ -1,4 +1,4 @@
-"""BlockChain: Block Model."""
+"""Blockss: Block Model."""
 
 from datetime import datetime
 from uuid import uuid4, UUID as uuid
@@ -11,13 +11,10 @@ from sqlalchemy import (
     ForeignKey,
     text,
 )
-from sqlalchemy.orm import relationship
 
 from lib.utils.constants.blocks import BlockType
 from lib.utils.constants.users import Status
 from models import Base
-from models.blockchain.contracts import Contract
-from models.blockchain.transactions import Transaction
 from models.model import BaseModel
 
 

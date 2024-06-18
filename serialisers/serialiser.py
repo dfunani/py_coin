@@ -1,4 +1,4 @@
-"""Serialisers: Base Serialiser for model Model."""
+"""Serialiser: Base Serialiser for model Model."""
 
 from enum import Enum, EnumMeta
 from json import dumps
@@ -139,17 +139,29 @@ class BaseSerialiser:
 
         data = model.to_dict()
         if hasattr(model, "user_profiles"):
-            data.update({
-                "user_profiles": [profile.to_dict() for profile in model.user_profiles]
-            })
+            data.update(
+                {
+                    "user_profiles": [
+                        profile.to_dict() for profile in model.user_profiles
+                    ]
+                }
+            )
 
         if hasattr(model, "payment_profiles"):
-            data.update({
-                "payment_profiles": [payment.to_dict() for payment in model.payment_profiles]
-            })
-        
+            data.update(
+                {
+                    "payment_profiles": [
+                        payment.to_dict() for payment in model.payment_profiles
+                    ]
+                }
+            )
+
         if hasattr(model, "settings_profile"):
-            data.update({
-                "settings_profile": [settings.to_dict() for settings in model.settings_profile]
-            })
+            data.update(
+                {
+                    "settings_profile": [
+                        settings.to_dict() for settings in model.settings_profile
+                    ]
+                }
+            )
         return data

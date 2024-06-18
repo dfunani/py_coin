@@ -1,4 +1,4 @@
-"""User: Serialiser for User Profile Model."""
+"""Profiles: Serialiser for User Profile Model."""
 
 from typing import Union
 from uuid import UUID

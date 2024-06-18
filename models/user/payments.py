@@ -1,4 +1,4 @@
-"""Users: Payments Profile Model."""
+"""Payments: Payments Profile Model."""
 
 from datetime import datetime
 from uuid import uuid4, UUID as uuid

@@ -16,4 +16,4 @@ done
 alembic upgrade head
 
 # Start the Flask application
-python app.py
+# python app.py

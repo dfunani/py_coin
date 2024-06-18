@@ -1,4 +1,4 @@
-"""BlockChain: Contract Model."""
+"""Contracts: Contract Model."""
 
 from datetime import datetime
 from uuid import uuid4, UUID as uuid

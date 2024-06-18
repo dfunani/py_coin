@@ -1,4 +1,4 @@
-"""Users: Settings Profile Model."""
+"""Settings: Settings Profile Model."""
 
 from datetime import datetime
 from uuid import uuid4, UUID as uuid

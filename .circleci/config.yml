@@ -7,7 +7,7 @@ jobs:
   Build and Test:
     docker:
       # using custom image, see .circleci/images/primary/Dockerfile
-      - image: cimg/python:3.10
+      - image: cimg/python:3.12
       - image: circleci/cci-demo-docker-primary:0.0.2
       - image: postgres
         environment:

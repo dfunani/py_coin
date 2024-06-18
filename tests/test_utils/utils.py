@@ -1,6 +1,5 @@
 """Test-Utils: Configure Utils Module."""
 
-from re import compile as regex_compile
 from uuid import uuid4
 from typing import Any
 from sqlalchemy.orm import Session

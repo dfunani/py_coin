@@ -1,4 +1,4 @@
-"""Warehouse: Login History Model."""
+"""Logins: Login History Model."""
 
 from uuid import uuid4, UUID as uuid
 from sqlalchemy import UUID, Boolean, Column, DateTime, ForeignKey, String, text, Enum

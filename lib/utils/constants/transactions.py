@@ -1,4 +1,4 @@
-"""Constants: Contains Constants, Enumerations and Other Static data."""
+"""Transactions: Contains Constants, Enumerations and Other Static data."""
 
 from enum import Enum
 
