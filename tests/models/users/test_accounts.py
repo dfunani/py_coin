@@ -1,61 +1,48 @@
-"""_summary_
-"""
+"""Users: Testing Account Model."""
 
-from json import loads
 from pytest import raises
-from cryptography.fernet import Fernet
+
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
+
+from lib.utils.constants.users import Status
 from models import ENGINE
-from models.user.accounts import UserAccount
-
-from models.user.users import User
-from tests.models.users.conftest import user_test_commit, user_test_teardown
+from models.user.accounts import Account
+from tests.conftest import run_test_teardown
 
 
-def test_invalid_user_account_no_user_id(get_user, fkey):
-    """_summary_"""
+def test_account_invalid_no_args():
+    """Testing Account With Missing Attributes."""
+
     with Session(ENGINE) as session:
-        session.add(get_user)
-        session.commit()
-
-        user_data = loads(Fernet(fkey).decrypt(get_user.user_id.encode()))
-        assert "id" in user_data and user_data.get("id")
-        account = UserAccount()
-        with raises(AttributeError):
-            account.user_id.get("id")
-
-        user = session.get(User, user_data.get("id"))
-        session.delete(user)
-        session.commit()
+        with raises(IntegrityError):
+            account = Account()
+            session.add(account)
+            session.commit()
 
 
-def test_invalid_user_account_no_valid_user_id(get_user, fkey):
-    """_summary_"""
+def test_account_invalid_args():
+    """Testing Constructor, for Invalid Arguments."""
+
     with Session(ENGINE) as session:
-        session.add(get_user)
-        session.commit()
-
-        user_data = loads(Fernet(fkey).decrypt(get_user.user_id.encode()))
-        assert "id" in user_data and user_data.get("id")
-        account = UserAccount(user_id="test_id")
-        with raises(AttributeError):
-            account.user_id.get("id")
-
-        user = session.get(User, user_data.get("id"))
-        session.delete(user)
-        session.commit()
+        with raises(TypeError):
+            account = Account("email", "password")
+            session.add(account)
+            session.commit()
 
 
-def test_valid_user_account_no_valid_user_id(get_user, fkey):
-    """_summary_"""
-    with Session(ENGINE) as session:
-        user_test_commit(get_user, session)
-        user_data = loads(Fernet(fkey).decrypt(get_user.user_id.encode()))
+def test_account_valid(get_users):
+    """Testing a Valid Account Constructor, with Required Arguments."""
 
-        get_account = UserAccount(user_id=user_data.get("id"))
-        user_test_commit(get_account, session)
+    for user in get_users:
+        with Session(ENGINE) as session:
+            account = Account()
+            account.user_id = user.id
+            session.add(account)
+            session.commit()
 
-        assert get_account.user_id is not None
+            assert account.id is not None
+            assert account.status == Status.NEW
+            assert isinstance(account.to_dict(), dict)
 
-        user_test_teardown(get_account.account_id, UserAccount, session)
-        user_test_teardown(user_data.get("id"), User, session)
+            run_test_teardown([account], session)

@@ -2,9 +2,9 @@ name: Python application
 
 on:
   push:
-    branches: ["release/Production", "release/UAT", "release/Development"]
+    branches: ["release/*"]
   pull_request:
-    branches: ["release/Production", "release/UAT", "release/Development"]
+    branches: ["release/*"]
 
 permissions:
   contents: read
@@ -15,11 +15,11 @@ jobs:
 
     services:
       postgres:
-        image: postgres:9.4.1
+        image: postgres
         env:
-          POSTGRES_DB: py_coin_db_test
-          POSTGRES_USER: py_user_test
-          POSTGRES_PASSWORD: py_user_password_test
+          POSTGRES_DB: py_coin_db
+          POSTGRES_USER: py_user
+          POSTGRES_PASSWORD: py_user_password
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
@@ -29,12 +29,12 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
-          python-version: 3.10.12
+          python-version: 3.12
 
       - name: Install Dependencies
         run: |

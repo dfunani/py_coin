@@ -88,7 +88,7 @@ persistent=yes
 
 # Minimum Python version to use for version dependent checks. Will default to
 # the version used to run pylint.
-py-version=3.10
+py-version=3.12
 
 # Discover python modules and packages in the file system subtree.
 recursive=no
@@ -278,7 +278,7 @@ valid-metaclass-classmethod-first-arg=mcs
 
 # List of regular expressions of class ancestor names to ignore when counting
 # public methods (see R0903)
-exclude-too-few-public-methods=
+exclude-too-few-public-methods=data
 
 # List of qualified class names to ignore when counting class parents (see
 # R0901)
@@ -438,6 +438,11 @@ disable=raw-checker-failed,
 # it should appear only once). See also the "--disable" option for examples.
 enable=
 
+[tests/models/users/test_user.py]
+disable = E1121
+
+[tests/models/*]
+disable = R0801
 
 [METHOD_ARGS]
 
@@ -523,7 +528,7 @@ min-similarity-lines=4
 # Limits count of emitted suggestions for spelling mistakes.
 max-spelling-suggestions=4
 
-# Spelling dictionary name. No available dictionaries : You need to install
+# Spelling dictionary name. No available dictionaries: You need to install
 # both the python package and the system dependency for enchant to work.
 spelling-dict=
 

@@ -1,145 +1,78 @@
-"""_summary_
+"""Accounts: Accounts Model."""
 
-Raises:
-    UserAccountError: _description_
-
-Returns:
-    _type_: _description_
-"""
-
-from datetime import datetime
-from typing import Union
-from uuid import uuid4
-from sqlalchemy import Column, DateTime, String, text, ForeignKey, Enum
-from lib.interfaces.types import UserAccountError
-from lib.utils.constants.users import (
-    AccountRole,
-    AccountStatus,
-    AccountEmailVerification,
-)
-from lib.utils.helpers.users import check_account_status
+from uuid import uuid4, UUID as uuid
+from sqlalchemy import UUID, Column, DateTime, text, ForeignKey, Enum
+from sqlalchemy.orm import relationship
+from lib.utils.constants.users import Status
 from models import Base
+from models.model import BaseModel
+from models.user.payments import PaymentProfile
+from models.user.profiles import UserProfile
+from models.user.settings import SettingsProfile
 
 
-class UserAccount(Base):
-    """_summary_
+class Account(Base, BaseModel):
+    """Model representing a User's Account."""
 
-    Args:
-        Base (_type_): _description_
+    __tablename__ = "accounts"
+    __table_args__ = ({"schema": "users"},)
+    __EXCLUDE_ATTRIBUTES__: list[str] = []
 
-    Raises:
-        UserAccountError: _description_
-
-    Returns:
-        _type_: _description_
-    """
-    __tablename__ = "user_accounts"
-
-    account_id = Column(
-        "account_id",
-        String(256),
+    id: uuid | Column[uuid] = Column(
+        "id",
+        UUID(as_uuid=True),
         default=text(f"'{str(uuid4())}'"),
         unique=True,
         nullable=False,
         primary_key=True,
     )
-    user_id: Column[str] = Column("user_id", ForeignKey("users.id"), nullable=False)
-    __account_status: Union[AccountStatus, Column[AccountStatus]] = Column(
-        "account_status",
-        Enum(AccountStatus),
-        default=AccountStatus.NEW,
+    account_id: uuid | Column[uuid] = Column(
+        "account_id",
+        UUID(as_uuid=True),
+        default=text(f"'{str(uuid4())}'"),
+        unique=True,
     )
-    email_status: Union[AccountEmailVerification, Column[AccountEmailVerification]] = (
-        Column(
-            "account_email_status",
-            Enum(AccountEmailVerification),
-            default=AccountEmailVerification.UNVERIFIED,
-        )
+    user_id: uuid | Column[uuid] = Column(
+        "user_id", UUID(as_uuid=True), ForeignKey("users.users.id"), nullable=False
     )
-    __account_creation_date = Column(
-        "account_creation_date",
-        DateTime,
-        default=text("CURRENT_TIMESTAMP"),
+    status: Status | Column[Status] = Column(
+        "status",
+        Enum(Status, name="account_status"),
+        default=Status.NEW,
+        nullable=False,
     )
-    __account_updated_date = Column(
-        "account_updated_date",
+    created_date = Column(
+        "created_date", DateTime, default=text("CURRENT_TIMESTAMP"), nullable=False
+    )
+    updated_date = Column(
+        "updated_date",
         DateTime,
         default=text("CURRENT_TIMESTAMP"),
         onupdate=text("CURRENT_TIMESTAMP"),
+        nullable=False,
     )
-    __account_status_updated_date: Union[datetime, Column[datetime]] = Column(
-        "account_status_updated_date",
-        DateTime,
-        default=text("CURRENT_TIMESTAMP"),
+    user_profiles = relationship(
+        UserProfile, backref="Account", cascade="all, delete-orphan"
     )
-    last_login_date = Column("last_login_date", DateTime, nullable=True)
-    __role: Union[AccountRole, Column[AccountRole]] = Column(
-        "account_role", Enum(AccountRole), nullable=False, default=AccountRole.USER
+    payment_profiles = relationship(
+        PaymentProfile, backref="Account", cascade="all, delete-orphan"
+    )
+    settings_profile = relationship(
+        SettingsProfile, backref="Account", cascade="all, delete-orphan"
     )
 
-    @property
-    def role(self) -> Union[AccountRole, Column[AccountRole]]:
-        """_summary_
+    def __init__(self) -> None:
+        """Account Object Constructor."""
 
-        Returns:
-            Union[AccountRole, Column[AccountRole]]: _description_
-        """
-        if self.__role == AccountRole.USER:
-            return self.__role
-        return AccountRole.USER
+        self.id = uuid4()
+        self.account_id = uuid4()
 
-    @property
-    def account_status(self):
-        """_summary_
+    def __str__(self) -> str:
+        """String Representation of the Account Object."""
 
-        Returns:
-            _type_: _description_
-        """
-        return self.__account_status
+        return f"Account ID: {str(self.account_id)}"
 
-    @account_status.setter
-    def account_status(self, value: AccountStatus) -> UserAccountError:
-        """_summary_
+    def __repr__(self) -> str:
+        """String Representation of the Account Object."""
 
-        Args:
-            value (AccountStatus): _description_
-
-        Raises:
-            UserAccountError: _description_
-
-        Returns:
-            UserAccountError: _description_
-        """
-        if not check_account_status(self.__account_status, value):
-            raise UserAccountError(
-                f"Invalid Account Status for {self.__account_status} User."
-            )
-        self.__account_status = value
-        self.__account_status_updated_date = datetime.now()
-
-    @property
-    def account_creation_date(self):
-        """_summary_
-
-        Returns:
-            _type_: _description_
-        """
-        return self.__account_creation_date
-
-    @property
-    def account_updated_date(self):
-        """_summary_
-
-        Returns:
-            _type_: _description_
-        """
-        return self.__account_updated_date
-
-    @property
-    def account_status_updated_date(self):
-        """_summary_
-
-        Returns:
-            _type_: _description_
-        """
-        return self.__account_status_updated_date
+        return f"Application Model: {self.__class__.__name__}"

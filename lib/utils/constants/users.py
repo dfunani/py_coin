@@ -1,42 +1,54 @@
-"""
-Module containing Constants, Enumerations and Other Static data
-for User Models in the Application.
-
-This module defines various functionailities that are used
-throughout the application to ensure consistency in data representation.
-
-Enums:
-    - Gender: Enumeration of gender types.
-    - AccountStatus: Enumeration of Account Statuses for a User.
-    - AccountRole: Enumeration of Account Roles for a User.
-    - AccountEmailVerification: Enumeration of Account or User Email Preferences
-    - UserDevicePermission: Enumeration of Account or User Device Preferences
-    - AccountLoginMethod: Enumeration of Account or User Login Preferences
-    - AccountCommunication: Enumeration of Account or User Communication Preferences
-    - AccountCountry: Enumeration of Account or User Country Preferences
-    - AccountLanguage: Enumeration of Account or User Language Preferences
-    - AccountOccupation: Enumeration of Account or User Occupation Preferences
-
-Example:
-    >>> from enums import Gender
-    >>> user_gender = Gender.MALE
-"""
+"""Users: Contains Constants, Enumerations and Other Static data."""
 
 from enum import Enum
 from re import Pattern, compile as regex_compile
 
 
-# KEY: Accessible using name attribute
-# VALUE: Accessible using value attribute
+class Status(Enum):
+    """Enumeration of User Related Statuses."""
+
+    NEW = "Newly Created."
+    ACTIVE = "Actively is in Use."
+    INACTIVE = "Not Actively in Use."
+    DISABLED = "Can't be used."
+    DELETED = "Has been Deleted."
+
+
+class Role(Enum):
+    """Enumeration of User Related Roles."""
+
+    SUPER = "Super Administrator"
+    SYS_ADMIN = "System Administrator"
+    TESTER = "Application Tester"
+    USER = "Application User"
+    DEVELOPER = "Application developer"
+
+
+class DateFormat(Enum):
+    """Applications Permitted Date Formats."""
+
+    SHORT = "%y/%m"  # Format 2: "24/03"
+    LONG = "%d %B %Y %H:%M:%S"  # Format 1: "14 March 2024 20:05:12"
+    SLASH = "%Y/%m/%d %H:%M:%S"  # Format 2: "2024/03/14 20:05:12"
+    HYPHEN = "%Y-%m-%d %H:%M:%S"  # Format 3: "2024-03-14 20:05:12"
 
 
 class Regex(Enum):
-    """Holds Regex COnstants That are Applicable to the Application"""
+    """Holds Regex Constants That are Applicable to the Application."""
 
-    EMAIL: Pattern = regex_compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-_]+\.[a-zA-Z]+$")
+    EMAIL: Pattern = regex_compile(
+        r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-_]+\.[a-zA-Z]{1,3}\.?[a-zA-Z]{2,3}$"
+    )
     PASSWORD: Pattern = regex_compile(
         r"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[!@#$%^&*()-_+=]).{8,}$"
     )
+    NAME = regex_compile(r"^[a-zA-Z]{1,30}$")
+    USERNAME = regex_compile(r"^[a-zA-Z][a-zA-Z0-9\s\-_@#]{8,30}$")
+    MOBILE_NUMBER = regex_compile(r"^\+\d{1,3}\d{3,14}$")
+    DESCRIPTION = regex_compile(r"^[a-zA-Z][a-zA-Z0-9\s\-,._]{8,125}$")
+    BIOGRAPHY = regex_compile(r"^(?!\s+$).{8,250}$")
+    PIN = regex_compile(r"^\d{6}$")
+    CVV = regex_compile(r"^\d+$")
 
 
 class Gender(Enum):
@@ -47,67 +59,8 @@ class Gender(Enum):
     OTHER = "other", "o"
 
 
-class AccountStatus(Enum):
-    """Enumeration of Accounts."""
-
-    NEW = "new"
-    UNVERIFIED = "unverified"
-    VERIFIED = "verified"
-    ACTIVE = "active"
-    DELETED = "deleted"
-    DISABLED = "disabled"
-    SUSPENDED = "suspended"
-
-
-class AccountRole(Enum):
-    """Enumeration of Roles."""
-
-    SUPER = "Super Administrator"
-    SYS_ADMIN = "System Administrator"
-    TESTER = "Application Tester"
-    USER = "Application User"
-    DEVELOPER = "Application developer"
-
-
-class AccountEmailVerification(Enum):
-    """Enumeration of Email Verification Statuses"""
-
-    UNVERIFIED = "New Email Unverified"
-    VERIFIED = "Email Verified"
-    VERIFYING = "Email Verification Requested"
-    FAILED = "Email Verification Failed"
-    EXPIRED = "Email Verification Request Expired"
-
-
-class UserDevicePermission(Enum):
-    """Enumeration of Email Verification Statuses"""
-
-    CAMERA = "camera"
-    STORAGE = "STORAGE"
-    CONTACTS = "contacts"
-
-
-class AccountLoginMethod(Enum):
-    """Enumeration of Email Verification Statuses"""
-
-    EMAIL = "User Email and Password"
-    GITHUB = "Github SSO"
-    SLACK = "Slack SSO"
-    GOOGLE = "Google SSO"
-    FACEBOOK = "Facebook SSO"
-
-
-class AccountCommunication(Enum):
-    """Enumeration of Email Verification Statuses"""
-
-    EMAIL = "Email Messenger"
-    SMS = "SMS"
-    CELL = "Mobile Phone"
-    SLACK = "Slack Messenger"
-
-
-class AccountCountry(Enum):
-    """Enumeration of Email Verification Statuses"""
+class Country(Enum):
+    """Enumeration of Email Verification Statuses."""
 
     AFGHANISTAN = "Afghanistan", "AF"
     ALBANIA = "Albania", "AL"
@@ -308,8 +261,8 @@ class AccountCountry(Enum):
     ZIMBABWE = "Zimbabwe", "ZW"
 
 
-class AccountLanguage(Enum):
-    """Enumeration of Email Verification Statuses"""
+class Language(Enum):
+    """Enumeration of Email Verification Statuses."""
 
     AFRIKAANS = "Afrikaans", "af"
     ALBANIAN = "Albanian", "sq"
@@ -398,8 +351,8 @@ class AccountLanguage(Enum):
     ZULU = "Zulu", "zu"
 
 
-class AccountOccupation(Enum):
-    """Enumeration of Email Verification Statuses"""
+class Occupation(Enum):
+    """Enumeration of Email Verification Statuses."""
 
     SOFTWARE_ENGINEER = "Software Engineer"
     HARDWARE_ENGINEER = "Hardware Engineer"
@@ -430,3 +383,222 @@ class AccountOccupation(Enum):
     PHARMACIST = "Pharmacist"
     SOCIAL_WORKER = "Social Worker"
     OTHER = "Other"
+
+
+class Interest(Enum):
+    """Enumeration of Profile Interests."""
+
+    ANIMALS = "Animals"
+    ART = "Art"
+    BEACH = "Beach"
+    BOARD_GAMES = "Board Games"
+    BOOKS = "Books"
+    COOKING = "Cooking"
+    CRAFTS = "Crafts"
+    CRYPTO = "Cryptocurrency"
+    DANCING = "Dancing"
+    DECENTRALIZATION = "Decentralization"
+    DRAWING = "Drawing"
+    ENTREPRENEURSHIP = "Entrepreneurship"
+    EXERCISE = "Exercise"
+    FASHION = "Fashion"
+    FITNESS = "Fitness"
+    FOOD = "Food"
+    GAMING = "Gaming"
+    GARDENING = "Gardening"
+    HEALTH_WELLNESS = "Health & Wellness"
+    HIKING = "Hiking"
+    HOME_DECOR = "Home Decor"
+    LANGUAGES = "Languages"
+    MOVIES = "Movies"
+    MUSIC = "Music"
+    NATURE = "Nature"
+    PAINTING = "Painting"
+    PHOTOGRAPHY = "Photography"
+    POETRY = "Poetry"
+    READING = "Reading"
+    RUNNING = "Running"
+    SCIENCE = "Science"
+    SELF_IMPROVEMENT = "Self-Improvement"
+    SHOPPING = "Shopping"
+    SPORTS = "Sports"
+    TECHNOLOGY = "Technology"
+    TRAVEL = "Travel"
+    VOLUNTEERING = "Volunteering"
+    WRITING = "Writing"
+    ASTROLOGY = "Astrology"
+    ASTRONOMY = "Astronomy"
+    COFFEE = "Coffee"
+    TEA = "Tea"
+    HISTORY = "History"
+    PHILOSOPHY = "Philosophy"
+    CINEMA = "Cinema"
+    THEATER = "Theater"
+    MUSIC_PRODUCTION = "Music Production"
+    DANCE = "Dance"
+    FITNESS_CLASSES = "Fitness Classes"
+    YOGA = "Yoga"
+    MEDITATION = "Meditation"
+    PODCASTS = "Podcasts"
+    COMICS = "Comics"
+    VIDEO_GAMES = "Video Games"
+    CARD_GAMES = "Card Games"
+    POLITICS = "Politics"
+    ENVIRONMENT = "Environment"
+    TRADING = "Trading"
+    INVESTING = "Investing"
+    FINANCE = "Finance"
+    ARTIFICIAL_INTELLIGENCE = "Artificial Intelligence"
+    MACHINE_LEARNING = "Machine Learning"
+    DATA_SCIENCE = "Data Science"
+    CYBERSECURITY = "Cybersecurity"
+    WEB_DEVELOPMENT = "Web Development"
+    MOBILE_DEVELOPMENT = "Mobile Development"
+    BLOCKCHAIN = "Blockchain"
+    DEFI = "DeFi"
+    NFTS = "NFTs"
+    DAPPS = "DApps"
+    CRYPTO_TRADING = "Crypto Trading"
+    MINING = "Mining"
+    WEB3 = "Web3"
+    CRYPTO_INVESTING = "Crypto Investing"
+    BLOCKCHAIN_DEVELOPMENT = "Blockchain Development"
+    GENEALOGY = "Genealogy"
+    ANIME = "Anime"
+    MANGA = "Manga"
+    COSPLAY = "Cosplay"
+    URBAN_EXPLORATION = "Urban Exploration"
+    SURFING = "Surfing"
+    SKATEBOARDING = "Skateboarding"
+    SNOWBOARDING = "Snowboarding"
+    SKIING = "Skiing"
+    CAMPING = "Camping"
+    BACKPACKING = "Backpacking"
+    SURVIVALISM = "Survivalism"
+    FORAGING = "Foraging"
+    ARTISANAL_CRAFTS = "Artisanal Crafts"
+    CALLIGRAPHY = "Calligraphy"
+    GLASSBLOWING = "Glassblowing"
+    POTTERY = "Pottery"
+    KNITTING = "Knitting"
+    CROCHETING = "Crocheting"
+    EMBROIDERY = "Embroidery"
+    SEWING = "Sewing"
+    WOODWORKING = "Woodworking"
+    METALWORKING = "Metalworking"
+    LEATHERWORKING = "Leatherworking"
+    BEEKEEPING = "Beekeeping"
+    HOMEBREWING = "Homebrewing"
+    WINE_MAKING = "Wine Making"
+    SPIRITS_DISTILLING = "Spirits Distilling"
+    MIXOLOGY = "Mixology"
+    COCKTAILS = "Cocktails"
+    BEER = "Beer"
+    WINE = "Wine"
+    WHISKY = "Whisky"
+    RUM = "Rum"
+    VODKA = "Vodka"
+    GIN = "Gin"
+    TEQUILA = "Tequila"
+    BRANDY = "Brandy"
+    CIDER = "Cider"
+    MEAD = "Mead"
+    SODA = "Soda"
+    JUICE = "Juice"
+
+
+class SocialMediaLink(Enum):
+    """Enumeration of Social Media Links."""
+
+    GITHUB = regex_compile(r"^https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9_-]+$")
+    FACEBOOK = regex_compile(r"^https?:\/\/(www\.)?facebook\.com\/[a-zA-Z0-9._-]+$")
+    TWITTER = regex_compile(r"^https?:\/\/(www\.)?twitter\.com\/[a-zA-Z0-9_]+$")
+    INSTAGRAM = regex_compile(r"^https?:\/\/(www\.)?instagram\.com\/[a-zA-Z0-9._]+$")
+    LINKEDIN = regex_compile(r"^https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9-]+$")
+    PINTEREST = regex_compile(r"^https?:\/\/(www\.)?pinterest\.com\/[a-zA-Z0-9_]+$")
+    TIKTOK = regex_compile(r"^https?:\/\/(www\.)?tiktok\.com\/@[a-zA-Z0-9_]+$")
+    REDDIT = regex_compile(r"^https?:\/\/(www\.)?reddit\.com\/user\/[a-zA-Z0-9_]+$")
+    DISCORD = regex_compile(r"^https?:\/\/(www\.)?discord\.com\/users\/[0-9]+$")
+    TELEGRAM = regex_compile(
+        r"^https?:\/\/(t(?:elegram)?\.me|telegram\.org)\/[a-zA-Z0-9_]+$"
+    )
+    YOUTUBE = regex_compile(
+        r"^https?:\/\/(www\.)?youtube\.com\/(c|channel|user)\/[a-zA-Z0-9_-]+$"
+    )
+    SLACK = regex_compile(r"^https?:\/\/[a-zA-Z0-9-]+\.slack\.com\/?$")
+    TWITCH = regex_compile(r"^https?:\/\/(www\.)?twitch\.tv\/[a-zA-Z0-9_]+$")
+    SPOTIFY = regex_compile(r"^https?:\/\/open\.spotify\.com\/user\/[a-zA-Z0-9_]+$")
+    SOUNDCLOUD = regex_compile(r"^https?:\/\/(www\.)?soundcloud\.com\/[a-zA-Z0-9_-]+$")
+
+
+class CardType(Enum):
+    """Enumeration of Card Types."""
+
+    CHEQUE = "cheque", "1991"
+    SAVINGS = "savings", "1992"
+    CREDIT = "credit", "1993"
+
+
+class DataSharingPreference(Enum):
+    """Enumeration of Data Sharing Options."""
+
+    ACCOUNT = "Share All Permissible Account Data."
+    PROFILE = "Share Profile Data."
+    SETTINGS = "Share Settings Data."
+    TRANSACTIONS = "Share Transaction Data."
+
+
+class ProfileVisibility(Enum):
+    """Enumeration of Profile Visibility Options."""
+
+    PRIVATE = "Private"
+    PUBLIC = "Public"
+    ADMIN = "ADMIN"
+
+
+class Theme(Enum):
+    """Enumeration of Theme Options."""
+
+    SYSTEM = "Defaults to Device Settings."
+    DARK = "DARK Theme Preferred."
+    LIGHT = "Light Theme Preferred."
+    RED = "Red Theme Preferred."
+    GREEN = "Green Theme Preferred."
+    BLUE = "Blue Theme Preferred."
+
+
+class Verification(Enum):
+    """Enumeration of Verification Statuses."""
+
+    UNVERIFIED = "New and Unverified"
+    VERIFIED = "Verified"
+    VERIFYING = "Verification Requested"
+    FAILED = "Verification Failed"
+    EXPIRED = "Verification Request Expired"
+
+
+class DevicePermission(Enum):
+    """Enumeration of Email Verification Statuses."""
+
+    CAMERA = "camera"
+    STORAGE = "STORAGE"
+    CONTACTS = "contacts"
+
+
+class LoginMethod(Enum):
+    """Enumeration of Email Verification Statuses."""
+
+    EMAIL = "User Email and Password"
+    GITHUB = "Github SSO"
+    SLACK = "Slack SSO"
+    GOOGLE = "Google SSO"
+    FACEBOOK = "Facebook SSO"
+
+
+class Communication(Enum):
+    """Enumeration of Email Verification Statuses."""
+
+    EMAIL = "Email Messenger"
+    SMS = "SMS"
+    CELL = "Mobile Phone"
+    SLACK = "Slack Messenger"
