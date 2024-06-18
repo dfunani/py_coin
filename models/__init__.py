@@ -14,3 +14,5 @@ ENGINE = create_engine(
     f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 )
 Base = declarative_base()
+
+Base.metadata.create_all(ENGINE)

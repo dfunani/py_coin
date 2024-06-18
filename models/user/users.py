@@ -1,143 +1,67 @@
-"""Base Module: Contains User Abstract/Base class,
-modelling a Users Base structure."""
+"""Users: User Model."""
 
-from json import dumps
-from os import getenv
-from typing import Union
-from uuid import uuid4
-from cryptography.fernet import Fernet
-from sqlalchemy import Column, DateTime, String, text
-from lib.interfaces.types import FernetError, UserEmailError, UserPasswordError
-from lib.utils.constants.users import Regex
-from lib.utils.helpers.users import get_hash_value
+from datetime import datetime
+from uuid import uuid4, UUID as uuid
+
+from sqlalchemy import UUID, Column, DateTime, Enum, String, text
+from sqlalchemy.orm import relationship
+
+from lib.utils.constants.users import Role, Status
 from models import Base
+from models.model import BaseModel
+from models.warehouse.logins import LoginHistory
 
 
-class User(Base):
-    """
-    Model representing user information.
-
-    Properties:
-        - __tablename__ (str): The name of the database table for users.
-        - user_id (str): Encrypted User Data
-
-    Usage:
-    - To create a new user:
-        new_user = User("email@testing.com", "password@specialcharacters")
-        session.add(new_user)
-        session.commit()
-
-    - To retrieve the encrypted user ID:
-        encrypted_user_id = queried_user.user_id()
-    """
+class User(Base, BaseModel):
+    """Model representing a User."""
 
     __tablename__ = "users"
+    __table_args__ = ({"schema": "users"},)
+    __EXCLUDE_ATTRIBUTES__: list[str] = []
 
-    __id = Column(
-        "id", String(256), default=text(f"'{str(uuid4())}'"), primary_key=True
+    id: uuid | Column[uuid] = Column(
+        "id", UUID(as_uuid=True), primary_key=True, nullable=False
     )
-    __user_id = Column("user_id", String(256), default=text(f"'{str(uuid4())}'"))
-    __created = Column("created", DateTime, default=text("CURRENT_TIMESTAMP"))
-    __email: Union[str, Column[str]] = Column(
-        "email", String(256), unique=True, nullable=False
+    user_id: str | Column[str] = Column(
+        "user_id", String(256), nullable=False, unique=True
     )
-    __password: Union[str, Column[str]] = Column(
-        "password", String(256), nullable=False
+    email: str | Column[str] = Column("email", String(256), unique=True, nullable=False)
+    password: str | Column[str] = Column("password", String(256), nullable=False)
+    created_date: datetime | Column[datetime] = Column(
+        "created_date", DateTime, default=text("CURRENT_TIMESTAMP"), nullable=False
+    )
+    updated_date: datetime | Column[datetime] = Column(
+        "updated_date",
+        DateTime,
+        default=text("CURRENT_TIMESTAMP"),
+        onupdate=text("CURRENT_TIMESTAMP"),
+        nullable=False,
+    )
+    status: Status | Column[Status] = Column(
+        "status", Enum(Status, name="user_status"), nullable=False, default=Status.NEW
+    )
+    salt_value: uuid | Column[uuid] = Column(
+        "salt_value", UUID(as_uuid=True), nullable=False
+    )
+    role: Role | Column[Role] = Column(
+        "role", Enum(Role), nullable=False, default=Role.USER
+    )
+    login_history = relationship(
+        LoginHistory, backref="User", cascade="all, delete-orphan"
     )
 
-    def __init__(self, email: str, password: str) -> None:
-        """User Object Constructor
+    def __init__(self) -> None:
+        """User Object Constructor."""
 
-        Args:
-            email (str): Email to Assign to Created User
-            password (str): Password to Assign to Created User
+        self.id = uuid4()
+        self.salt_value = uuid4()
 
-        Raises:
-            UserEmailError: Custom User Email Error
-            UserPasswordError: Custom User Password Error
-        """
-        if not isinstance(email, str):
-            raise UserEmailError("No Email Provided")
-        if not isinstance(password, str):
-            raise UserPasswordError("No Password Provided")
+    def __str__(self) -> str:
+        """String Representation of the User Object."""
 
-        if not Regex.EMAIL.value.match(email):
-            raise UserEmailError("Invalid User Email.")
-        if not Regex.PASSWORD.value.match(password):
-            raise UserPasswordError("Invalid User Password.")
+        return f"User ID: {str(self.user_id)}"
 
-        self.__email = email
-        self.__password = get_hash_value(password)
+    def __repr__(self) -> str:
+        """String Representation of the User Object."""
 
-    @property
-    def email(self) -> UserEmailError:
-        """Getter For User Email
-
-        Raises:
-            UserEmailError: Raises a User Email Error
-        """
-        raise UserEmailError("Can Not Access Private Attribute: [Email]")
-
-    @email.setter
-    def email(self, value: str) -> UserEmailError:
-        """Setter For User Email
-
-        Args:
-            value (str): Value to set attribute to.
-
-        Raises:
-            UserEmailError: Custom Exception for Invalid Email Actions.
-
-        Returns:
-            Union[None, UserEmailError]: Returns None or Raises a User Email Error.
-        """
-
-        if not Regex.EMAIL.value.match(value):
-            raise UserEmailError("Invalid User Email.")
-        self.__email = value
-
-    @property
-    def password(self) -> UserPasswordError:
-        """Getter For User Password
-
-        Raises:
-            UserPasswordlError: Raises a User Password Error
-        """
-        raise UserPasswordError("Can Not Access Private Attribute: [PASSWORD]")
-
-    @password.setter
-    def password(self, value: str) -> UserPasswordError:
-        """Setter For User Pasword
-
-        Args:
-            value (str): Value to set attribute to.
-
-        Raises:
-            UserEmailError: Custom Exception for Invalid Password Actions.
-
-        Returns:
-            Union[None, UserEmailError]: Returns None or Raises a User Password Error.
-        """
-        if not Regex.PASSWORD.value.match(value):
-            raise UserPasswordError("Invalid User Password.")
-        self.__password = get_hash_value(value)
-
-    @property
-    def user_id(self) -> str:
-        """
-        Return an encrypted string combining the user's unique ID, user ID, and creation timestamp.
-
-        Returns:
-        - str: An encrypted string representing the user's ID information.
-        """
-        data = {
-            "id": self.__id,
-            "user_id": self.__user_id,
-            "created": str(self.__created),
-            "email": self.__email,
-            "password": self.__password,
-        }
-        fkey = getenv("FERNET_KEY")
-        if not fkey:
-            raise FernetError("Fernet Key not found.")
-        return Fernet(fkey).encrypt(dumps(data).encode()).decode()
+        return f"Application Model: {self.__class__.__name__}"
